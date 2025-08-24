@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,16 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = '用户登录 - ZhiXue Lite';
+    return () => {
+      document.title = 'ZhiXue Lite';
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,8 +39,9 @@ const LoginPage: React.FC = () => {
     try {
       await login(formData.username, formData.password);
       navigate('/');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '登录失败，请稍后重试';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +56,7 @@ const LoginPage: React.FC = () => {
             <span>用户登录</span>
           </CardTitle>
           <CardDescription>
-            请输入您的用户名和密码登录系统
+            欢迎回来
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,10 +66,10 @@ const LoginPage: React.FC = () => {
                 {error}
               </div>
             )}
-            
+
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">
-                用户名
+                用户名或邮箱
               </label>
               <Input
                 id="username"
@@ -69,7 +77,7 @@ const LoginPage: React.FC = () => {
                 type="text"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="请输入用户名"
+                placeholder="请输入用户名或邮箱"
                 disabled={isLoading}
                 required
               />

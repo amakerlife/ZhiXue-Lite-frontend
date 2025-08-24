@@ -66,8 +66,9 @@ const ExamDetailPage: React.FC = () => {
       } else {
         setError(response.data.message || '获取考试详情失败');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '获取考试详情失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试详情失败';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -87,8 +88,9 @@ const ExamDetailPage: React.FC = () => {
         const taskId = response.data.task_id;
         pollTaskStatus(taskId);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '拉取考试详情失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试详情失败';
+      setError(errorMessage);
     }
   };
 
@@ -109,7 +111,7 @@ const ExamDetailPage: React.FC = () => {
           setTimeout(() => pollTaskStatus(taskId), 2000);
         }
       }
-    } catch (err) {
+    } catch {
       setFetchingTask(null);
       setError('获取任务状态失败');
     }
@@ -131,8 +133,9 @@ const ExamDetailPage: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err: any) {
-      setError(err.response?.data?.message || '下载成绩单失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '下载成绩单失败';
+      setError(errorMessage);
     } finally {
       setDownloadingScoresheet(false);
     }
@@ -140,7 +143,7 @@ const ExamDetailPage: React.FC = () => {
 
   useEffect(() => {
     loadExamDetail();
-  }, [examId]);
+  }, [examId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 设置页面标题
   useEffect(() => {
@@ -412,7 +415,6 @@ const ExamDetailPage: React.FC = () => {
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">答题卡预留区域</h3>
               <p className="text-muted-foreground">
-                此区域预留用于展示用户答题卡，功能待后续开发
               </p>
             </div>
           </CardContent>

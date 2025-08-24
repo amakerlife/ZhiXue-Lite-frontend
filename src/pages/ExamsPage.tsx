@@ -46,8 +46,9 @@ const ExamsPage: React.FC = () => {
         setExams(response.data.exams);
         setTotalPages(response.data.pagination.pages);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '获取考试列表失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试列表失败';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,8 +66,9 @@ const ExamsPage: React.FC = () => {
         const taskId = response.data.task_id;
         pollTaskStatus(taskId);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '拉取考试失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试失败';
+      setError(errorMessage);
     }
   };
 
@@ -87,7 +89,7 @@ const ExamsPage: React.FC = () => {
           setTimeout(() => pollTaskStatus(taskId), 2000);
         }
       }
-    } catch (err) {
+    } catch {
       setFetchingTask(null);
       setError('获取任务状态失败');
     }
@@ -104,6 +106,13 @@ const ExamsPage: React.FC = () => {
     setPage(newPage);
     loadExams(newPage, searchQuery);
   };
+
+  useEffect(() => {
+    document.title = '考试列表 - ZhiXue Lite';
+    return () => {
+      document.title = 'ZhiXue Lite';
+    };
+  }, []);
 
   useEffect(() => {
     loadExams();

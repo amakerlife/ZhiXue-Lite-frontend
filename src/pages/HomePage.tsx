@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Users, School, TrendingUp } from 'lucide-react';
 
 const HomePage: React.FC = () => {
+  useEffect(() => {
+    document.title = '首页 - ZhiXue Lite';
+    return () => {
+      document.title = 'ZhiXue Lite';
+    };
+  }, []);
   return (
     <div className="space-y-8">
       {/* Welcome Section */}

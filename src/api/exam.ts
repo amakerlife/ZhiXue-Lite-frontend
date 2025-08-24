@@ -1,5 +1,5 @@
 import api from './client';
-import type { ApiResponse, Exam, ExamDetail, BackgroundTask, PaginatedResponse } from '@/types/api';
+import type { ApiResponse, Exam, PaginationInfo } from '@/types/api';
 
 export interface ExamListParams {
   page?: number;
@@ -9,7 +9,7 @@ export interface ExamListParams {
 
 export const examAPI = {
   getExamList: (params: ExamListParams = {}) =>
-    api.get<ApiResponse & { exams: Exam[]; pagination: any }>('/exam/list', { params }),
+    api.get<ApiResponse & { exams: Exam[]; pagination: PaginationInfo }>('/exam/list', { params }),
   
   fetchExamList: () =>
     api.post<ApiResponse & { task_id: string }>('/exam/list/fetch'),

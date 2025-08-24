@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { User, Mail, Calendar, Shield, Link2, Unlink } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,42 @@ const ProfilePage: React.FC = () => {
   const [connectConfirmOpen, setConnectConfirmOpen] = useState(false);
   const [disconnectConfirmOpen, setDisconnectConfirmOpen] = useState(false);
 
+  // 新增：智学网绑定信息
+  const [bindingInfo, setBindingInfo] = useState<{ username: string }[]>([]);
+  const [loadingBindingInfo, setLoadingBindingInfo] = useState(false);
+
+  // 新增：修改用户信息相关状态
+  const [editMode, setEditMode] = useState<'none' | 'email' | 'password'>('none');
+  const [editForm, setEditForm] = useState({
+    email: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  useEffect(() => {
+    document.title = '个人中心 - ZhiXue Lite';
+    return () => {
+      document.title = 'ZhiXue Lite';
+    };
+  }, []);
+
+  // 新增：进入个人中心时获取最新用户数据
+  useEffect(() => {
+    const loadLatestUserData = async () => {
+      await refreshUser();
+    };
+
+    loadLatestUserData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 新增：当用户信息加载完成且有智学网账号时，加载绑定信息
+  useEffect(() => {
+    if (user?.zhixue_username) {
+      loadBindingInfo();
+    }
+  }, [user?.zhixue_username]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleConnectZhixue = (e: React.FormEvent) => {
     e.preventDefault();
     setConnectConfirmOpen(true);
@@ -33,20 +69,45 @@ const ProfilePage: React.FC = () => {
     setSuccess(null);
 
     try {
-      const response = await authAPI.connectZhixue({
+      const response = await authAPI.bindZhixue({
         username: connectForm.username,
         password: connectForm.password,
       });
-      
+
       if (response.data.success) {
         setSuccess('智学网账号绑定成功！');
         setConnectForm({ username: '', password: '', showForm: false });
         await refreshUser();
+        // 绑定成功后加载绑定信息
+        await loadBindingInfo();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '绑定失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '绑定失败';
+      setError(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 新增：加载智学网账号绑定信息
+  const loadBindingInfo = async () => {
+    if (!user?.zhixue_username) {
+      setBindingInfo([]);
+      return;
+    }
+
+    setLoadingBindingInfo(true);
+    try {
+      const response = await authAPI.getZhixueBindingInfo();
+      if (response.data.success) {
+        setBindingInfo(response.data.binding_info);
+      }
+    } catch (err: unknown) {
+      console.error('获取绑定信息失败:', err);
+      // 如果获取失败，不显示错误给用户，只是不显示绑定信息
+      setBindingInfo([]);
+    } finally {
+      setLoadingBindingInfo(false);
     }
   };
 
@@ -60,13 +121,95 @@ const ProfilePage: React.FC = () => {
     setSuccess(null);
 
     try {
-      const response = await authAPI.disconnectZhixue();
+      const response = await authAPI.unbindZhixue();
       if (response.data.success) {
         setSuccess('智学网账号已解绑');
         await refreshUser();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '解绑失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '解绑失败';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 新增：初始化编辑表单
+  const startEdit = (type: 'email' | 'password') => {
+    setError(null);
+    setSuccess(null);
+    setEditMode(type);
+    if (type === 'email') {
+      setEditForm(prev => ({ ...prev, email: user?.email || '' }));
+    } else {
+      setEditForm(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      }));
+    }
+  };
+
+  // 新增：取消编辑
+  const cancelEdit = () => {
+    setEditMode('none');
+    setEditForm({
+      email: '',
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+  };
+
+  // 新增：提交修改
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !user.id) return;
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const updateData: { email?: string; currentPassword?: string; password?: string } = {};
+
+      if (editMode === 'email') {
+        if (editForm.email === user.email) {
+          setError('新邮箱与当前邮箱相同');
+          setLoading(false);
+          return;
+        }
+        updateData.email = editForm.email;
+      } else if (editMode === 'password') {
+        if (editForm.newPassword !== editForm.confirmPassword) {
+          setError('两次输入的新密码不一致');
+          setLoading(false);
+          return;
+        }
+        if (editForm.newPassword.length < 6) {
+          setError('密码长度不能少于6位');
+          setLoading(false);
+          return;
+        }
+        updateData.password = editForm.newPassword;
+      }
+
+      const response = await authAPI.updateUser(user.id, updateData);
+      if (response.data.success) {
+        setSuccess(editMode === 'email' ? '邮箱修改成功' : '密码修改成功');
+        setEditMode('none');
+        setEditForm({
+          email: '',
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+        await refreshUser();
+      }
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '修改失败';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -124,15 +267,80 @@ const ProfilePage: React.FC = () => {
                 <span className="font-medium">{user.username}</span>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">邮箱</label>
-              <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{user.email}</span>
-              </div>
+              {editMode === 'email' ? (
+                <form onSubmit={handleUpdateUser} className="space-y-3">
+                  <Input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="请输入新邮箱"
+                    required
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Button type="submit" size="sm" disabled={loading}>
+                      {loading ? '保存中...' : '保存'}
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={cancelEdit}>
+                      取消
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">{user.email}</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => startEdit('email')}>
+                    修改
+                  </Button>
+                </div>
+              )}
             </div>
-            
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">密码</label>
+              {editMode === 'password' ? (
+                <form onSubmit={handleUpdateUser} className="space-y-3">
+                  <Input
+                    type="password"
+                    value={editForm.newPassword}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                    placeholder="请输入新密码"
+                    required
+                  />
+                  <Input
+                    type="password"
+                    value={editForm.confirmPassword}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="请确认新密码"
+                    required
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Button type="submit" size="sm" disabled={loading}>
+                      {loading ? '保存中...' : '保存'}
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={cancelEdit}>
+                      取消
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">••••••••</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => startEdit('password')}>
+                    修改
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">角色</label>
               <div className="flex items-center space-x-2">
@@ -142,7 +350,7 @@ const ProfilePage: React.FC = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">最后登录</label>
               <div className="flex items-center space-x-2">
@@ -175,7 +383,7 @@ const ProfilePage: React.FC = () => {
                   <div>
                     <p className="font-medium text-green-900">已绑定智学网账号</p>
                     <p className="text-sm text-green-700 mt-1">
-                      用户名: {user.zhixue_username} | 
+                      用户名: {user.zhixue_username} |
                       姓名: {user.zhixue_realname} |
                       学校: {user.zhixue_school}
                     </p>
@@ -191,6 +399,54 @@ const ProfilePage: React.FC = () => {
                     解绑
                   </Button>
                 </div>
+              </div>
+
+              {/* 显示绑定信息 - 根据绑定用户数量调整显示 */}
+              <div className={`rounded-md p-4 border ${
+                bindingInfo.length <= 1
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-yellow-50 border-yellow-200'
+              }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className={`font-medium ${
+                    bindingInfo.length <= 1 ? 'text-green-900' : 'text-yellow-900'
+                  }`}>账号绑定情况</h4>
+                  {loadingBindingInfo && (
+                    <RefreshCw className={`h-4 w-4 animate-spin ${
+                      bindingInfo.length <= 1 ? 'text-green-600' : 'text-yellow-600'
+                    }`} />
+                  )}
+                </div>
+
+                {bindingInfo.length <= 1 ? (
+                  // 只有当前用户绑定，显示安全信息
+                  <div className="space-y-2">
+                    <p className="text-sm text-green-700">
+                      仅该账号绑定了此智学网账号，数据安全
+                    </p>
+                  </div>
+                ) : (
+                  // 多个用户绑定，显示警告信息和用户列表
+                  <div className="space-y-2">
+                    <p className="text-sm text-yellow-800 font-medium">
+                      此智学网账号已被 {bindingInfo.length} 个用户绑定：
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {bindingInfo.map((info) => (
+                        <Badge
+                          key={info.username}
+                          variant="outline"
+                          className="text-yellow-800 border-yellow-400 bg-yellow-100"
+                        >
+                          {info.username}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="text-xs text-yellow-700 mt-2">
+                      请确保知悉以上信息，如有疑问请联系管理员。
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -264,7 +520,7 @@ const ProfilePage: React.FC = () => {
           )}
         </CardContent>
       </Card>
-      
+
       <ConfirmDialog
         open={connectConfirmOpen}
         onOpenChange={setConnectConfirmOpen}
@@ -275,7 +531,7 @@ const ProfilePage: React.FC = () => {
         variant="default"
         onConfirm={confirmConnectZhixue}
       />
-      
+
       <ConfirmDialog
         open={disconnectConfirmOpen}
         onOpenChange={setDisconnectConfirmOpen}

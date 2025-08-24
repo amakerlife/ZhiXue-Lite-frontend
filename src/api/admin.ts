@@ -1,5 +1,5 @@
 import api from './client';
-import type { ApiResponse, User, PaginatedResponse } from '@/types/api';
+import type { ApiResponse, PaginationInfo } from '@/types/api';
 
 export interface AdminListParams {
   page?: number;
@@ -25,6 +25,7 @@ export interface Teacher {
   username: string;
   realname: string;
   school_name: string;
+  login_method: string;
 }
 
 export interface AdminUser {
@@ -38,24 +39,39 @@ export interface AdminUser {
   registration_ip?: string;
   last_login_ip?: string;
   zhixue_account_id?: string;
+  zhixue_username?: string;
+  zhixue_realname?: string;
+  zhixue_school?: string;
+}
+
+export interface AdminExam {
+  id: string;
+  name: string;
+  is_saved: boolean;
+  school: string; // 注意：这里是学校名称，不是school_id
+  created_at: number;
 }
 
 export const adminAPI = {
   // 学校管理
   listSchools: (params: AdminListParams = {}) =>
-    api.get<ApiResponse & { schools: School[]; pagination: any }>('/admin/list/schools', { params }),
+    api.get<ApiResponse & { schools: School[]; pagination: PaginationInfo }>('/admin/list/schools', { params }),
+  
+  // 考试管理  
+  listExams: (params: AdminListParams = {}) =>
+    api.get<ApiResponse & { exams: AdminExam[]; pagination: PaginationInfo }>('/admin/list/exams', { params }),
   
   // 用户管理
   listUsers: (params: AdminListParams = {}) =>
-    api.get<ApiResponse & { users: AdminUser[]; pagination: any }>('/admin/list/users', { params }),
+    api.get<ApiResponse & { users: AdminUser[]; pagination: PaginationInfo }>('/admin/list/users', { params }),
   
   // 智学网学生账户管理
   listZhiXueAccounts: (params: AdminListParams = {}) =>
-    api.get<ApiResponse & { zhixue_accounts: ZhiXueAccount[]; pagination: any }>('/admin/list/zhixue_accounts', { params }),
+    api.get<ApiResponse & { zhixue_accounts: ZhiXueAccount[]; pagination: PaginationInfo }>('/admin/list/zhixue_accounts', { params }),
   
   // 教师管理
   listTeachers: (params: AdminListParams = {}) =>
-    api.get<ApiResponse & { teachers: Teacher[]; pagination: any }>('/teacher/list', { params }),
+    api.get<ApiResponse & { teachers: Teacher[]; pagination: PaginationInfo }>('/teacher/list', { params }),
   
   addTeacher: (data: { username: string; password: string; login_method?: string }) =>
     api.post<ApiResponse & { teacher: Teacher }>('/teacher/add', data),
@@ -68,4 +84,11 @@ export const adminAPI = {
   
   deleteTeacher: (username: string) =>
     api.delete<ApiResponse>(`/teacher/${username}`),
+  
+  // 智学网账号管理
+  getZhixueAccountBindings: (zhixueUsername: string) =>
+    api.get<ApiResponse & { binding_info: { total: number; users: { username: string }[] } }>(`/admin/zhixue/${zhixueUsername}/users`),
+  
+  unbindUserFromZhixueAccount: (zhixueUsername: string, username: string) =>
+    api.post<ApiResponse>(`/admin/zhixue/${zhixueUsername}/unbind/${username}`),
 };

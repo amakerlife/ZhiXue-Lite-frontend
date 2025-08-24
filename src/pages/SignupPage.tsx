@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,13 @@ const SignupPage: React.FC = () => {
 
   const { signup } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = '用户注册 - ZhiXue Lite';
+    return () => {
+      document.title = 'ZhiXue Lite';
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,8 +54,9 @@ const SignupPage: React.FC = () => {
     try {
       await signup(formData.username, formData.password, formData.email);
       navigate('/');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '注册失败，请稍后重试';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

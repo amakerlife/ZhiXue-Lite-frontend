@@ -1,10 +1,11 @@
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
 }
 
 export interface User {
+  id?: number;
   username: string;
   email: string;
   role: 'admin' | 'user';
@@ -13,6 +14,14 @@ export interface User {
   zhixue_username?: string;  // 后端返回的是扁平化的字段
   zhixue_realname?: string;
   zhixue_school?: string;
+}
+
+export interface UserUpdateRequest {
+  email?: string;
+  role?: 'admin' | 'user';
+  is_active?: boolean;
+  password?: string;
+  currentPassword?: string;
 }
 
 // 为了兼容性，创建一个包含zhixue对象的接口
@@ -74,7 +83,7 @@ export interface BackgroundTask {
   created_at: string;
   started_at?: string;
   completed_at?: string;
-  result?: any;
+  result?: unknown;
 }
 
 export interface PaginationInfo {

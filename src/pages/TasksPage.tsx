@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle2, XCircle, AlertCircle, RefreshCw, Filter } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,7 +26,7 @@ const TasksPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const params: any = {
+      const params: { page: number; per_page: number; status?: string } = {
         page: pageNum,
         per_page: 10,
       };
@@ -39,8 +39,9 @@ const TasksPage: React.FC = () => {
         setTotalPages(response.data.pagination.pages);
         setTotalTasks(response.data.pagination.total);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '获取任务列表失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取任务列表失败';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -59,8 +60,9 @@ const TasksPage: React.FC = () => {
       if (response.data.success) {
         await loadTasks(page, statusFilter);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '取消任务失败');
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '取消任务失败';
+      setError(errorMessage);
     }
   };
 
@@ -74,6 +76,13 @@ const TasksPage: React.FC = () => {
     setPage(newPage);
     loadTasks(newPage, statusFilter);
   };
+
+  useEffect(() => {
+    document.title = '任务列表 - ZhiXue Lite';
+    return () => {
+      document.title = 'ZhiXue Lite';
+    };
+  }, []);
 
   useEffect(() => {
     loadTasks(1, 'all');

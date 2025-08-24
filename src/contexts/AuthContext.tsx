@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { authAPI } from '@/api/auth';
 import type { User } from '@/types/api';
 
@@ -14,6 +15,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/* eslint-disable react-refresh/only-export-components */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -37,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 后端直接返回 user 字段，不是包装在 data 中
         setUser(response.data.user);
       }
-    } catch (error) {
+    } catch {
       setUser(null);
     }
   };
@@ -51,8 +53,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         throw new Error(response.data.message || '登录失败');
       }
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || '登录失败');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } }).response?.data?.message || '登录失败';
+      throw new Error(errorMessage);
     }
   };
 
@@ -64,8 +69,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         throw new Error(response.data.message || '注册失败');
       }
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || '注册失败');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } }).response?.data?.message || '注册失败';
+      throw new Error(errorMessage);
     }
   };
 

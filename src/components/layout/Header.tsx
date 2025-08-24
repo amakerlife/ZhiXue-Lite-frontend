@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronRight, User, LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
+import { examAPI } from '@/api/exam';
 import logo from '@/assets/logo.png';
 
 interface BreadcrumbItem {
@@ -28,32 +29,60 @@ const routeNameMap: Record<string, string> = {
   '/signup': '注册',
 };
 
-const generateBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
+const generateBreadcrumbs = async (pathname: string): Promise<BreadcrumbItem[]> => {
   const paths = pathname.split('/').filter(Boolean);
   const breadcrumbs: BreadcrumbItem[] = [
     { name: '首页', path: '/' }
   ];
 
   let currentPath = '';
-  paths.forEach((path) => {
+  for (const path of paths) {
     currentPath += `/${path}`;
-    const name = routeNameMap[currentPath] || path;
+    let name = routeNameMap[currentPath] || path;
+    
+    // 处理考试详情页面的动态路由
+    if (currentPath.startsWith('/exams/') && currentPath !== '/exams' && path !== 'exams') {
+      try {
+        const examId = path;
+        const response = await examAPI.getUserExamScore(examId);
+        if (response.data.success) {
+          name = response.data.name || examId;
+        }
+      } catch (error) {
+        console.warn('Failed to fetch exam name for breadcrumb:', error);
+      }
+    }
+    
     breadcrumbs.push({ name, path: currentPath });
-  });
+  }
 
   return breadcrumbs;
 };
 
 const Header: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
-  const breadcrumbs = generateBreadcrumbs(location.pathname);
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([
+    { name: '首页', path: '/' }
+  ]);
+
+  useEffect(() => {
+    const loadBreadcrumbs = async () => {
+      const newBreadcrumbs = await generateBreadcrumbs(location.pathname);
+      setBreadcrumbs(newBreadcrumbs);
+    };
+    
+    loadBreadcrumbs();
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
       await logout();
+      navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
+      navigate('/');
     }
   };
 
