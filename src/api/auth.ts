@@ -4,6 +4,7 @@ import type { ApiResponse, User, UserUpdateRequest } from '@/types/api';
 export interface LoginRequest {
   username: string;
   password: string;
+  turnstile_token?: string;
 }
 
 export interface SignupRequest extends LoginRequest {
@@ -13,6 +14,7 @@ export interface SignupRequest extends LoginRequest {
 export interface ConnectZhixueRequest {
   username: string;
   password: string;
+  turnstile_token?: string;
 }
 
 export const authAPI = {
@@ -33,7 +35,7 @@ export const authAPI = {
 
   unbindZhixue: () =>
     api.post<ApiResponse>('/user/zhixue/unbind'),
-  
+
   getZhixueBindingInfo: () =>
     api.get<ApiResponse & { binding_info: { username: string }[] }>('/user/zhixue/binding_info'),
 

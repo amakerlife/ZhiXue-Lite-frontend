@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { authAPI } from '@/api/auth';
 import { formatUTCIsoToLocal } from '@/utils/dateUtils';
+import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -21,6 +22,11 @@ const ProfilePage: React.FC = () => {
   });
   const [connectConfirmOpen, setConnectConfirmOpen] = useState(false);
   const [disconnectConfirmOpen, setDisconnectConfirmOpen] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileRef>(null);
+
+  // 检查是否启用验证码
+  const isTurnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED === 'true';
 
   // 新增：智学网绑定信息
   const [bindingInfo, setBindingInfo] = useState<{ username: string }[]>([]);
@@ -60,6 +66,10 @@ const ProfilePage: React.FC = () => {
 
   const handleConnectZhixue = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isTurnstileEnabled && !turnstileToken) {
+      setError('请完成验证码验证');
+      return;
+    }
     setConnectConfirmOpen(true);
   };
 
@@ -72,11 +82,15 @@ const ProfilePage: React.FC = () => {
       const response = await authAPI.bindZhixue({
         username: connectForm.username,
         password: connectForm.password,
+        turnstile_token: isTurnstileEnabled ? turnstileToken : undefined,
       });
 
       if (response.data.success) {
         setSuccess('智学网账号绑定成功！');
         setConnectForm({ username: '', password: '', showForm: false });
+        if (isTurnstileEnabled) {
+          setTurnstileToken('');
+        }
         await refreshUser();
         // 绑定成功后加载绑定信息
         await loadBindingInfo();
@@ -84,10 +98,27 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '绑定失败';
       setError(errorMessage);
+      // 重置验证码
+      if (isTurnstileEnabled) {
+        setTurnstileToken('');
+        turnstileRef.current?.reset();
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+    setError(null);
+  }, []);
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken('');
+    setError('验证码验证失败，请重试');
+    // 自动重置验证码
+    turnstileRef.current?.reset();
+  }, []);
 
   // 新增：加载智学网账号绑定信息
   const loadBindingInfo = async () => {
@@ -463,6 +494,11 @@ const ProfilePage: React.FC = () => {
                     setError(null);
                     setSuccess(null);
                     setConnectForm(prev => ({ ...prev, showForm: true }));
+                    // 重置验证码状态
+                    if (isTurnstileEnabled) {
+                      setTurnstileToken('');
+                      setTimeout(() => turnstileRef.current?.reset(), 100);
+                    }
                   }}
                   className="w-full md:w-auto"
                 >
@@ -501,6 +537,23 @@ const ProfilePage: React.FC = () => {
                     />
                   </div>
 
+                  {isTurnstileEnabled && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        安全验证
+                      </label>
+                      <Turnstile
+                        ref={turnstileRef}
+                        siteKey={import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+                        onVerify={handleTurnstileVerify}
+                        onError={handleTurnstileError}
+                        theme="auto"
+                        className="w-full"
+                        enabled={isTurnstileEnabled}
+                      />
+                    </div>
+                  )}
+
                   <div className="flex items-center space-x-2">
                     <Button type="submit" disabled={loading}>
                       {loading ? '绑定中...' : '确认绑定'}
@@ -508,7 +561,13 @@ const ProfilePage: React.FC = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setConnectForm({ username: '', password: '', showForm: false })}
+                      onClick={() => {
+                        setConnectForm({ username: '', password: '', showForm: false });
+                        if (isTurnstileEnabled) {
+                          setTurnstileToken('');
+                          turnstileRef.current?.reset();
+                        }
+                      }}
                       disabled={loading}
                     >
                       取消

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
 
 const SignupPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -17,9 +18,14 @@ const SignupPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
 
   const { signup } = useAuth();
   const navigate = useNavigate();
+  const turnstileRef = useRef<TurnstileRef>(null);
+
+  // 检查是否启用验证码
+  const isTurnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED === 'true';
 
   useEffect(() => {
     document.title = '用户注册 - ZhiXue Lite';
@@ -39,6 +45,13 @@ const SignupPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
+    // 只在启用验证码时检查 token
+    if (isTurnstileEnabled && !turnstileToken) {
+      setError('请完成验证码验证');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('两次输入的密码不一致');
       setIsLoading(false);
@@ -52,15 +65,32 @@ const SignupPage: React.FC = () => {
     // }
 
     try {
-      await signup(formData.username, formData.password, formData.email);
+      await signup(formData.username, formData.password, formData.email, isTurnstileEnabled ? turnstileToken : undefined);
       navigate('/');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : '注册失败，请稍后重试';
       setError(errorMessage);
+      // 重置验证码
+      if (isTurnstileEnabled) {
+        setTurnstileToken('');
+        turnstileRef.current?.reset();
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+    setError(null);
+  }, []);
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken('');
+    setError('验证码验证失败，请重试');
+    // 自动重置验证码
+    turnstileRef.current?.reset();
+  }, []);
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center">
@@ -177,6 +207,23 @@ const SignupPage: React.FC = () => {
                 </Button>
               </div>
             </div>
+
+            {isTurnstileEnabled && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  安全验证
+                </label>
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+                  onVerify={handleTurnstileVerify}
+                  onError={handleTurnstileError}
+                  theme="auto"
+                  className="w-full"
+                  enabled={isTurnstileEnabled}
+                />
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -7,9 +7,9 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, turnstileToken?: string) => Promise<void>;
   logout: () => Promise<void>;
-  signup: (username: string, password: string, email: string) => Promise<void>;
+  signup: (username: string, password: string, email: string, turnstileToken?: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -44,9 +44,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, turnstile_token?: string) => {
     try {
-      const response = await authAPI.login({ username, password });
+      const response = await authAPI.login({ username, password, turnstile_token });
       if (response.data.success) {
         // 后端直接返回 user 字段，不是包装在 data 中
         setUser(response.data.user);
@@ -54,25 +54,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(response.data.message || '登录失败');
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } }).response?.data?.message || '登录失败';
+      // API拦截器已经提取了友好的错误消息，直接使用即可
+      const errorMessage = error instanceof Error ? error.message : '登录失败，请稍后重试';
       throw new Error(errorMessage);
     }
   };
 
-  const signup = async (username: string, password: string, email: string) => {
+  const signup = async (username: string, password: string, email: string, turnstile_token?: string) => {
     try {
-      const response = await authAPI.signup({ username, password, email });
+      const response = await authAPI.signup({ username, password, email, turnstile_token });
       if (response.data.success) {
         await refreshUser();
       } else {
         throw new Error(response.data.message || '注册失败');
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } }).response?.data?.message || '注册失败';
+      // API拦截器已经提取了友好的错误消息，直接使用即可
+      const errorMessage = error instanceof Error ? error.message : '注册失败，请稍后重试';
       throw new Error(errorMessage);
     }
   };
@@ -97,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
       }
     };
-    
+
     initAuth();
   }, []);
 

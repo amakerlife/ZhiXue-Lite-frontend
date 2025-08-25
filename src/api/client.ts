@@ -13,14 +13,12 @@ export const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // if (error.response?.status === 401) {
-    //   // 只有在需要登录的页面才重定向，公开页面（首页、登录、注册）不重定向
-    //   const currentPath = window.location.pathname;
-    //   const publicPaths = ['/', '/login', '/signup'];
-    //   if (!publicPaths.includes(currentPath)) {
-    //     window.location.href = '/login';
-    //   }
-    // }
+    // 提取后端返回的友好错误消息
+    if (error.response?.data?.message) {
+      // 直接修改错误对象的message属性，保留原有的错误结构
+      error.message = error.response.data.message;
+    }
+    
     return Promise.reject(error);
   }
 );
