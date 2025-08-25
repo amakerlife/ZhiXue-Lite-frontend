@@ -9,8 +9,7 @@ import {
   Calendar,
   Trophy,
   TrendingUp,
-  FileText,
-  User
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import AnswerSheetViewer from '@/components/AnswerSheetViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
@@ -401,24 +401,9 @@ const ExamDetailPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Answer Sheet Preview (Placeholder) */}
-      {examDetail.is_saved && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span>答题卡</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-12 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/25">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">答题卡预留区域</h3>
-              <p className="text-muted-foreground">
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Answer Sheet Viewer */}
+      {examDetail.is_saved && examDetail.scores.length > 0 && (
+        <AnswerSheetViewer examId={examDetail.id} scores={examDetail.scores} />
       )}
 
       {/* Empty State for Unsaved Exam */}
