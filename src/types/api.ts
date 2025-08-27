@@ -8,7 +8,7 @@ export interface User {
   id?: number;
   username: string;
   email: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'data_viewer' | 'user';
   is_active: boolean;
   last_login?: string;
   zhixue_username?: string;  // 后端返回的是扁平化的字段
@@ -18,7 +18,7 @@ export interface User {
 
 export interface UserUpdateRequest {
   email?: string;
-  role?: 'admin' | 'user';
+  role?: 'admin' | 'data_viewer' | 'user';
   is_active?: boolean;
   password?: string;
   currentPassword?: string;

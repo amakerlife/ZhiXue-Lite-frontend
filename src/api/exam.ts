@@ -22,13 +22,14 @@ export const examAPI = {
       params: { force_refresh: forceRefresh }
     }),
 
-  getUserExamScore: (examId: string) =>
+  getUserExamScore: (examId: string, studentId?: string) =>
     api.get<ApiResponse & {
       id: string;
       name: string;
       school_id: string;
       is_saved: boolean;
       created_at: number;
+      student_id: string;
       scores: Array<{
         subject_id: string;
         subject_name: string;
@@ -38,7 +39,9 @@ export const examAPI = {
         school_rank: string;
         sort: number;
       }>;
-    }>(`/exam/${examId}/score`),
+    }>(`/exam/${examId}/score`, {
+      params: studentId ? { student_id: studentId } : undefined,
+    }),
 
   generateScoresheet: (examId: string) =>
     api.get(`/exam/${examId}/scoresheet`, {

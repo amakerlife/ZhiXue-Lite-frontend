@@ -5,9 +5,11 @@ import {
   BookOpen,
   ListTodo,
   Settings,
+  Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { canViewAllData, canManageSystem } from '@/utils/permissions';
 
 interface NavItem {
   name: string;
@@ -15,6 +17,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   requireAuth?: boolean;
   adminOnly?: boolean;
+  dataViewerAccessible?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -28,6 +31,13 @@ const navItems: NavItem[] = [
     href: '/exams',
     icon: BookOpen,
     requireAuth: true,
+  },
+  {
+    name: '数据查看',
+    href: '/data-viewer',
+    icon: Eye,
+    requireAuth: true,
+    dataViewerAccessible: true,
   },
   {
     name: '任务列表',
@@ -58,7 +68,10 @@ const Sidebar: React.FC = () => {
     if (item.requireAuth && !isAuthenticated) {
       return false;
     }
-    if (item.adminOnly && user?.role !== 'admin') {
+    if (item.adminOnly && !canManageSystem(user)) {
+      return false;
+    }
+    if (item.dataViewerAccessible && !canViewAllData(user)) {
       return false;
     }
     return true;

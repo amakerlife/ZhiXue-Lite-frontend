@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { authAPI } from '@/api/auth';
 import { formatUTCIsoToLocal } from '@/utils/dateUtils';
+import { getUserRoleLabel, getRoleVariant } from '@/utils/permissions';
 import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
 
 const ProfilePage: React.FC = () => {
@@ -376,8 +377,8 @@ const ProfilePage: React.FC = () => {
               <label className="text-sm font-medium text-muted-foreground">角色</label>
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-muted-foreground" />
-                <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                  {user.role === 'admin' ? '管理员' : '普通用户'}
+                <Badge variant={getRoleVariant(user.role)}>
+                  {getUserRoleLabel(user.role)}
                 </Badge>
               </div>
             </div>

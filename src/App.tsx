@@ -10,6 +10,7 @@ import ExamDetailPage from '@/pages/ExamDetailPage';
 import TasksPage from '@/pages/TasksPage';
 import ProfilePage from '@/pages/ProfilePage';
 import AdminPage from '@/pages/AdminPage';
+import DataViewerPage from '@/pages/DataViewerPage';
 
 const App: React.FC = () => {
   return (
@@ -22,6 +23,7 @@ const App: React.FC = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/exams" element={<ExamsPage />} />
             <Route path="/exams/:examId" element={<ExamDetailPage />} />
+            <Route path="/data-viewer" element={<DataViewerPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminPage />} />

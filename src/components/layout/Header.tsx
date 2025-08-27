@@ -22,6 +22,7 @@ interface BreadcrumbItem {
 const routeNameMap: Record<string, string> = {
   '/': '首页',
   '/exams': '考试列表',
+  '/data-viewer': '数据查看',
   '/admin': '管理面板',
   '/tasks': '任务列表',
   '/profile': '个人中心',

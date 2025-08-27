@@ -13,6 +13,7 @@ import { adminAPI } from '@/api/admin';
 import { authAPI } from '@/api/auth';
 import { examAPI } from '@/api/exam';
 import { formatUTCIsoToLocal, formatTimestampToLocalDate } from '@/utils/dateUtils';
+import { canManageSystem, getUserRoleLabel, getRoleVariant } from '@/utils/permissions';
 import type { AdminUser, School as SchoolType, ZhiXueAccount, Teacher, AdminExam } from '@/api/admin';
 
 const AdminPage: React.FC = () => {
@@ -26,7 +27,7 @@ const AdminPage: React.FC = () => {
   }, []);
 
   // 如果不是管理员，显示权限不足
-  if (user?.role !== 'admin') {
+  if (!canManageSystem(user)) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="w-full max-w-md">
@@ -116,7 +117,7 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{
     email: string;
-    role: 'admin' | 'user' | '';
+    role: 'admin' | 'data_viewer' | 'user' | '';
     is_active: boolean;
   }>({
     email: '',
@@ -160,7 +161,7 @@ const UserManagement: React.FC = () => {
     setEditingUser(user.id);
     setEditForm({
       email: user.email,
-      role: user.role as 'admin' | 'user',
+      role: user.role as 'admin' | 'data_viewer' | 'user',
       is_active: user.is_active,
     });
   };
@@ -184,7 +185,7 @@ const UserManagement: React.FC = () => {
     try {
       const updateData: {
         email: string;
-        role?: 'admin' | 'user';
+        role?: 'admin' | 'data_viewer' | 'user';
         is_active: boolean;
       } = {
         email: editForm.email,
@@ -349,19 +350,20 @@ const UserManagement: React.FC = () => {
                       {editingUser === user.id ? (
                         <Select
                           value={editForm.role}
-                          onValueChange={(value) => setEditForm(prev => ({ ...prev, role: value as 'admin' | 'user' | '' }))}
+                          onValueChange={(value) => setEditForm(prev => ({ ...prev, role: value as 'admin' | 'data_viewer' | 'user' | '' }))}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="user">普通用户</SelectItem>
+                            <SelectItem value="data_viewer">数据查看者</SelectItem>
                             <SelectItem value="admin">管理员</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                          {user.role === 'admin' ? '管理员' : '普通用户'}
+                        <Badge variant={getRoleVariant(user.role)}>
+                          {getUserRoleLabel(user.role)}
                         </Badge>
                       )}
                     </TableCell>
@@ -1262,6 +1264,7 @@ const StudentManagement: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>学生ID</TableHead>
                   <TableHead>用户名</TableHead>
                   <TableHead>真实姓名</TableHead>
                   <TableHead>学校</TableHead>
@@ -1272,6 +1275,7 @@ const StudentManagement: React.FC = () => {
               <TableBody>
                 {students.map((student) => (
                   <TableRow key={student.id}>
+                    <TableCell className="font-mono text-sm">{student.id}</TableCell>
                     <TableCell className="font-medium">{student.username}</TableCell>
                     <TableCell>{student.realname}</TableCell>
                     <TableCell>{student.school_name || '未知'}</TableCell>
