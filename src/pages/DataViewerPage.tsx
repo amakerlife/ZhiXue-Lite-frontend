@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search,
-  Eye,
   Download,
   FileText,
   RefreshCw,
@@ -27,7 +26,7 @@ import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { canViewAllData } from '@/utils/permissions';
-import type { ExamDetail, BackgroundTask } from '@/types/api';
+import type { BackgroundTask } from '@/types/api';
 
 const DataViewerPage: React.FC = () => {
   const { user } = useAuth();
@@ -122,7 +121,7 @@ const DataViewerPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold">数据查看</h1>
           <p className="text-muted-foreground mt-1">
-            通过ID直接查看考试数据、成绩单和答题卡
+            通过 ID 直接查看考试数据、成绩单和答题卡
           </p>
         </div>
 
@@ -203,14 +202,14 @@ const DataViewerPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>拉取考试数据</DialogTitle>
             <DialogDescription>
-              输入考试ID从源服务器拉取最新的考试数据
+              输入考试 ID 从源服务器拉取最新的考试数据
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleFetchExam} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="fetch-exam-id" className="text-sm font-medium">
-                考试ID
+                考试 ID
               </label>
               <Input
                 id="fetch-exam-id"
@@ -333,7 +332,7 @@ const ExamLookup: React.FC = () => {
       <CardHeader>
         <CardTitle>考试查询</CardTitle>
         <CardDescription>
-          输入考试ID查看考试详情和生成成绩单
+          输入考试 ID 查看考试详情和生成成绩单
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -342,7 +341,7 @@ const ExamLookup: React.FC = () => {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="请输入考试ID..."
+              placeholder="请输入考试 ID..."
               value={examId}
               onChange={(e) => setExamId(e.target.value)}
               className="pl-10"
@@ -396,11 +395,11 @@ const ExamLookup: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <label className="font-medium text-muted-foreground">考试ID</label>
+                  <label className="font-medium text-muted-foreground">考试 ID</label>
                   <p className="font-mono">{examDetail.id}</p>
                 </div>
                 <div>
-                  <label className="font-medium text-muted-foreground">学校ID</label>
+                  <label className="font-medium text-muted-foreground">学校 ID</label>
                   <p className="font-mono">{examDetail.school_id || '未知'}</p>
                 </div>
                 <div className="col-span-2">
@@ -440,31 +439,6 @@ const ScoreLookup: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scoreData, setScoreData] = useState<any | null>(null);
-  const [answerSheetDialog, setAnswerSheetDialog] = useState<{
-    open: boolean;
-    examId: string;
-    subjectId: string;
-    studentId: string;
-    subjectName: string;
-  }>({
-    open: false,
-    examId: '',
-    subjectId: '',
-    studentId: '',
-    subjectName: '',
-  });
-  const [answerSheetLoading, setAnswerSheetLoading] = useState(false);
-  const [answerSheetError, setAnswerSheetError] = useState<string | null>(null);
-  const [answerSheetUrl, setAnswerSheetUrl] = useState<string | null>(null);
-
-  // 清理图片URL以防内存泄漏
-  useEffect(() => {
-    return () => {
-      if (answerSheetUrl) {
-        window.URL.revokeObjectURL(answerSheetUrl);
-      }
-    };
-  }, [answerSheetUrl]);
 
   const handleScoreLookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -487,57 +461,12 @@ const ScoreLookup: React.FC = () => {
     }
   };
 
-  const openAnswerSheetDialog = async (subjectId: string, subjectName: string) => {
-    setAnswerSheetDialog({
-      open: true,
-      examId: examId.trim(),
-      subjectId,
-      studentId: studentId.trim(),
-      subjectName,
-    });
-
-    setAnswerSheetLoading(true);
-    setAnswerSheetError(null);
-    setAnswerSheetUrl(null);
-
-    try {
-      const response = await examAPI.generateAnswersheet(examId.trim(), subjectId, studentId.trim());
-
-      // 创建图片URL
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      setAnswerSheetUrl(url);
-    } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取答题卡失败';
-      setAnswerSheetError(errorMessage);
-    } finally {
-      setAnswerSheetLoading(false);
-    }
-  };
-
-  const closeAnswerSheetDialog = () => {
-    setAnswerSheetDialog({
-      open: false,
-      examId: '',
-      subjectId: '',
-      studentId: '',
-      subjectName: '',
-    });
-
-    // 清理图片URL以防内存泄漏
-    if (answerSheetUrl) {
-      window.URL.revokeObjectURL(answerSheetUrl);
-      setAnswerSheetUrl(null);
-    }
-
-    setAnswerSheetError(null);
-  };
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>成绩查询</CardTitle>
         <CardDescription>
-          输入考试ID和学生ID查看详细成绩和答题卡
+          输入考试 ID 和学生 ID 查看详细成绩和答题卡
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -546,22 +475,22 @@ const ScoreLookup: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="exam-id" className="text-sm font-medium">
-                考试ID
+                考试 ID
               </label>
               <Input
                 id="exam-id"
-                placeholder="请输入考试ID"
+                placeholder="请输入考试 ID"
                 value={examId}
                 onChange={(e) => setExamId(e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <label htmlFor="student-id" className="text-sm font-medium">
-                学生ID
+                学生 ID
               </label>
               <Input
                 id="student-id"
-                placeholder="请输入学生ID"
+                placeholder="请输入学生 ID"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
               />
@@ -606,7 +535,7 @@ const ScoreLookup: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-1">
                     <Users className="h-4 w-4" />
-                    <span>学生ID: {scoreData.student_id}</span>
+                    <span>学生 ID: {scoreData.student_id}</span>
                   </div>
                 </div>
               </CardHeader>
@@ -630,7 +559,6 @@ const ScoreLookup: React.FC = () => {
                         <TableHead>满分</TableHead>
                         <TableHead>班级排名</TableHead>
                         <TableHead>学校排名</TableHead>
-                        <TableHead>操作</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -641,16 +569,6 @@ const ScoreLookup: React.FC = () => {
                           <TableCell>{score.standard_score || '-'}</TableCell>
                           <TableCell>{score.class_rank || '-'}</TableCell>
                           <TableCell>{score.school_rank || '-'}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openAnswerSheetDialog(score.subject_id, score.subject_name)}
-                            >
-                              <Eye className="h-3 w-3 mr-1" />
-                              答题卡
-                            </Button>
-                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -663,55 +581,19 @@ const ScoreLookup: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* 答题卡查看组件 */}
+            {scoreData.scores && scoreData.scores.length > 0 && (
+              <AnswerSheetViewer
+                examId={examId.trim()}
+                scores={scoreData.scores}
+                studentId={studentId.trim()}
+              />
+            )}
           </div>
         )}
       </CardContent>
-
-      {/* 答题卡查看对话框 */}
-      <Dialog open={answerSheetDialog.open} onOpenChange={closeAnswerSheetDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>答题卡查看</DialogTitle>
-            <DialogDescription>
-              {answerSheetDialog.subjectName} - 考试ID: {answerSheetDialog.examId} | 学生ID: {answerSheetDialog.studentId}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-auto">
-            {answerSheetLoading ? (
-              <div className="flex items-center justify-center h-96">
-                <div className="text-center">
-                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-                  <p className="text-muted-foreground">正在加载答题卡...</p>
-                </div>
-              </div>
-            ) : answerSheetError ? (
-              <div className="flex items-center justify-center h-96">
-                <div className="text-center">
-                  <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-500" />
-                  <p className="text-red-600">{answerSheetError}</p>
-                </div>
-              </div>
-            ) : answerSheetUrl ? (
-              <div className="flex justify-center">
-                <img
-                  src={answerSheetUrl}
-                  alt={`${answerSheetDialog.subjectName}答题卡`}
-                  className="max-w-full h-auto border rounded-lg shadow-lg"
-                  onLoad={() => {
-                    // 图片加载完成后可以添加其他处理逻辑
-                  }}
-                  onError={() => {
-                    setAnswerSheetError('答题卡图片加载失败');
-                  }}
-                />
-              </div>
-            ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };
-
 export default DataViewerPage;

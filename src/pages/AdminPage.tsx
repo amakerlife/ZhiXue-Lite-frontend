@@ -1264,7 +1264,7 @@ const StudentManagement: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>学生ID</TableHead>
+                  <TableHead>学生 ID</TableHead>
                   <TableHead>用户名</TableHead>
                   <TableHead>真实姓名</TableHead>
                   <TableHead>学校</TableHead>
@@ -1678,7 +1678,7 @@ const ExamManagement: React.FC = () => {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">考试ID</label>
+                    <label className="text-sm font-medium text-muted-foreground">考试 ID</label>
                     <p className="font-mono text-sm">{(examDetail as { id: string }).id}</p>
                   </div>
                   <div>
@@ -1686,7 +1686,7 @@ const ExamManagement: React.FC = () => {
                     <p className="font-medium">{(examDetail as { name: string }).name}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">学校ID</label>
+                    <label className="text-sm font-medium text-muted-foreground">学校 ID</label>
                     <p className="font-mono text-sm">{(examDetail as { school_id?: string }).school_id || '未知'}</p>
                   </div>
                   <div>
