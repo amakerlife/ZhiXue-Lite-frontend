@@ -22,7 +22,7 @@ export const examAPI = {
       params: { force_refresh: forceRefresh }
     }),
 
-  getUserExamScore: (examId: string, studentId?: string) =>
+  getUserExamScore: (examId: string, studentId?: string, studentName?: string) =>
     api.get<ApiResponse & {
       id: string;
       name: string;
@@ -40,7 +40,10 @@ export const examAPI = {
         sort: number;
       }>;
     }>(`/exam/${examId}/score`, {
-      params: studentId ? { student_id: studentId } : undefined,
+      params: {
+        ...(studentId && { student_id: studentId }),
+        ...(studentName && { student_name: studentName }),
+      },
     }),
 
   generateScoresheet: (examId: string) =>
@@ -48,9 +51,12 @@ export const examAPI = {
       responseType: 'blob',
     }),
 
-  generateAnswersheet: (examId: string, subjectId: string, studentId?: string) =>
+  generateAnswersheet: (examId: string, subjectId: string, studentId?: string, studentName?: string) =>
     api.get(`/exam/${examId}/subject/${subjectId}/answersheet`, {
       responseType: 'blob',
-      params: studentId ? { student_id: studentId } : undefined,
+      params: {
+        ...(studentId && { student_id: studentId }),
+        ...(studentName && { student_name: studentName }),
+      },
     }),
 };

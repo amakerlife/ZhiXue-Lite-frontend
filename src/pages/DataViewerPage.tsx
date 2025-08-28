@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -436,20 +437,27 @@ const ExamLookup: React.FC = () => {
 const ScoreLookup: React.FC = () => {
   const [examId, setExamId] = useState('');
   const [studentId, setStudentId] = useState('');
+  const [studentName, setStudentName] = useState('');
+  const [searchType, setSearchType] = useState<'id' | 'name'>('id');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scoreData, setScoreData] = useState<any | null>(null);
 
   const handleScoreLookup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!examId.trim() || !studentId.trim()) return;
+    const searchValue = searchType === 'id' ? studentId.trim() : studentName.trim();
+    if (!examId.trim() || !searchValue) return;
 
     setLoading(true);
     setError(null);
     setScoreData(null);
 
     try {
-      const response = await examAPI.getUserExamScore(examId.trim(), studentId.trim());
+      const response = await examAPI.getUserExamScore(
+        examId.trim(),
+        searchType === 'id' ? studentId.trim() : undefined,
+        searchType === 'name' ? studentName.trim() : undefined
+      );
       if (response.data.success) {
         setScoreData(response.data);
       }
@@ -466,7 +474,7 @@ const ScoreLookup: React.FC = () => {
       <CardHeader>
         <CardTitle>成绩查询</CardTitle>
         <CardDescription>
-          输入考试 ID 和学生 ID 查看详细成绩和答题卡
+          输入考试 ID 和学生 ID 或姓名查看详细成绩和答题卡
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -485,21 +493,46 @@ const ScoreLookup: React.FC = () => {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="student-id" className="text-sm font-medium">
-                学生 ID
+              <label htmlFor="search-type" className="text-sm font-medium">
+                学生识别方式
               </label>
-              <Input
-                id="student-id"
-                placeholder="请输入学生 ID"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-              />
+              <Select value={searchType} onValueChange={(value: 'id' | 'name') => {
+                setSearchType(value);
+                setStudentId('');
+                setStudentName('');
+              }}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="id">使用学生 ID</SelectItem>
+                  <SelectItem value="name">使用学生姓名</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="student-info" className="text-sm font-medium">
+              {searchType === 'id' ? '学生 ID' : '学生姓名'}
+            </label>
+            <Input
+              id="student-info"
+              placeholder={searchType === 'id' ? '请输入学生 ID' : '请输入学生姓名'}
+              value={searchType === 'id' ? studentId : studentName}
+              onChange={(e) => {
+                if (searchType === 'id') {
+                  setStudentId(e.target.value);
+                } else {
+                  setStudentName(e.target.value);
+                }
+              }}
+            />
           </div>
 
           <Button
             type="submit"
-            disabled={loading || !examId.trim() || !studentId.trim()}
+            disabled={loading || !examId.trim() || (!studentId.trim() && !studentName.trim())}
             className="w-full"
           >
             {loading ? (
@@ -587,7 +620,8 @@ const ScoreLookup: React.FC = () => {
               <AnswerSheetViewer
                 examId={examId.trim()}
                 scores={scoreData.scores}
-                studentId={studentId.trim()}
+                studentId={searchType === 'id' ? studentId.trim() : undefined}
+                studentName={searchType === 'name' ? studentName.trim() : undefined}
               />
             )}
           </div>

@@ -12,9 +12,10 @@ interface AnswerSheetViewerProps {
   examId: string;
   scores: Score[];
   studentId?: string; // 可选的学生 ID，用于数据查看页面
+  studentName?: string; // 可选的学生姓名，用于数据查看页面
 }
 
-const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, studentId }) => {
+const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, studentId, studentName }) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +42,11 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 生成缓存key
-  const getCacheKey = (examId: string, subjectId: string, studentId?: string) =>
-    studentId ? `${examId}-${subjectId}-${studentId}` : `${examId}-${subjectId}`;
+  const getCacheKey = (examId: string, subjectId: string, studentId?: string, studentName?: string) => {
+    if (studentId) return `${examId}-${subjectId}-id-${studentId}`;
+    if (studentName) return `${examId}-${subjectId}-name-${studentName}`;
+    return `${examId}-${subjectId}`;
+  };
 
   const handleViewAnswerSheet = async () => {
     if (!selectedSubjectId) {
@@ -54,7 +58,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
     setDialogOpen(true);
 
     // 检查缓存
-    const cacheKey = getCacheKey(examId, selectedSubjectId, studentId);
+    const cacheKey = getCacheKey(examId, selectedSubjectId, studentId, studentName);
     const cachedUrl = imageCache.get(cacheKey);
 
     if (cachedUrl) {
@@ -67,7 +71,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
       setLoading(true);
       setImageUrl(null);
 
-      const response = await examAPI.generateAnswersheet(examId, selectedSubjectId, studentId);
+      const response = await examAPI.generateAnswersheet(examId, selectedSubjectId, studentId, studentName);
 
       // 创建图片URL并缓存
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -97,7 +101,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
       setError(null);
 
       // 检查缓存，如果有缓存就直接下载
-      const cacheKey = getCacheKey(examId, selectedSubjectId, studentId);
+      const cacheKey = getCacheKey(examId, selectedSubjectId, studentId, studentName);
       const cachedUrl = imageCache.get(cacheKey);
 
       if (cachedUrl) {
@@ -113,7 +117,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
 
       // 缓存中没有，发起请求
       setLoading(true);
-      const response = await examAPI.generateAnswersheet(examId, selectedSubjectId, studentId);
+      const response = await examAPI.generateAnswersheet(examId, selectedSubjectId, studentId, studentName);
 
       // 创建URL并缓存
       const url = window.URL.createObjectURL(new Blob([response.data]));
