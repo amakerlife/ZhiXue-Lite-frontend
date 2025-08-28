@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import { canViewAllData, canManageSystem } from '@/utils/permissions';
 
 interface NavItem {
@@ -63,6 +64,7 @@ const navItems: NavItem[] = [
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
+  const { isOpen, isMobile, close } = useSidebar();
 
   const filteredNavItems = navItems.filter((item) => {
     if (item.requireAuth && !isAuthenticated) {
@@ -77,9 +79,18 @@ const Sidebar: React.FC = () => {
     return true;
   });
 
+  const handleLinkClick = () => {
+    if (isMobile) {
+      close();
+    }
+  };
+
   return (
-    <aside className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 border-r bg-background">
-      <nav className="flex flex-col gap-2 p-4">
+    <aside className={cn(
+      "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 border-r bg-background transition-transform duration-200",
+      isOpen ? "translate-x-0" : "-translate-x-full"
+    )}>
+      <nav className="flex flex-col gap-2 p-4 h-full overflow-y-auto">
         {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href ||
@@ -89,6 +100,7 @@ const Sidebar: React.FC = () => {
             <Link
               key={item.href}
               to={item.href}
+              onClick={handleLinkClick}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive

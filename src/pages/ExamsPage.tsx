@@ -121,10 +121,10 @@ const ExamsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold">考试列表</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold">考试列表</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             仅显示已缓存的数据，如需更新请点击按钮刷新
           </p>
         </div>
@@ -136,9 +136,11 @@ const ExamsPage: React.FC = () => {
               disabled={!!fetchingTask}
               variant="outline"
               size="sm"
+              className="text-xs sm:text-sm"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${fetchingTask ? 'animate-spin' : ''}`} />
-              {fetchingTask ? '获取中...' : '从智学网重新获取'}
+              <span className="hidden sm:inline">{fetchingTask ? '获取中...' : '从智学网重新获取'}</span>
+              <span className="sm:hidden">{fetchingTask ? '获取中' : '从智学网重新获取'}</span>
             </Button>
           )}
         </div>
@@ -237,9 +239,9 @@ const ExamsPage: React.FC = () => {
           {exams.map((exam) => (
             <Card key={exam.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                  <div className="space-y-1 flex-1">
+                    <CardTitle className="text-base sm:text-lg">
                       <Link
                         to={`/exams/${exam.id}`}
                         className="hover:text-primary transition-colors"
@@ -255,8 +257,8 @@ const ExamsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={exam.is_saved ? 'default' : 'secondary'}>
+                  <div className="flex items-center space-x-2 self-start">
+                    <Badge variant={exam.is_saved ? 'default' : 'secondary'} className="text-xs">
                       {exam.is_saved ? (
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                       ) : (
@@ -269,13 +271,13 @@ const ExamsPage: React.FC = () => {
               </CardHeader>
 
               <CardContent className="pt-0">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                   <p className="text-sm text-muted-foreground">
                     点击查看详细成绩信息
                   </p>
 
                   <Link to={`/exams/${exam.id}`}>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                       查看详情
                     </Button>
                   </Link>

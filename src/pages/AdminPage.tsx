@@ -313,21 +313,22 @@ const UserManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>用户名</TableHead>
-                  <TableHead>邮箱</TableHead>
-                  <TableHead>角色</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>智学网信息</TableHead>
-                  <TableHead>注册时间</TableHead>
-                  <TableHead>最后登录</TableHead>
-                  <TableHead>登录IP</TableHead>
-                  <TableHead>操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>用户名</TableHead>
+                    <TableHead>邮箱</TableHead>
+                    <TableHead>角色</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead>智学网信息</TableHead>
+                    <TableHead>注册时间</TableHead>
+                    <TableHead>最后登录</TableHead>
+                    <TableHead>登录IP</TableHead>
+                    <TableHead>操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.username}</TableCell>
@@ -484,6 +485,7 @@ const UserManagement: React.FC = () => {
                 ))}
               </TableBody>
             </Table>
+            </div>
 
             {/* 分页 */}
             {totalPages > 1 && (
@@ -903,29 +905,30 @@ const TeacherManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>教师 ID</TableHead>
-                  <TableHead>用户名</TableHead>
-                  <TableHead>真实姓名</TableHead>
-                  <TableHead>学校</TableHead>
-                  <TableHead>登录方式</TableHead>
-                  <TableHead>操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {teachers.map((teacher) => (
-                  <TableRow key={teacher.id}>
-                    <TableCell className="font-mono text-sm">{teacher.id}</TableCell>
-                    <TableCell className="font-medium">{teacher.username}</TableCell>
-                    <TableCell>{teacher.realname}</TableCell>
-                    <TableCell>{teacher.school_name}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {teacher.login_method === 'changyan' ? '畅言' : teacher.login_method === 'zhixue' ? '智学' : teacher.login_method}
-                      </Badge>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>教师 ID</TableHead>
+                    <TableHead>用户名</TableHead>
+                    <TableHead>真实姓名</TableHead>
+                    <TableHead>学校</TableHead>
+                    <TableHead>登录方式</TableHead>
+                    <TableHead>操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {teachers.map((teacher) => (
+                    <TableRow key={teacher.id}>
+                      <TableCell className="font-mono text-sm">{teacher.id}</TableCell>
+                      <TableCell className="font-medium">{teacher.username}</TableCell>
+                      <TableCell>{teacher.realname}</TableCell>
+                      <TableCell>{teacher.school_name}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {teacher.login_method === 'changyan' ? '畅言' : teacher.login_method === 'zhixue' ? '智学' : teacher.login_method}
+                        </Badge>
+                      </TableCell>
                     <TableCell>
                       {editingTeacher === teacher.username ? (
                         <div className="flex items-center space-x-1">
@@ -973,6 +976,7 @@ const TeacherManagement: React.FC = () => {
                 ))}
               </TableBody>
             </Table>
+            </div>
 
             {/* 编辑表单 */}
             {editingTeacher && (
@@ -1261,25 +1265,26 @@ const StudentManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>学生 ID</TableHead>
-                  <TableHead>用户名</TableHead>
-                  <TableHead>真实姓名</TableHead>
-                  <TableHead>学校</TableHead>
-                  <TableHead>学校 ID</TableHead>
-                  <TableHead>操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-mono text-sm">{student.id}</TableCell>
-                    <TableCell className="font-medium">{student.username}</TableCell>
-                    <TableCell>{student.realname}</TableCell>
-                    <TableCell>{student.school_name || '未知'}</TableCell>
-                    <TableCell className="font-mono text-sm">{student.school_id}</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>学生 ID</TableHead>
+                    <TableHead>用户名</TableHead>
+                    <TableHead>真实姓名</TableHead>
+                    <TableHead>学校</TableHead>
+                    <TableHead>学校 ID</TableHead>
+                    <TableHead>操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-mono text-sm">{student.id}</TableCell>
+                      <TableCell className="font-medium">{student.username}</TableCell>
+                      <TableCell>{student.realname}</TableCell>
+                      <TableCell>{student.school_name || '未知'}</TableCell>
+                      <TableCell className="font-mono text-sm">{student.school_id}</TableCell>
                     <TableCell>
                       <Button
                         variant="outline"
@@ -1294,6 +1299,7 @@ const StudentManagement: React.FC = () => {
                 ))}
               </TableBody>
             </Table>
+            </div>
 
             {/* 分页 */}
             {totalPages > 1 && (
@@ -1562,27 +1568,28 @@ const ExamManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>考试名称</TableHead>
-                  <TableHead>学校</TableHead>
-                  <TableHead>考试时间</TableHead>
-                  <TableHead>数据状态</TableHead>
-                  <TableHead>操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {exams.map((exam) => (
-                  <TableRow key={exam.id}>
-                    <TableCell className="font-medium">{exam.name}</TableCell>
-                    <TableCell>{exam.school}</TableCell>
-                    <TableCell>{formatTimestampToLocalDate(exam.created_at)}</TableCell>
-                    <TableCell>
-                      <Badge variant={exam.is_saved ? 'default' : 'secondary'}>
-                        {exam.is_saved ? '已保存' : '未保存'}
-                      </Badge>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>考试名称</TableHead>
+                    <TableHead>学校</TableHead>
+                    <TableHead>考试时间</TableHead>
+                    <TableHead>数据状态</TableHead>
+                    <TableHead>操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {exams.map((exam) => (
+                    <TableRow key={exam.id}>
+                      <TableCell className="font-medium">{exam.name}</TableCell>
+                      <TableCell>{exam.school}</TableCell>
+                      <TableCell>{formatTimestampToLocalDate(exam.created_at)}</TableCell>
+                      <TableCell>
+                        <Badge variant={exam.is_saved ? 'default' : 'secondary'}>
+                          {exam.is_saved ? '已保存' : '未保存'}
+                        </Badge>
+                      </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-1">
                         <Button
@@ -1615,6 +1622,7 @@ const ExamManagement: React.FC = () => {
                 ))}
               </TableBody>
             </Table>
+            </div>
 
             {/* 分页 */}
             {totalPages > 1 && (

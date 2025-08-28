@@ -16,6 +16,18 @@ const Table = React.forwardRef<
 ))
 Table.displayName = "Table"
 
+const ResponsiveTable = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div 
+    ref={ref}
+    className={cn("relative w-full", className)} 
+    {...props} 
+  />
+))
+ResponsiveTable.displayName = "ResponsiveTable"
+
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
@@ -110,6 +122,7 @@ TableCaption.displayName = "TableCaption"
 
 export {
   Table,
+  ResponsiveTable,
   TableHeader,
   TableBody,
   TableFooter,

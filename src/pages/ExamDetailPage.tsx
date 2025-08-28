@@ -200,24 +200,24 @@ const ExamDetailPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
           <Link to="/exams">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4 mr-2" />
               返回考试列表
             </Button>
           </Link>
 
-          <div>
-            <h1 className="text-3xl font-bold">{examDetail.name}</h1>
-            <p className="text-muted-foreground mt-1">
+          <div className="sm:ml-4">
+            <h1 className="text-2xl sm:text-3xl font-bold break-words">{examDetail.name}</h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               考试详情和成绩信息
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
           {/* 管理员下载成绩单按钮 */}
           {user?.role === 'admin' && examDetail.is_saved && (
             <Button
@@ -225,13 +225,15 @@ const ExamDetailPage: React.FC = () => {
               disabled={downloadingScoresheet}
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               {downloadingScoresheet ? (
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Download className="h-4 w-4 mr-2" />
               )}
-              {downloadingScoresheet ? '下载中...' : '下载成绩单'}
+              <span className="hidden sm:inline">{downloadingScoresheet ? '下载中...' : '下载成绩单'}</span>
+              <span className="sm:hidden">{downloadingScoresheet ? '下载中' : '成绩单'}</span>
             </Button>
           )}
 
@@ -242,9 +244,11 @@ const ExamDetailPage: React.FC = () => {
               disabled={!!fetchingTask}
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${fetchingTask ? 'animate-spin' : ''}`} />
-              {fetchingTask ? '加载中...' : '加载最新详情'}
+              <span className="hidden sm:inline">{fetchingTask ? '加载中...' : '加载最新详情'}</span>
+              <span className="sm:hidden">{fetchingTask ? '加载中' : '最新详情'}</span>
             </Button>
           )}
         </div>
@@ -287,12 +291,12 @@ const ExamDetailPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">考试 ID</label>
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="font-mono text-sm">{examDetail.id}</span>
+                <span className="font-mono text-sm break-all">{examDetail.id}</span>
               </div>
             </div>
 
@@ -300,7 +304,7 @@ const ExamDetailPage: React.FC = () => {
               <label className="text-sm font-medium text-muted-foreground">考试时间</label>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{formatTimestampToLocalDate(examDetail.created_at)}</span>
+                <span className="font-medium text-sm sm:text-base">{formatTimestampToLocalDate(examDetail.created_at)}</span>
               </div>
             </div>
 
@@ -332,19 +336,19 @@ const ExamDetailPage: React.FC = () => {
                 <label className="text-sm font-medium text-muted-foreground">总分</label>
                 <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
                   {examDetail.totalScores.map((totalScore) => (
-                    <div key={totalScore.subject_id} className="flex items-center justify-between">
-                      <div className="flex items-baseline space-x-2">
-                        <span className="text-3xl font-bold text-primary">{totalScore.score || '-'}</span>
-                        <span className="text-xl text-muted-foreground">/ {totalScore.standard_score || '-'}</span>
+                    <div key={totalScore.subject_id} className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                      <div className="flex items-baseline space-x-2 justify-center sm:justify-start">
+                        <span className="text-2xl sm:text-3xl font-bold text-primary">{totalScore.score || '-'}</span>
+                        <span className="text-lg sm:text-xl text-muted-foreground">/ {totalScore.standard_score || '-'}</span>
                       </div>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
                         {totalScore.class_rank && (
-                          <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg">
+                          <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg text-center">
                             <span className="text-sm font-medium text-blue-700">班级第 {totalScore.class_rank} 名</span>
                           </div>
                         )}
                         {totalScore.school_rank && (
-                          <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg">
+                          <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg text-center">
                             <span className="text-sm font-medium text-green-700">学校第 {totalScore.school_rank} 名</span>
                           </div>
                         )}
@@ -368,33 +372,64 @@ const ExamDetailPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {examDetail.scores.map((score, index) => (
-                <div key={score.subject_id}>
-                  {index > 0 && <Separator />}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 py-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">科目</label>
-                      <p className="font-medium">{score.subject_name}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">得分</label>
-                      <p className="font-medium text-lg">{score.score || '-'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">满分</label>
-                      <p className="font-medium">{score.standard_score || '-'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">班级排名</label>
-                      <p className="font-medium">{score.class_rank || '-'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">学校排名</label>
-                      <p className="font-medium">{score.school_rank || '-'}</p>
+            {/* 桌面端表格视图 */}
+            <div className="hidden md:block">
+              <div className="space-y-4">
+                {examDetail.scores.map((score, index) => (
+                  <div key={score.subject_id}>
+                    {index > 0 && <Separator />}
+                    <div className="grid grid-cols-5 gap-4 py-4">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">科目</label>
+                        <p className="font-medium">{score.subject_name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">得分</label>
+                        <p className="font-medium text-lg">{score.score || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">满分</label>
+                        <p className="font-medium">{score.standard_score || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">班级排名</label>
+                        <p className="font-medium">{score.class_rank || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">学校排名</label>
+                        <p className="font-medium">{score.school_rank || '-'}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 移动端卡片视图 */}
+            <div className="md:hidden space-y-4">
+              {examDetail.scores.map((score) => (
+                <Card key={score.subject_id} className="bg-muted/20">
+                  <CardContent className="p-4">
+                    <div className="text-center mb-4">
+                      <h3 className="font-bold text-lg text-primary mb-1">{score.subject_name}</h3>
+                      <div className="flex items-baseline justify-center space-x-1">
+                        <span className="text-2xl font-bold">{score.score || '-'}</span>
+                        <span className="text-lg text-muted-foreground">/ {score.standard_score || '-'}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-background rounded-lg p-3 text-center">
+                        <div className="text-muted-foreground mb-1">班级排名</div>
+                        <div className="font-medium text-blue-600">{score.class_rank ? `第 ${score.class_rank} 名` : '-'}</div>
+                      </div>
+                      <div className="bg-background rounded-lg p-3 text-center">
+                        <div className="text-muted-foreground mb-1">学校排名</div>
+                        <div className="font-medium text-green-600">{score.school_rank ? `第 ${score.school_rank} 名` : '-'}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </CardContent>
@@ -409,14 +444,14 @@ const ExamDetailPage: React.FC = () => {
       {/* Empty State for Unsaved Exam */}
       {!examDetail.is_saved && (
         <Card>
-          <CardContent className="text-center py-12">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <CardContent className="text-center py-8 sm:py-12">
+            <AlertCircle className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">考试详情未保存</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-md mx-auto">
               此考试的详细信息尚未保存到服务器，请点击"加载最新详情"获取成绩信息
             </p>
             {user?.zhixue_username && (
-              <Button onClick={handleFetchDetails} disabled={!!fetchingTask}>
+              <Button onClick={handleFetchDetails} disabled={!!fetchingTask} className="w-full sm:w-auto">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 加载最新详情
               </Button>

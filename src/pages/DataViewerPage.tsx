@@ -584,28 +584,62 @@ const ScoreLookup: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {scoreData.scores && scoreData.scores.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>科目</TableHead>
-                        <TableHead>得分</TableHead>
-                        <TableHead>满分</TableHead>
-                        <TableHead>班级排名</TableHead>
-                        <TableHead>学校排名</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <>
+                    {/* 桌面端表格视图 */}
+                    <div className="hidden md:block">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>科目</TableHead>
+                            <TableHead>得分</TableHead>
+                            <TableHead>满分</TableHead>
+                            <TableHead>班级排名</TableHead>
+                            <TableHead>学校排名</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {scoreData.scores.map((score: any) => (
+                            <TableRow key={score.subject_id}>
+                              <TableCell className="font-medium">{score.subject_name}</TableCell>
+                              <TableCell>{score.score || '-'}</TableCell>
+                              <TableCell>{score.standard_score || '-'}</TableCell>
+                              <TableCell>{score.class_rank || '-'}</TableCell>
+                              <TableCell>{score.school_rank || '-'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* 移动端卡片视图 */}
+                    <div className="md:hidden space-y-3">
                       {scoreData.scores.map((score: any) => (
-                        <TableRow key={score.subject_id}>
-                          <TableCell className="font-medium">{score.subject_name}</TableCell>
-                          <TableCell>{score.score || '-'}</TableCell>
-                          <TableCell>{score.standard_score || '-'}</TableCell>
-                          <TableCell>{score.class_rank || '-'}</TableCell>
-                          <TableCell>{score.school_rank || '-'}</TableCell>
-                        </TableRow>
+                        <Card key={score.subject_id} className="bg-muted/20">
+                          <CardContent className="p-4">
+                            <div className="font-medium text-lg mb-3">{score.subject_name}</div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">得分:</span>
+                                <span className="font-medium">{score.score || '-'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">满分:</span>
+                                <span className="font-medium">{score.standard_score || '-'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">班级排名:</span>
+                                <span className="font-medium">{score.class_rank || '-'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">学校排名:</span>
+                                <span className="font-medium">{score.school_rank || '-'}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </div>
+                  </>
                 ) : (
                   <div className="text-center py-6 text-muted-foreground">
                     <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
