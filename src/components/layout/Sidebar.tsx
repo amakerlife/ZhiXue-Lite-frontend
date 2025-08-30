@@ -6,6 +6,7 @@ import {
   ListTodo,
   Settings,
   Eye,
+  Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,6 +59,11 @@ const navItems: NavItem[] = [
     icon: Settings,
     requireAuth: true,
     adminOnly: true,
+  },
+  {
+    name: '关于',
+    href: '/about',
+    icon: Info,
   },
 ];
 

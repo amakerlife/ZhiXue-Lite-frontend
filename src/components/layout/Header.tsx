@@ -30,6 +30,10 @@ const routeNameMap: Record<string, string> = {
   '/profile': '个人中心',
   '/login': '登录',
   '/signup': '注册',
+  '/about': '关于',
+  '/privacy-policy': '隐私政策',
+  '/data-deletion': '数据删除请求',
+  '/disclaimer': '免责声明',
 };
 
 const generateBreadcrumbs = async (pathname: string): Promise<BreadcrumbItem[]> => {
@@ -42,7 +46,7 @@ const generateBreadcrumbs = async (pathname: string): Promise<BreadcrumbItem[]> 
   for (const path of paths) {
     currentPath += `/${path}`;
     let name = routeNameMap[currentPath] || path;
-    
+
     // 处理考试详情页面的动态路由
     if (currentPath.startsWith('/exams/') && currentPath !== '/exams' && path !== 'exams') {
       try {
@@ -55,7 +59,7 @@ const generateBreadcrumbs = async (pathname: string): Promise<BreadcrumbItem[]> 
         console.warn('Failed to fetch exam name for breadcrumb:', error);
       }
     }
-    
+
     breadcrumbs.push({ name, path: currentPath });
   }
 
@@ -80,7 +84,7 @@ const Header: React.FC = () => {
       const newBreadcrumbs = await generateBreadcrumbs(location.pathname);
       setBreadcrumbs(newBreadcrumbs);
     };
-    
+
     loadBreadcrumbs();
   }, [location.pathname]);
 
@@ -120,8 +124,8 @@ const Header: React.FC = () => {
         <div className="flex-1 flex items-center justify-center px-2 sm:px-4 min-w-0">
           {/* 移动端：只显示当前页面名称 */}
           <nav className="flex items-center text-sm text-muted-foreground sm:hidden min-w-0">
-            <span 
-              className="text-foreground font-medium truncate" 
+            <span
+              className="text-foreground font-medium truncate"
               title={breadcrumbs[breadcrumbs.length - 1]?.name}
             >
               {breadcrumbs[breadcrumbs.length - 1]?.name}
@@ -134,7 +138,7 @@ const Header: React.FC = () => {
               const isFirst = index === 0;
               const isLast = index === breadcrumbs.length - 1;
               const isSecondToLast = index === breadcrumbs.length - 2;
-              
+
               return (
                 <React.Fragment key={item.path || item.name}>
                   {index > 0 && (
@@ -155,7 +159,7 @@ const Header: React.FC = () => {
                       {item.name}
                     </Link>
                   ) : (
-                    <span 
+                    <span
                       className="text-foreground font-medium truncate flex-shrink-0 min-w-0"
                       title={item.name}
                     >

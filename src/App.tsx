@@ -12,6 +12,10 @@ import TasksPage from '@/pages/TasksPage';
 import ProfilePage from '@/pages/ProfilePage';
 import AdminPage from '@/pages/AdminPage';
 import DataViewerPage from '@/pages/DataViewerPage';
+import AboutPage from '@/pages/AboutPage';
+import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
+import DataDeletionPage from '@/pages/DataDeletionPage';
+import DisclaimerPage from '@/pages/DisclaimerPage';
 
 const App: React.FC = () => {
   return (
@@ -29,6 +33,10 @@ const App: React.FC = () => {
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/data-deletion" element={<DataDeletionPage />} />
+              <Route path="/disclaimer" element={<DisclaimerPage />} />
             </Routes>
           </Layout>
         </Router>
