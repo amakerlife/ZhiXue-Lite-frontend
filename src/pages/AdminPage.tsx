@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, School, GraduationCap, UserCheck, FileText, Search, RefreshCw, Edit, Save, X, Eye, Unlink, RotateCcw, ChevronDown, ChevronRight, Trash } from 'lucide-react';
+import { Users, School, GraduationCap, UserCheck, FileText, Search, RefreshCw, Edit, Save, X, Eye, Unlink, RotateCcw, ChevronDown, ChevronRight, Trash, HardDriveIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminAPI } from '@/api/admin';
-import { authAPI } from '@/api/auth';
 import { examAPI } from '@/api/exam';
 import { formatUTCIsoToLocal, formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { canManageSystem, getUserRoleLabel, getRoleVariant } from '@/utils/permissions';
@@ -18,6 +17,30 @@ import type { AdminUser, School as SchoolType, ZhiXueAccount, Teacher, AdminExam
 
 const AdminPage: React.FC = () => {
   const { user } = useAuth();
+
+  // 清除缓存状态
+  const [clearingCache, setClearingCache] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // 清除缓存函数
+  const handleClearCache = async () => {
+    setClearingCache(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await adminAPI.clearCache();
+      if (response.data.success) {
+        setSuccess('缓存已成功清除');
+      }
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '清除缓存失败';
+      setError(errorMessage);
+    } finally {
+      setClearingCache(false);
+    }
+  };
 
   useEffect(() => {
     document.title = '管理面板 - ZhiXue Lite';
@@ -45,12 +68,40 @@ const AdminPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">管理面板</h1>
-        <p className="text-muted-foreground mt-1">
-          系统管理和数据维护
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">管理面板</h1>
+          <p className="text-muted-foreground mt-1">
+            系统管理和数据维护
+          </p>
+        </div>
+        <Button
+          onClick={handleClearCache}
+          disabled={clearingCache}
+          variant="outline"
+          className="flex items-center space-x-2"
+        >
+          {clearingCache ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : (
+            <HardDriveIcon className="h-4 w-4" />
+          )}
+          <span>{clearingCache ? '清除中...' : '清除缓存'}</span>
+        </Button>
       </div>
+
+      {/* Success/Error Messages */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-md p-3">
+          <p className="text-green-800 text-sm">{success}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+          <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
 
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
@@ -196,7 +247,7 @@ const UserManagement: React.FC = () => {
         updateData.role = editForm.role;
       }
 
-      const response = await authAPI.updateUser(userId, updateData);
+      const response = await adminAPI.updateUser(userId, updateData);
       if (response.data.success) {
         setSuccess('用户信息已更新');
         setEditingUser(null);
@@ -238,7 +289,7 @@ const UserManagement: React.FC = () => {
     setSuccess(null);
 
     try {
-      const response = await authAPI.updateUser(resetPasswordDialog.user.id, { password: newPassword });
+      const response = await adminAPI.updateUser(resetPasswordDialog.user.id, { password: newPassword });
       if (response.data.success) {
         setSuccess(`用户 ${resetPasswordDialog.user.username} 的密码已重置`);
         closeResetPasswordDialog();

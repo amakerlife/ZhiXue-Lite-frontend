@@ -194,10 +194,35 @@ const ProfilePage: React.FC = () => {
     });
   };
 
-  // 新增：提交修改
+  // 提交修改
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !user.id) return;
+    
+    if (!user) {
+      setError('用户信息不完整');
+      return;
+    }
+
+    // 验证逻辑
+    if (editMode === 'email') {
+      if (editForm.email === user.email) {
+        setError('新邮箱与当前邮箱相同');
+        return;
+      }
+    } else if (editMode === 'password') {
+      if (editForm.newPassword !== editForm.confirmPassword) {
+        setError('两次输入的新密码不一致');
+        return;
+      }
+      if (editForm.newPassword.length < 6) {
+        setError('密码长度不能少于6位');
+        return;
+      }
+      if (!editForm.currentPassword) {
+        setError('请输入当前密码');
+        return;
+      }
+    }
 
     setLoading(true);
     setError(null);
@@ -207,27 +232,14 @@ const ProfilePage: React.FC = () => {
       const updateData: { email?: string; currentPassword?: string; password?: string } = {};
 
       if (editMode === 'email') {
-        if (editForm.email === user.email) {
-          setError('新邮箱与当前邮箱相同');
-          setLoading(false);
-          return;
-        }
         updateData.email = editForm.email;
       } else if (editMode === 'password') {
-        if (editForm.newPassword !== editForm.confirmPassword) {
-          setError('两次输入的新密码不一致');
-          setLoading(false);
-          return;
-        }
-        if (editForm.newPassword.length < 6) {
-          setError('密码长度不能少于6位');
-          setLoading(false);
-          return;
-        }
+        updateData.currentPassword = editForm.currentPassword;
         updateData.password = editForm.newPassword;
       }
 
-      const response = await authAPI.updateUser(user.id, updateData);
+      const response = await authAPI.updateCurrentUser(updateData);
+      
       if (response.data.success) {
         setSuccess(editMode === 'email' ? '邮箱修改成功' : '密码修改成功');
         setEditMode('none');
@@ -301,10 +313,11 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">邮箱</label>
+              <label htmlFor="user-email" className="text-sm font-medium text-muted-foreground">邮箱</label>
               {editMode === 'email' ? (
                 <form onSubmit={handleUpdateUser} className="space-y-3">
                   <Input
+                    id="user-email"
                     type="email"
                     value={editForm.email}
                     onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
@@ -312,7 +325,11 @@ const ProfilePage: React.FC = () => {
                     required
                   />
                   <div className="flex items-center space-x-2">
-                    <Button type="submit" size="sm" disabled={loading}>
+                    <Button 
+                      type="submit" 
+                      size="sm" 
+                      disabled={loading}
+                    >
                       {loading ? '保存中...' : '保存'}
                     </Button>
                     <Button type="button" variant="outline" size="sm" onClick={cancelEdit}>
@@ -334,10 +351,19 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">密码</label>
+              <label htmlFor="user-password" className="text-sm font-medium text-muted-foreground">密码</label>
               {editMode === 'password' ? (
                 <form onSubmit={handleUpdateUser} className="space-y-3">
                   <Input
+                    id="current-password"
+                    type="password"
+                    value={editForm.currentPassword}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    placeholder="请输入当前密码"
+                    required
+                  />
+                  <Input
+                    id="new-password"
                     type="password"
                     value={editForm.newPassword}
                     onChange={(e) => setEditForm(prev => ({ ...prev, newPassword: e.target.value }))}
@@ -345,6 +371,7 @@ const ProfilePage: React.FC = () => {
                     required
                   />
                   <Input
+                    id="confirm-password"
                     type="password"
                     value={editForm.confirmPassword}
                     onChange={(e) => setEditForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
@@ -352,7 +379,11 @@ const ProfilePage: React.FC = () => {
                     required
                   />
                   <div className="flex items-center space-x-2">
-                    <Button type="submit" size="sm" disabled={loading}>
+                    <Button 
+                      type="submit" 
+                      size="sm" 
+                      disabled={loading}
+                    >
                       {loading ? '保存中...' : '保存'}
                     </Button>
                     <Button type="button" variant="outline" size="sm" onClick={cancelEdit}>

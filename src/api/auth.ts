@@ -39,6 +39,6 @@ export const authAPI = {
   getZhixueBindingInfo: () =>
     api.get<ApiResponse & { binding_info: { username: string }[] }>('/user/zhixue/binding_info'),
 
-  updateUser: (userId: number, data: UserUpdateRequest) =>
-    api.put<ApiResponse & { user: User }>(`/user/update/${userId}`, data),
+  updateCurrentUser: (data: Partial<UserUpdateRequest>) =>
+    api.put<ApiResponse & { user: User }>('/user/me', data),
 };

@@ -91,4 +91,12 @@ export const adminAPI = {
   
   unbindUserFromZhixueAccount: (zhixueUsername: string, username: string) =>
     api.post<ApiResponse>(`/admin/zhixue/${zhixueUsername}/unbind/${username}`),
+
+  // 缓存管理
+  clearCache: () =>
+    api.delete<ApiResponse>('/admin/cache'),
+
+  // 用户管理
+  updateUser: (userId: number, data: { email?: string; role?: string; is_active?: boolean; password?: string }) =>
+    api.put<ApiResponse & { user: AdminUser }>(`/admin/user/${userId}`, data),
 };
