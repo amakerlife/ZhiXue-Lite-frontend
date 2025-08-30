@@ -310,12 +310,12 @@ export const trackAnalyticsEvent = (eventName: string, properties?: Record<strin
     if (config.ga.enabled && window.gtag) {
       window.gtag('event', eventName, properties);
     }
-    
+
     // Umami 追踪
     if (config.umami.enabled && window.umami) {
       window.umami.track(eventName, properties);
     }
-    
+
     // Microsoft Clarity 追踪
     if (config.clarity.enabled && window.clarity) {
       window.clarity('event', eventName);

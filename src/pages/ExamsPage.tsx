@@ -46,7 +46,7 @@ const ExamsPage: React.FC = () => {
       if (response.data.success) {
         setExams(response.data.exams);
         setTotalPages(response.data.pagination.pages);
-        
+
         // 追踪考试列表加载成功事件
         trackAnalyticsEvent('exam_list_load_success', {
           username: user?.username,
@@ -61,7 +61,7 @@ const ExamsPage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试列表失败';
       setError(errorMessage);
-      
+
       // 追踪考试列表加载失败事件
       trackAnalyticsEvent('exam_list_load_failed', {
         username: user?.username,
@@ -85,19 +85,19 @@ const ExamsPage: React.FC = () => {
       const response = await examAPI.fetchExamList();
       if (response.data.success) {
         const taskId = response.data.task_id;
-        
+
         // 追踪从智学网拉取考试列表开始事件
         trackAnalyticsEvent('exam_list_fetch_started', {
           username: user?.username,
           task_id: taskId
         });
-        
+
         pollTaskStatus(taskId);
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试失败';
       setError(errorMessage);
-      
+
       // 追踪从智学网拉取考试列表失败事件
       trackAnalyticsEvent('exam_list_fetch_failed', {
         username: user?.username,
@@ -116,20 +116,20 @@ const ExamsPage: React.FC = () => {
 
         if (task.status === 'completed') {
           setFetchingTask(null);
-          
+
           // 追踪从智学网拉取考试列表成功事件
           trackAnalyticsEvent('exam_list_fetch_success', {
             username: user?.username,
             task_id: taskId,
-            duration_seconds: task.completed_at && task.started_at ? 
+            duration_seconds: task.completed_at && task.started_at ?
               Math.round((new Date(task.completed_at).getTime() - new Date(task.started_at).getTime()) / 1000) : null
           });
-          
+
           loadExams(page, searchQuery);
         } else if (task.status === 'failed') {
           setFetchingTask(null);
           setError(task.error_message || '任务执行失败');
-          
+
           // 追踪从智学网拉取考试列表失败事件
           trackAnalyticsEvent('exam_list_fetch_failed', {
             username: user?.username,

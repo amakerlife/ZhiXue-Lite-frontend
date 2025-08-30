@@ -93,14 +93,14 @@ const ProfilePage: React.FC = () => {
         if (isTurnstileEnabled) {
           setTurnstileToken('');
         }
-        
+
         // 追踪智学网绑定成功事件
         trackAnalyticsEvent('zhixue_bind_success', {
           username: user?.username,
           zhixue_username: connectForm.username,
           has_captcha: !!turnstileToken
         });
-        
+
         await refreshUser();
         // 绑定成功后加载绑定信息
         await loadBindingInfo();
@@ -108,7 +108,7 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '绑定失败';
       setError(errorMessage);
-      
+
       // 追踪智学网绑定失败事件
       trackAnalyticsEvent('zhixue_bind_failed', {
         username: user?.username,
@@ -166,7 +166,7 @@ const ProfilePage: React.FC = () => {
 
   const confirmDisconnectZhixue = async () => {
     const currentZhixueUsername = user?.zhixue_username; // 保存当前智学网用户名
-    
+
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -175,19 +175,19 @@ const ProfilePage: React.FC = () => {
       const response = await authAPI.unbindZhixue();
       if (response.data.success) {
         setSuccess('智学网账号已解绑');
-        
+
         // 追踪智学网解绑成功事件
         trackAnalyticsEvent('zhixue_unbind_success', {
           username: user?.username,
           zhixue_username: currentZhixueUsername
         });
-        
+
         await refreshUser();
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '解绑失败';
       setError(errorMessage);
-      
+
       // 追踪智学网解绑失败事件
       trackAnalyticsEvent('zhixue_unbind_failed', {
         username: user?.username,
@@ -230,7 +230,7 @@ const ProfilePage: React.FC = () => {
   // 提交修改
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user) {
       setError('用户信息不完整');
       return;
@@ -272,17 +272,17 @@ const ProfilePage: React.FC = () => {
       }
 
       const response = await authAPI.updateCurrentUser(updateData);
-      
+
       if (response.data.success) {
         setSuccess(editMode === 'email' ? '邮箱修改成功' : '密码修改成功');
-        
+
         // 追踪用户信息更新成功事件
         trackAnalyticsEvent('user_profile_update_success', {
           username: user?.username,
           update_type: editMode,
           field_updated: editMode === 'email' ? 'email' : 'password'
         });
-        
+
         setEditMode('none');
         setEditForm({
           email: '',
@@ -295,7 +295,7 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '修改失败';
       setError(errorMessage);
-      
+
       // 追踪用户信息更新失败事件
       trackAnalyticsEvent('user_profile_update_failed', {
         username: user?.username,
@@ -374,9 +374,9 @@ const ProfilePage: React.FC = () => {
                     required
                   />
                   <div className="flex items-center space-x-2">
-                    <Button 
-                      type="submit" 
-                      size="sm" 
+                    <Button
+                      type="submit"
+                      size="sm"
                       disabled={loading}
                     >
                       {loading ? '保存中...' : '保存'}
@@ -428,9 +428,9 @@ const ProfilePage: React.FC = () => {
                     required
                   />
                   <div className="flex items-center space-x-2">
-                    <Button 
-                      type="submit" 
-                      size="sm" 
+                    <Button
+                      type="submit"
+                      size="sm"
                       disabled={loading}
                     >
                       {loading ? '保存中...' : '保存'}

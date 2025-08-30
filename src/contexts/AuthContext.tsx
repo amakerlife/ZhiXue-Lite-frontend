@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.data.success) {
         // 后端直接返回 user 字段，不是包装在 data 中
         setUser(response.data.user);
-        
+
         // 追踪登录成功事件
         trackAnalyticsEvent('user_login_success', {
           username: username,
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error_type: error instanceof Error ? 'api_error' : 'unknown_error',
         has_captcha: !!turnstile_token
       });
-      
+
       // API拦截器已经提取了友好的错误消息，直接使用即可
       const errorMessage = error instanceof Error ? error.message : '登录失败，请稍后重试';
       throw new Error(errorMessage);
@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authAPI.signup({ username, password, email, turnstile_token });
       if (response.data.success) {
         await refreshUser();
-        
+
         // 追踪注册成功事件
         trackAnalyticsEvent('user_signup_success', {
           username: username,
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error_type: error instanceof Error ? 'api_error' : 'unknown_error',
         has_captcha: !!turnstile_token
       });
-      
+
       // API拦截器已经提取了友好的错误消息，直接使用即可
       const errorMessage = error instanceof Error ? error.message : '注册失败，请稍后重试';
       throw new Error(errorMessage);
@@ -108,10 +108,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     const currentUser = user; // 保存当前用户信息用于追踪
-    
+
     try {
       await authAPI.logout();
-      
+
       // 追踪登出成功事件
       if (currentUser) {
         trackAnalyticsEvent('user_logout_success', {
@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Logout error:', error);
-      
+
       // 追踪登出失败事件
       if (currentUser) {
         trackAnalyticsEvent('user_logout_failed', {
