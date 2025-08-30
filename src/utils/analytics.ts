@@ -30,7 +30,8 @@ export const trackAnalyticsEvent = (eventName: string, properties?: Record<strin
     }
 
     // Clarity automatically tracks events, but we can send custom events
-    if (config.clarity.enabled && window.clarity) {
+    // 确保 clarity 对象存在且有 v 属性再调用
+    if (config.clarity.enabled && window.clarity && typeof window.clarity === 'function') {
       window.clarity('event', eventName);
     }
   } catch (error) {

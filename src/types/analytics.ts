@@ -33,7 +33,12 @@ export interface AnalyticsConfig {
 declare global {
   interface Window {
     dataLayer?: any[];
-    clarity?: (action: string, ...args: any[]) => void;
+    clarity?: {
+      (action: string, ...args: any[]): void;
+      q?: any[];
+      v?: any;
+      t?: boolean;
+    };
     gtag?: (command: string, ...args: any[]) => void;
     umami?: {
       track: (eventName: string, eventData?: Record<string, any>) => void;

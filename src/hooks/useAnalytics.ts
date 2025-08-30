@@ -40,10 +40,26 @@ export const useAnalytics = () => {
       try {
         // Initialize Microsoft Clarity
         if (config.clarity.enabled && config.clarity.projectId) {
-          await loadScript(
-            `https://www.clarity.ms/tag/${config.clarity.projectId}`,
-            'clarity-script'
-          );
+          // 初始化 window.clarity 对象以避免 undefined 错误
+          if (!window.clarity) {
+            window.clarity = function(action: string, ...args: any[]) {
+              // 创建一个队列来存储在实际脚本加载前的调用
+              if (window.clarity) {
+                window.clarity.q = window.clarity.q || [];
+                window.clarity.q.push([action, ...args]);
+              }
+            } as any;
+            if (window.clarity) {
+              window.clarity.q = [];
+            }
+          }
+
+          // 使用同步方式加载 Clarity 脚本以确保正确的执行顺序
+          const script = document.createElement('script');
+          script.id = 'clarity-script';
+          script.src = `https://www.clarity.ms/tag/${config.clarity.projectId}`;
+          script.async = false; // 使用同步加载而不是异步
+          document.head.appendChild(script);
         }
 
         // Initialize Google Analytics
@@ -92,7 +108,8 @@ export const useAnalytics = () => {
       }
 
       // Clarity automatically tracks events, but we can send custom events
-      if (config.clarity.enabled && window.clarity) {
+      // 确保 clarity 对象存在且有效再调用
+      if (config.clarity.enabled && window.clarity && typeof window.clarity === 'function') {
         window.clarity('event', eventName);
       }
     } catch (error) {
