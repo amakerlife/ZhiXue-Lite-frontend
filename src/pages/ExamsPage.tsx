@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
+import { trackAnalyticsEvent } from '@/utils/analytics';
 import type { Exam, BackgroundTask } from '@/types/api';
 
 const ExamsPage: React.FC = () => {
@@ -45,10 +46,30 @@ const ExamsPage: React.FC = () => {
       if (response.data.success) {
         setExams(response.data.exams);
         setTotalPages(response.data.pagination.pages);
+        
+        // 追踪考试列表加载成功事件
+        trackAnalyticsEvent('exam_list_load_success', {
+          username: user?.username,
+          page: pageNum,
+          per_page: 10,
+          query: query || null,
+          exam_count: response.data.exams.length,
+          total_pages: response.data.pagination.pages,
+          is_search: !!query
+        });
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试列表失败';
       setError(errorMessage);
+      
+      // 追踪考试列表加载失败事件
+      trackAnalyticsEvent('exam_list_load_failed', {
+        username: user?.username,
+        page: pageNum,
+        query: query || null,
+        error_message: errorMessage,
+        is_search: !!query
+      });
     } finally {
       setLoading(false);
     }
@@ -64,11 +85,25 @@ const ExamsPage: React.FC = () => {
       const response = await examAPI.fetchExamList();
       if (response.data.success) {
         const taskId = response.data.task_id;
+        
+        // 追踪从智学网拉取考试列表开始事件
+        trackAnalyticsEvent('exam_list_fetch_started', {
+          username: user?.username,
+          task_id: taskId
+        });
+        
         pollTaskStatus(taskId);
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试失败';
       setError(errorMessage);
+      
+      // 追踪从智学网拉取考试列表失败事件
+      trackAnalyticsEvent('exam_list_fetch_failed', {
+        username: user?.username,
+        error_message: errorMessage,
+        stage: 'init'
+      });
     }
   };
 
@@ -81,10 +116,27 @@ const ExamsPage: React.FC = () => {
 
         if (task.status === 'completed') {
           setFetchingTask(null);
+          
+          // 追踪从智学网拉取考试列表成功事件
+          trackAnalyticsEvent('exam_list_fetch_success', {
+            username: user?.username,
+            task_id: taskId,
+            duration_seconds: task.completed_at && task.started_at ? 
+              Math.round((new Date(task.completed_at).getTime() - new Date(task.started_at).getTime()) / 1000) : null
+          });
+          
           loadExams(page, searchQuery);
         } else if (task.status === 'failed') {
           setFetchingTask(null);
           setError(task.error_message || '任务执行失败');
+          
+          // 追踪从智学网拉取考试列表失败事件
+          trackAnalyticsEvent('exam_list_fetch_failed', {
+            username: user?.username,
+            task_id: taskId,
+            error_message: task.error_message || '任务执行失败',
+            stage: 'execution'
+          });
         } else if (['pending', 'processing'].includes(task.status)) {
           setTimeout(() => pollTaskStatus(taskId), 2000);
         }

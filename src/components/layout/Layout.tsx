@@ -5,6 +5,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
+import { usePageTracking } from '@/hooks/usePageTracking';
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,6 +14,9 @@ interface LayoutProps {
 const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { isOpen, isMobile, close } = useSidebar();
+  
+  // 启用页面追踪
+  usePageTracking();
   
   // 不显示侧边栏的页面
   const noSidebarPages = ['/login', '/signup'];

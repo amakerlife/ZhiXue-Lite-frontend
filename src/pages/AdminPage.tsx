@@ -13,6 +13,7 @@ import { adminAPI } from '@/api/admin';
 import { examAPI } from '@/api/exam';
 import { formatUTCIsoToLocal, formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { canManageSystem, getUserRoleLabel, getRoleVariant } from '@/utils/permissions';
+import { trackAnalyticsEvent } from '@/utils/analytics';
 import type { AdminUser, School as SchoolType, ZhiXueAccount, Teacher, AdminExam } from '@/api/admin';
 
 const AdminPage: React.FC = () => {
@@ -1205,6 +1206,7 @@ const TeacherManagement: React.FC = () => {
 
 // 学生管理组件
 const StudentManagement: React.FC = () => {
+  const { user } = useAuth(); // 添加当前用户信息
   const [students, setStudents] = useState<ZhiXueAccount[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -1267,12 +1269,28 @@ const StudentManagement: React.FC = () => {
       const response = await adminAPI.unbindUserFromZhixueAccount(selectedStudent.username, username);
       if (response.data.success) {
         setSuccess(`已成功解绑用户 ${username}`);
+        
+        // 追踪管理员解绑用户成功事件
+        trackAnalyticsEvent('admin_unbind_user_success', {
+          admin_username: user?.username,
+          target_username: username,
+          zhixue_username: selectedStudent.username
+        });
+        
         // 重新加载绑定用户列表
         await viewBindingUsers(selectedStudent);
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '解绑失败';
       setError(errorMessage);
+      
+      // 追踪管理员解绑用户失败事件
+      trackAnalyticsEvent('admin_unbind_user_failed', {
+        admin_username: user?.username,
+        target_username: username,
+        zhixue_username: selectedStudent?.username,
+        error_message: errorMessage
+      });
     } finally {
       setUnbindingUser(null);
     }

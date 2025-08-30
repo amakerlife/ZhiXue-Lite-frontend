@@ -10,6 +10,7 @@ import { authAPI } from '@/api/auth';
 import { formatUTCIsoToLocal } from '@/utils/dateUtils';
 import { getUserRoleLabel, getRoleVariant } from '@/utils/permissions';
 import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
+import { trackAnalyticsEvent } from '@/utils/analytics';
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -92,6 +93,14 @@ const ProfilePage: React.FC = () => {
         if (isTurnstileEnabled) {
           setTurnstileToken('');
         }
+        
+        // 追踪智学网绑定成功事件
+        trackAnalyticsEvent('zhixue_bind_success', {
+          username: user?.username,
+          zhixue_username: connectForm.username,
+          has_captcha: !!turnstileToken
+        });
+        
         await refreshUser();
         // 绑定成功后加载绑定信息
         await loadBindingInfo();
@@ -99,6 +108,14 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '绑定失败';
       setError(errorMessage);
+      
+      // 追踪智学网绑定失败事件
+      trackAnalyticsEvent('zhixue_bind_failed', {
+        username: user?.username,
+        zhixue_username: connectForm.username,
+        error_message: errorMessage,
+        has_captcha: !!turnstileToken
+      });
       // 重置验证码
       if (isTurnstileEnabled) {
         setTurnstileToken('');
@@ -148,6 +165,8 @@ const ProfilePage: React.FC = () => {
   };
 
   const confirmDisconnectZhixue = async () => {
+    const currentZhixueUsername = user?.zhixue_username; // 保存当前智学网用户名
+    
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -156,11 +175,25 @@ const ProfilePage: React.FC = () => {
       const response = await authAPI.unbindZhixue();
       if (response.data.success) {
         setSuccess('智学网账号已解绑');
+        
+        // 追踪智学网解绑成功事件
+        trackAnalyticsEvent('zhixue_unbind_success', {
+          username: user?.username,
+          zhixue_username: currentZhixueUsername
+        });
+        
         await refreshUser();
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '解绑失败';
       setError(errorMessage);
+      
+      // 追踪智学网解绑失败事件
+      trackAnalyticsEvent('zhixue_unbind_failed', {
+        username: user?.username,
+        zhixue_username: currentZhixueUsername,
+        error_message: errorMessage
+      });
     } finally {
       setLoading(false);
     }
@@ -242,6 +275,14 @@ const ProfilePage: React.FC = () => {
       
       if (response.data.success) {
         setSuccess(editMode === 'email' ? '邮箱修改成功' : '密码修改成功');
+        
+        // 追踪用户信息更新成功事件
+        trackAnalyticsEvent('user_profile_update_success', {
+          username: user?.username,
+          update_type: editMode,
+          field_updated: editMode === 'email' ? 'email' : 'password'
+        });
+        
         setEditMode('none');
         setEditForm({
           email: '',
@@ -254,6 +295,14 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '修改失败';
       setError(errorMessage);
+      
+      // 追踪用户信息更新失败事件
+      trackAnalyticsEvent('user_profile_update_failed', {
+        username: user?.username,
+        update_type: editMode,
+        field_updated: editMode === 'email' ? 'email' : 'password',
+        error_message: errorMessage
+      });
     } finally {
       setLoading(false);
     }
