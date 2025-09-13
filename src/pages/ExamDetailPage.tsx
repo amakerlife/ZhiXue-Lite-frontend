@@ -19,17 +19,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
 import { useAuth } from '@/contexts/AuthContext';
+import { useExam, type ExamData } from '@/contexts/ExamContext';
 import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { canViewAllData } from '@/utils/permissions';
 import { trackAnalyticsEvent } from '@/utils/analytics';
-import type { BackgroundTask, ExamDetail } from '@/types/api';
+import type { BackgroundTask } from '@/types/api';
 
 const ExamDetailPage: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
   const { user } = useAuth();
-  const [examDetail, setExamDetail] = useState<ExamDetail | null>(null);
+  const { getExamData, clearExamCache } = useExam();
+  const [examDetail, setExamDetail] = useState<ExamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fetchingTask, setFetchingTask] = useState<BackgroundTask | null>(null);
@@ -44,47 +46,29 @@ const ExamDetailPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // 直接获取考试详情和用户分数
-      const response = await examAPI.getUserExamScore(examId);
-      if (response.data.success) {
-        // 分离总分和科目分数
-        const allScores = response.data.scores || [];
-        const totalScores = allScores.filter(score =>
-          score.subject_name.includes('总') || score.subject_name.includes('合计')
-        );
-        const subjectScores = allScores.filter(score =>
-          !score.subject_name.includes('总') && !score.subject_name.includes('合计')
-        );
+      // 使用 ExamContext 获取考试数据
+      const examData = await getExamData(examId);
 
-        const examDetailData = {
-          id: response.data.id,
-          name: response.data.name,
-          school_id: response.data.school_id,
-          is_saved: response.data.is_saved,
-          created_at: response.data.created_at,
-          scores: subjectScores,
-          totalScores: totalScores
-        };
-
-        setExamDetail(examDetailData);
+      if (examData) {
+        setExamDetail(examData);
 
         // 追踪考试详情加载成功事件
         trackAnalyticsEvent('exam_detail_load_success', {
           username: user?.username,
           exam_id: examId,
-          exam_name: response.data.name,
-          is_saved: response.data.is_saved,
-          subject_count: subjectScores.length,
-          has_total_scores: totalScores.length > 0
+          exam_name: examData.name,
+          is_saved: examData.is_saved,
+          subject_count: examData.scores.length,
+          has_total_scores: examData.totalScores.length > 0
         });
       } else {
-        setError(response.data.message || '获取考试详情失败');
+        setError('获取考试详情失败');
 
         // 追踪考试详情加载失败事件
         trackAnalyticsEvent('exam_detail_load_failed', {
           username: user?.username,
           exam_id: examId,
-          error_message: response.data.message || '获取考试详情失败',
+          error_message: '获取考试详情失败',
           stage: 'api_response'
         });
       }
@@ -161,6 +145,10 @@ const ExamDetailPage: React.FC = () => {
               Math.round((new Date(task.completed_at).getTime() - new Date(task.started_at).getTime()) / 1000) : null
           });
 
+          // 清除缓存并重新加载
+          if (examId) {
+            clearExamCache(examId);
+          }
           await loadExamDetail();
         } else if (task.status === 'failed') {
           setFetchingTask(null);
@@ -371,7 +359,7 @@ const ExamDetailPage: React.FC = () => {
               <label className="text-sm font-medium text-muted-foreground">考试时间</label>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium text-sm sm:text-base">{formatTimestampToLocalDate(examDetail.created_at)}</span>
+                <span className="font-medium text-sm sm:text-base">{formatTimestampToLocalDate(parseInt(examDetail.created_at))}</span>
               </div>
             </div>
 

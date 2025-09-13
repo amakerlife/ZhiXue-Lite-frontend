@@ -12,8 +12,8 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useExam } from '@/contexts/ExamContext';
 import { cn } from '@/lib/utils';
-import { examAPI } from '@/api/exam';
 import logo from '@/assets/logo.png';
 
 interface BreadcrumbItem {
@@ -36,41 +36,12 @@ const routeNameMap: Record<string, string> = {
   '/disclaimer': '免责声明',
 };
 
-const generateBreadcrumbs = async (pathname: string): Promise<BreadcrumbItem[]> => {
-  const paths = pathname.split('/').filter(Boolean);
-  const breadcrumbs: BreadcrumbItem[] = [
-    { name: '首页', path: '/' }
-  ];
-
-  let currentPath = '';
-  for (const path of paths) {
-    currentPath += `/${path}`;
-    let name = routeNameMap[currentPath] || path;
-
-    // 处理考试详情页面的动态路由
-    if (currentPath.startsWith('/exams/') && currentPath !== '/exams' && path !== 'exams') {
-      try {
-        const examId = path;
-        const response = await examAPI.getUserExamScore(examId);
-        if (response.data.success) {
-          name = response.data.name || examId;
-        }
-      } catch (error) {
-        console.warn('Failed to fetch exam name for breadcrumb:', error);
-      }
-    }
-
-    breadcrumbs.push({ name, path: currentPath });
-  }
-
-  return breadcrumbs;
-};
-
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const { toggle } = useSidebar();
+  const { getCachedExamData, getExamData } = useExam();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([
     { name: '首页', path: '/' }
   ]);
@@ -78,6 +49,48 @@ const Header: React.FC = () => {
   // 不显示侧边栏的页面不显示菜单按钮
   const noSidebarPages = ['/login', '/signup'];
   const showMenuButton = !noSidebarPages.includes(location.pathname);
+
+  const generateBreadcrumbs = async (pathname: string): Promise<BreadcrumbItem[]> => {
+    const paths = pathname.split('/').filter(Boolean);
+    const breadcrumbs: BreadcrumbItem[] = [
+      { name: '首页', path: '/' }
+    ];
+
+    let currentPath = '';
+    for (const path of paths) {
+      currentPath += `/${path}`;
+      let name = routeNameMap[currentPath] || path;
+
+      // 处理考试详情页面的动态路由
+      if (currentPath.startsWith('/exams/') && currentPath !== '/exams' && path !== 'exams') {
+        try {
+          const examId = path;
+          // 先尝试从缓存获取
+          let examData = getCachedExamData(examId);
+
+          // 如果缓存中没有，则异步获取（但不阻塞面包屑显示）
+          if (!examData) {
+            getExamData(examId).then(data => {
+              if (data) {
+                // 数据获取成功后重新生成面包屑
+                generateBreadcrumbs(pathname).then(setBreadcrumbs);
+              }
+            });
+            // 暂时使用 examId 作为显示名称
+            name = examId;
+          } else {
+            name = examData.name || examId;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch exam name for breadcrumb:', error);
+        }
+      }
+
+      breadcrumbs.push({ name, path: currentPath });
+    }
+
+    return breadcrumbs;
+  };
 
   useEffect(() => {
     const loadBreadcrumbs = async () => {
@@ -100,7 +113,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center px-4">
+      <div className="w-full flex h-16 items-center justify-between px-4">
         {/* Left: Menu Button (mobile) + Logo */}
         <div className="flex items-center space-x-3">
           {showMenuButton && (
