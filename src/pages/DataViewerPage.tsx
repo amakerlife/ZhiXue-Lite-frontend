@@ -27,6 +27,7 @@ import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { canViewAllData } from '@/utils/permissions';
+import { trackAnalyticsEvent } from '@/utils/analytics';
 import type { BackgroundTask } from '@/types/api';
 
 const DataViewerPage: React.FC = () => {
@@ -81,6 +82,14 @@ const DataViewerPage: React.FC = () => {
         setFetchExamId('');
         setForceRefresh(false);
         setFetchSuccess(`考试 ${fetchExamId.trim()} 拉取任务已创建`);
+
+        trackAnalyticsEvent('data_viewer_exam_fetch_started', {
+          username: user?.username,
+          exam_id: fetchExamId.trim(),
+          task_id: taskId,
+          force_refresh: forceRefresh
+        });
+
         pollTaskStatus(taskId);
       }
     } catch (err: unknown) {
@@ -272,6 +281,7 @@ const DataViewerPage: React.FC = () => {
 
 // 考试查询组件
 const ExamLookup: React.FC = () => {
+  const { user } = useAuth();
   const [examId, setExamId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -290,10 +300,23 @@ const ExamLookup: React.FC = () => {
       const response = await examAPI.getExamInfo(examId.trim());
       if (response.data.success) {
         setExamDetail(response.data.exam);
+
+        trackAnalyticsEvent('data_viewer_exam_info_success', {
+          username: user?.username,
+          exam_id: examId.trim(),
+          exam_name: response.data.exam?.name || 'unknown',
+          is_saved: response.data.exam?.is_saved || false
+        });
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试信息失败';
       setError(errorMessage);
+
+      trackAnalyticsEvent('data_viewer_exam_info_failed', {
+        username: user?.username,
+        exam_id: examId.trim(),
+        error_message: errorMessage
+      });
     } finally {
       setLoading(false);
     }
@@ -320,9 +343,22 @@ const ExamLookup: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
+
+      trackAnalyticsEvent('data_viewer_scoresheet_success', {
+        username: user?.username,
+        exam_id: examDetail.id,
+        exam_name: examDetail.name
+      });
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '生成成绩单失败';
       setError(errorMessage);
+
+      trackAnalyticsEvent('data_viewer_scoresheet_failed', {
+        username: user?.username,
+        exam_id: examDetail.id,
+        exam_name: examDetail.name,
+        error_message: errorMessage
+      });
     } finally {
       setGeneratingScoresheet(false);
     }
@@ -435,6 +471,7 @@ const ExamLookup: React.FC = () => {
 
 // 成绩查询组件
 const ScoreLookup: React.FC = () => {
+  const { user } = useAuth();
   const [examId, setExamId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [studentName, setStudentName] = useState('');
@@ -460,10 +497,27 @@ const ScoreLookup: React.FC = () => {
       );
       if (response.data.success) {
         setScoreData(response.data);
+
+        trackAnalyticsEvent('data_viewer_score_lookup_success', {
+          username: user?.username,
+          exam_id: examId.trim(),
+          search_type: searchType,
+          student_identifier: searchType === 'id' ? studentId.trim() : studentName.trim(),
+          has_scores: response.data.scores && response.data.scores.length > 0,
+          subject_count: response.data.scores ? response.data.scores.length : 0
+        });
       }
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取成绩信息失败';
       setError(errorMessage);
+
+      trackAnalyticsEvent('data_viewer_score_lookup_failed', {
+        username: user?.username,
+        exam_id: examId.trim(),
+        search_type: searchType,
+        student_identifier: searchType === 'id' ? studentId.trim() : studentName.trim(),
+        error_message: errorMessage
+      });
     } finally {
       setLoading(false);
     }
@@ -494,7 +548,7 @@ const ScoreLookup: React.FC = () => {
             </div>
             <div className="space-y-2">
               <label htmlFor="search-type" className="text-sm font-medium">
-                学生识别方式
+                学生查找方式
               </label>
               <Select value={searchType} onValueChange={(value: 'id' | 'name') => {
                 setSearchType(value);

@@ -19,9 +19,10 @@ const config: AnalyticsConfig = {
 
 export const trackAnalyticsEvent = (eventName: string, properties?: Record<string, any>) => {
   try {
-    // Track with Google Analytics
+    // Track with Google Analytics GA4
     if (config.ga.enabled && window.gtag) {
-      window.gtag('event', eventName, properties);
+      // GA4 直接支持自定义属性
+      window.gtag('event', eventName, properties || {});
     }
 
     // Track with Umami

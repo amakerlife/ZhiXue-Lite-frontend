@@ -1270,7 +1270,6 @@ const StudentManagement: React.FC = () => {
       if (response.data.success) {
         setSuccess(`已成功解绑用户 ${username}`);
 
-        // 追踪管理员解绑用户成功事件
         trackAnalyticsEvent('admin_unbind_user_success', {
           admin_username: user?.username,
           target_username: username,
@@ -1284,7 +1283,6 @@ const StudentManagement: React.FC = () => {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '解绑失败';
       setError(errorMessage);
 
-      // 追踪管理员解绑用户失败事件
       trackAnalyticsEvent('admin_unbind_user_failed', {
         admin_username: user?.username,
         target_username: username,

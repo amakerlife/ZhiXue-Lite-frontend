@@ -52,19 +52,16 @@ const ExamDetailPage: React.FC = () => {
       if (examData) {
         setExamDetail(examData);
 
-        // 追踪考试详情加载成功事件
         trackAnalyticsEvent('exam_detail_load_success', {
           username: user?.username,
           exam_id: examId,
           exam_name: examData.name,
           is_saved: examData.is_saved,
           subject_count: examData.scores.length,
-          has_total_scores: examData.totalScores.length > 0
         });
       } else {
         setError('获取考试详情失败');
 
-        // 追踪考试详情加载失败事件
         trackAnalyticsEvent('exam_detail_load_failed', {
           username: user?.username,
           exam_id: examId,
@@ -76,7 +73,6 @@ const ExamDetailPage: React.FC = () => {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试详情失败';
       setError(errorMessage);
 
-      // 追踪考试详情加载失败事件
       trackAnalyticsEvent('exam_detail_load_failed', {
         username: user?.username,
         exam_id: examId,
@@ -101,7 +97,6 @@ const ExamDetailPage: React.FC = () => {
       if (response.data.success) {
         const taskId = response.data.task_id;
 
-        // 追踪从智学网拉取考试详情开始事件
         trackAnalyticsEvent('exam_detail_fetch_started', {
           username: user?.username,
           exam_id: examId,
@@ -114,15 +109,6 @@ const ExamDetailPage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试详情失败';
       setError(errorMessage);
-
-      // 追踪从智学网拉取考试详情失败事件
-      trackAnalyticsEvent('exam_detail_fetch_failed', {
-        username: user?.username,
-        exam_id: examId,
-        error_message: errorMessage,
-        stage: 'init',
-        force_refresh: forceRefresh
-      });
     }
   };
 
@@ -136,15 +122,6 @@ const ExamDetailPage: React.FC = () => {
         if (task.status === 'completed') {
           setFetchingTask(null);
 
-          // 追踪从智学网拉取考试详情成功事件
-          trackAnalyticsEvent('exam_detail_fetch_success', {
-            username: user?.username,
-            exam_id: examId,
-            task_id: taskId,
-            duration_seconds: task.completed_at && task.started_at ?
-              Math.round((new Date(task.completed_at).getTime() - new Date(task.started_at).getTime()) / 1000) : null
-          });
-
           // 清除缓存并重新加载
           if (examId) {
             clearExamCache(examId);
@@ -153,15 +130,6 @@ const ExamDetailPage: React.FC = () => {
         } else if (task.status === 'failed') {
           setFetchingTask(null);
           setError(task.error_message || '任务执行失败');
-
-          // 追踪从智学网拉取考试详情失败事件
-          trackAnalyticsEvent('exam_detail_fetch_failed', {
-            username: user?.username,
-            exam_id: examId,
-            task_id: taskId,
-            error_message: task.error_message || '任务执行失败',
-            stage: 'execution'
-          });
         } else if (['pending', 'processing'].includes(task.status)) {
           setTimeout(() => pollTaskStatus(taskId), 2000);
         }
@@ -188,9 +156,22 @@ const ExamDetailPage: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+
+      trackAnalyticsEvent('exam_detail_scoresheet_success', {
+        username: user?.username,
+        exam_id: examDetail?.id,
+        exam_name: examDetail?.name
+      });
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '下载成绩单失败';
       setError(errorMessage);
+
+      trackAnalyticsEvent('exam_detail_scoresheet_failed', {
+        username: user?.username,
+        exam_id: examDetail?.id,
+        exam_name: examDetail?.name,
+        error_message: errorMessage
+      });
     } finally {
       setDownloadingScoresheet(false);
     }

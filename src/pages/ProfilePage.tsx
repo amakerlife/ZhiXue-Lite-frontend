@@ -94,7 +94,6 @@ const ProfilePage: React.FC = () => {
           setTurnstileToken('');
         }
 
-        // 追踪智学网绑定成功事件
         trackAnalyticsEvent('zhixue_bind_success', {
           username: user?.username,
           zhixue_username: connectForm.username,
@@ -109,7 +108,6 @@ const ProfilePage: React.FC = () => {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '绑定失败';
       setError(errorMessage);
 
-      // 追踪智学网绑定失败事件
       trackAnalyticsEvent('zhixue_bind_failed', {
         username: user?.username,
         zhixue_username: connectForm.username,
@@ -176,7 +174,6 @@ const ProfilePage: React.FC = () => {
       if (response.data.success) {
         setSuccess('智学网账号已解绑');
 
-        // 追踪智学网解绑成功事件
         trackAnalyticsEvent('zhixue_unbind_success', {
           username: user?.username,
           zhixue_username: currentZhixueUsername
@@ -188,7 +185,6 @@ const ProfilePage: React.FC = () => {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '解绑失败';
       setError(errorMessage);
 
-      // 追踪智学网解绑失败事件
       trackAnalyticsEvent('zhixue_unbind_failed', {
         username: user?.username,
         zhixue_username: currentZhixueUsername,
@@ -276,7 +272,6 @@ const ProfilePage: React.FC = () => {
       if (response.data.success) {
         setSuccess(editMode === 'email' ? '邮箱修改成功' : '密码修改成功');
 
-        // 追踪用户信息更新成功事件
         trackAnalyticsEvent('user_profile_update_success', {
           username: user?.username,
           update_type: editMode,
@@ -296,7 +291,6 @@ const ProfilePage: React.FC = () => {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '修改失败';
       setError(errorMessage);
 
-      // 追踪用户信息更新失败事件
       trackAnalyticsEvent('user_profile_update_failed', {
         username: user?.username,
         update_type: editMode,

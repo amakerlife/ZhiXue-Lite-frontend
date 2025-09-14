@@ -8,7 +8,7 @@
 
 ### 🔐 用户认证事件
 
-#### 1. 登录成功 (`user_login_success`)
+#### 登录成功 (`user_login_success`)
 - **触发位置**: `src/contexts/AuthContext.tsx` - `login` 函数
 - **追踪数据**:
   ```typescript
@@ -20,7 +20,7 @@
   }
   ```
 
-#### 2. 登录失败 (`user_login_failed`)
+#### 登录失败 (`user_login_failed`)
 - **触发位置**: `src/contexts/AuthContext.tsx` - `login` 函数
 - **追踪数据**:
   ```typescript
@@ -31,7 +31,7 @@
   }
   ```
 
-#### 3. 注册成功 (`user_signup_success`)
+#### 注册成功 (`user_signup_success`)
 - **触发位置**: `src/contexts/AuthContext.tsx` - `signup` 函数
 - **追踪数据**:
   ```typescript
@@ -42,7 +42,7 @@
   }
   ```
 
-#### 4. 注册失败 (`user_signup_failed`)
+#### 注册失败 (`user_signup_failed`)
 - **触发位置**: `src/contexts/AuthContext.tsx` - `signup` 函数
 - **追踪数据**:
   ```typescript
@@ -54,7 +54,7 @@
   }
   ```
 
-#### 5. 登出成功 (`user_logout_success`)
+#### 登出成功 (`user_logout_success`)
 - **触发位置**: `src/contexts/AuthContext.tsx` - `logout` 函数
 - **追踪数据**:
   ```typescript
@@ -65,7 +65,7 @@
   }
   ```
 
-#### 6. 登出失败 (`user_logout_failed`)
+#### 登出失败 (`user_logout_failed`)
 - **触发位置**: `src/contexts/AuthContext.tsx` - `logout` 函数
 - **追踪数据**:
   ```typescript
@@ -77,7 +77,7 @@
 
 ### 🔗 智学网账号管理事件
 
-#### 7. 智学网绑定成功 (`zhixue_bind_success`)
+#### 智学网绑定成功 (`zhixue_bind_success`)
 - **触发位置**: `src/pages/ProfilePage.tsx` - `confirmConnectZhixue` 函数
 - **追踪数据**:
   ```typescript
@@ -88,7 +88,7 @@
   }
   ```
 
-#### 8. 智学网绑定失败 (`zhixue_bind_failed`)
+#### 智学网绑定失败 (`zhixue_bind_failed`)
 - **触发位置**: `src/pages/ProfilePage.tsx` - `confirmConnectZhixue` 函数
 - **追踪数据**:
   ```typescript
@@ -100,7 +100,7 @@
   }
   ```
 
-#### 9. 智学网解绑成功 (`zhixue_unbind_success`)
+#### 智学网解绑成功 (`zhixue_unbind_success`)
 - **触发位置**: `src/pages/ProfilePage.tsx` - `confirmDisconnectZhixue` 函数
 - **追踪数据**:
   ```typescript
@@ -110,7 +110,7 @@
   }
   ```
 
-#### 10. 智学网解绑失败 (`zhixue_unbind_failed`)
+#### 智学网解绑失败 (`zhixue_unbind_failed`)
 - **触发位置**: `src/pages/ProfilePage.tsx` - `confirmDisconnectZhixue` 函数
 - **追踪数据**:
   ```typescript
@@ -123,7 +123,7 @@
 
 ### 👤 用户信息更新事件
 
-#### 11. 用户信息更新成功 (`user_profile_update_success`)
+#### 用户信息更新成功 (`user_profile_update_success`)
 - **触发位置**: `src/pages/ProfilePage.tsx` - `handleUpdateUser` 函数
 - **追踪数据**:
   ```typescript
@@ -134,7 +134,7 @@
   }
   ```
 
-#### 12. 用户信息更新失败 (`user_profile_update_failed`)
+#### 用户信息更新失败 (`user_profile_update_failed`)
 - **触发位置**: `src/pages/ProfilePage.tsx` - `handleUpdateUser` 函数
 - **追踪数据**:
   ```typescript
@@ -148,7 +148,7 @@
 
 ### 🛡️ 管理员操作事件
 
-#### 13. 管理员解绑用户成功 (`admin_unbind_user_success`)
+#### 管理员解绑用户成功 (`admin_unbind_user_success`)
 - **触发位置**: `src/pages/AdminPage.tsx` - `handleUnbindUser` 函数
 - **追踪数据**:
   ```typescript
@@ -159,7 +159,7 @@
   }
   ```
 
-#### 14. 管理员解绑用户失败 (`admin_unbind_user_failed`)
+#### 管理员解绑用户失败 (`admin_unbind_user_failed`)
 - **触发位置**: `src/pages/AdminPage.tsx` - `handleUnbindUser` 函数
 - **追踪数据**:
   ```typescript
@@ -173,7 +173,7 @@
 
 ### 📚 考试数据操作事件
 
-#### 15. 考试列表加载成功 (`exam_list_load_success`)
+#### 考试列表加载成功 (`exam_list_load_success`)
 - **触发位置**: `src/pages/ExamsPage.tsx` - `loadExams` 函数
 - **追踪数据**:
   ```typescript
@@ -183,12 +183,11 @@
     per_page: number,           // 每页条数
     query: string | null,       // 搜索关键词
     exam_count: number,         // 返回的考试数量
-    total_pages: number,        // 总页数
-    is_search: boolean          // 是否为搜索操作
+    total_pages: number         // 总页数
   }
   ```
 
-#### 16. 考试列表加载失败 (`exam_list_load_failed`)
+#### 考试列表加载失败 (`exam_list_load_failed`)
 - **触发位置**: `src/pages/ExamsPage.tsx` - `loadExams` 函数
 - **追踪数据**:
   ```typescript
@@ -197,44 +196,10 @@
     page: number,               // 页码
     query: string | null,       // 搜索关键词
     error_message: string,      // 错误信息
-    is_search: boolean          // 是否为搜索操作
   }
   ```
 
-#### 17. 从智学网拉取考试列表开始 (`exam_list_fetch_started`)
-- **触发位置**: `src/pages/ExamsPage.tsx` - `confirmFetchExams` 函数
-- **追踪数据**:
-  ```typescript
-  {
-    username: string,           // 用户名
-    task_id: string             // 任务ID
-  }
-  ```
-
-#### 18. 从智学网拉取考试列表成功 (`exam_list_fetch_success`)
-- **触发位置**: `src/pages/ExamsPage.tsx` - `pollTaskStatus` 函数
-- **追踪数据**:
-  ```typescript
-  {
-    username: string,           // 用户名
-    task_id: string,            // 任务ID
-    duration_seconds: number | null  // 执行时长（秒）
-  }
-  ```
-
-#### 19. 从智学网拉取考试列表失败 (`exam_list_fetch_failed`)
-- **触发位置**: `src/pages/ExamsPage.tsx` - `confirmFetchExams` 和 `pollTaskStatus` 函数
-- **追踪数据**:
-  ```typescript
-  {
-    username: string,           // 用户名
-    task_id?: string,           // 任务ID（如果有）
-    error_message: string,      // 错误信息
-    stage: string               // 失败阶段 (init/execution)
-  }
-  ```
-
-#### 20. 考试详情加载成功 (`exam_detail_load_success`)
+#### 考试详情加载成功 (`exam_detail_load_success`)
 - **触发位置**: `src/pages/ExamDetailPage.tsx` - `loadExamDetail` 函数
 - **追踪数据**:
   ```typescript
@@ -244,11 +209,10 @@
     exam_name: string,          // 考试名称
     is_saved: boolean,          // 是否已保存
     subject_count: number,      // 科目数量
-    has_total_scores: boolean   // 是否有总分信息
   }
   ```
 
-#### 21. 考试详情加载失败 (`exam_detail_load_failed`)
+#### 考试详情加载失败 (`exam_detail_load_failed`)
 - **触发位置**: `src/pages/ExamDetailPage.tsx` - `loadExamDetail` 函数
 - **追踪数据**:
   ```typescript
@@ -260,7 +224,7 @@
   }
   ```
 
-#### 22. 从智学网拉取考试详情开始 (`exam_detail_fetch_started`)
+#### 从智学网拉取考试详情开始 (`exam_detail_fetch_started`)
 - **触发位置**: `src/pages/ExamDetailPage.tsx` - `confirmFetchDetails` 函数
 - **追踪数据**:
   ```typescript
@@ -272,29 +236,123 @@
   }
   ```
 
-#### 23. 从智学网拉取考试详情成功 (`exam_detail_fetch_success`)
-- **触发位置**: `src/pages/ExamDetailPage.tsx` - `pollTaskStatus` 函数
+#### 从智学网拉取考试列表开始 (`exam_list_fetch_started`)
+- **触发位置**: `src/pages/ExamsPage.tsx` - `confirmFetchExams` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    task_id: string             // 任务ID
+  }
+  ```
+
+#### 考试成绩单加载成功 (`exam_detail_scoresheet_success`)
+- **触发位置**: `src/pages/ExamDetailPage.tsx` - `handleDownloadScoresheet` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    exam_id: string,            // 考试ID
+    exam_name: string           // 考试名称
+  }
+  ```
+
+#### 考试成绩单加载失败 (`exam_detail_scoresheet_failed`)
+- **触发位置**: `src/pages/ExamDetailPage.tsx` - `handleDownloadScoresheet` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    exam_id: string,            // 考试ID
+    exam_name: string,          // 考试名称
+    error_message: string       // 错误信息
+  }
+  ```
+
+### 📊 数据查看页面事件
+
+#### 数据查看页面拉取考试详情开始 (`data_viewer_exam_fetch_started`)
+- **触发位置**: `src/pages/DataViewerPage.tsx` - `handleFetchExam` 函数
 - **追踪数据**:
   ```typescript
   {
     username: string,           // 用户名
     exam_id: string,            // 考试ID
     task_id: string,            // 任务ID
-    duration_seconds: number | null  // 执行时长（秒）
+    force_refresh: boolean      // 是否强制刷新
   }
   ```
 
-#### 24. 从智学网拉取考试详情失败 (`exam_detail_fetch_failed`)
-- **触发位置**: `src/pages/ExamDetailPage.tsx` - `confirmFetchDetails` 和 `pollTaskStatus` 函数
+#### 数据查看页面考试信息查询成功 (`data_viewer_exam_info_success`)
+- **触发位置**: `src/pages/DataViewerPage.tsx` - `handleExamLookup` 函数
 - **追踪数据**:
   ```typescript
   {
     username: string,           // 用户名
     exam_id: string,            // 考试ID
-    task_id?: string,           // 任务ID（如果有）
-    error_message: string,      // 错误信息
-    stage: string,              // 失败阶段 (init/execution)
-    force_refresh?: boolean     // 是否强制刷新
+    exam_name: string,          // 考试名称
+    is_saved: boolean           // 考试是否已保存
+  }
+  ```
+
+#### 数据查看页面考试信息查询失败 (`data_viewer_exam_info_failed`)
+- **触发位置**: `src/pages/DataViewerPage.tsx` - `handleExamLookup` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    exam_id: string,            // 考试ID
+    error_message: string       // 错误信息
+  }
+  ```
+
+#### 数据查看页面成绩单生成成功 (`data_viewer_scoresheet_success`)
+- **触发位置**: `src/pages/DataViewerPage.tsx` - `generateScoresheet` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    exam_id: string,            // 考试ID
+    exam_name: string,          // 考试名称
+  }
+  ```
+
+#### 数据查看页面成绩单生成失败 (`data_viewer_scoresheet_failed`)
+- **触发位置**: `src/pages/DataViewerPage.tsx` - `generateScoresheet` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    exam_id: string,            // 考试ID
+    exam_name: string,          // 考试名称
+    error_message: string       // 错误信息
+  }
+  ```
+
+#### 数据查看页面成绩查询成功 (`data_viewer_score_lookup_success`)
+- **触发位置**: `src/pages/DataViewerPage.tsx` - `handleScoreLookup` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    exam_id: string,            // 考试ID
+    search_type: string,        // 搜索类型 (id/name)
+    student_identifier: string, // 学生标识符
+    has_scores: boolean,        // 是否有分数数据
+    subject_count: number       // 科目数量
+  }
+  ```
+
+#### 数据查看页面成绩查询失败 (`data_viewer_score_lookup_failed`)
+- **触发位置**: `src/pages/DataViewerPage.tsx` - `handleScoreLookup` 函数
+- **追踪数据**:
+  ```typescript
+  {
+    username: string,           // 用户名
+    exam_id: string,            // 考试ID
+    search_type: string,        // 搜索类型 (id/name)
+    student_identifier: string, // 学生标识符
+    error_message: string       // 错误信息
   }
   ```
 

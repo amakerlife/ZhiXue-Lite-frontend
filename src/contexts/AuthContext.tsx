@@ -52,7 +52,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 后端直接返回 user 字段，不是包装在 data 中
         setUser(response.data.user);
 
-        // 追踪登录成功事件
         trackAnalyticsEvent('user_login_success', {
           username: username,
           has_zhixue: !!response.data.user.zhixue_username,
@@ -63,7 +62,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(response.data.message || '登录失败');
       }
     } catch (error: unknown) {
-      // 追踪登录失败事件
       trackAnalyticsEvent('user_login_failed', {
         username: username,
         error_type: error instanceof Error ? 'api_error' : 'unknown_error',
@@ -82,7 +80,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.data.success) {
         await refreshUser();
 
-        // 追踪注册成功事件
         trackAnalyticsEvent('user_signup_success', {
           username: username,
           email_domain: email.split('@')[1],
@@ -92,7 +89,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(response.data.message || '注册失败');
       }
     } catch (error: unknown) {
-      // 追踪注册失败事件
       trackAnalyticsEvent('user_signup_failed', {
         username: username,
         email_domain: email.split('@')[1],
@@ -112,7 +108,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authAPI.logout();
 
-      // 追踪登出成功事件
       if (currentUser) {
         trackAnalyticsEvent('user_logout_success', {
           username: currentUser.username,
@@ -123,7 +118,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
 
-      // 追踪登出失败事件
       if (currentUser) {
         trackAnalyticsEvent('user_logout_failed', {
           username: currentUser.username,

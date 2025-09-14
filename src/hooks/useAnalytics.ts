@@ -64,18 +64,21 @@ export const useAnalytics = () => {
 
         // Initialize Google Analytics
         if (config.ga.enabled && config.ga.trackingId) {
-          await loadScript(
-            `https://www.googletagmanager.com/gtag/js?id=${config.ga.trackingId}`,
-            'ga-script'
-          );
+          try {
+            await loadScript(
+              `https://www.googletagmanager.com/gtag/js?id=${config.ga.trackingId}`,
+              'ga-script'
+            );
 
-          window.dataLayer = window.dataLayer || [];
-          function gtag(...args: any[]) {
-            window.dataLayer!.push(args);
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function gtag(...args: any[]) {
+              window.dataLayer!.push(args);
+            };
+            window.gtag('js', new Date());
+            window.gtag('config', config.ga.trackingId);
+          } catch (gaError) {
+            console.warn('Failed to initialize Google Analytics:', gaError);
           }
-          window.gtag = gtag;
-          gtag('js', new Date());
-          gtag('config', config.ga.trackingId);
         }
 
         // Initialize Umami
