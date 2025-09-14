@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronRight, User, LogIn, UserPlus, Menu } from 'lucide-react';
+import { ChevronRight, User, LogIn, UserPlus, Menu, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useExam } from '@/contexts/ExamContext';
+import { useConnection } from '@/contexts/ConnectionContext';
 import { cn } from '@/lib/utils';
 import logo from '@/assets/logo.png';
 
@@ -42,9 +43,11 @@ const Header: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { toggle } = useSidebar();
   const { getCachedExamData, getExamData } = useExam();
+  const { isConnectionError, connectionError, retryConnection } = useConnection();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([
     { name: '首页', path: '/' }
   ]);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // 不显示侧边栏的页面不显示菜单按钮
   const noSidebarPages = ['/login', '/signup'];
@@ -111,8 +114,21 @@ const Header: React.FC = () => {
     }
   };
 
+  const handleRetryConnection = async () => {
+    setIsRetrying(true);
+    try {
+      await retryConnection();
+      // 重试成功，提示会自动消失
+    } catch (error) {
+      // 重试失败，错误信息已在Context中更新
+      console.error('Connection retry failed:', error);
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full flex h-16 items-center justify-between px-4">
         {/* Left: Menu Button (mobile) + Logo */}
         <div className="flex items-center space-x-3">
@@ -135,6 +151,49 @@ const Header: React.FC = () => {
 
         {/* Center: Breadcrumb Navigation */}
         <div className="flex-1 flex items-center justify-center px-2 sm:px-4 min-w-0">
+          {/* 连接状态指示器 */}
+          {isConnectionError && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 mr-2 flex-shrink-0"
+                >
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-medium">连接异常</span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-64">
+                <div className="p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-red-800">后端连接异常</p>
+                      <p className="text-xs text-red-700 mt-1 break-words">
+                        {connectionError || '无法连接到后端服务器'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleRetryConnection}
+                      disabled={isRetrying}
+                      className="h-7 px-3 text-xs border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      <RefreshCw className={cn("h-3 w-3 mr-1", isRetrying && "animate-spin")} />
+                      重试连接
+                    </Button>
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           {/* 移动端：只显示当前页面名称 */}
           <nav className="flex items-center text-sm text-muted-foreground sm:hidden min-w-0">
             <span

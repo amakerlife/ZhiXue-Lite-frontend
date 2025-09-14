@@ -93,7 +93,7 @@ const Sidebar: React.FC = () => {
 
   return (
     <aside className={cn(
-      "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 border-r bg-background transition-transform duration-200",
+      "fixed left-0 top-16 z-40 w-64 h-[calc(100vh-4rem)] border-r bg-background transition-transform duration-200",
       isOpen ? "translate-x-0" : "-translate-x-full"
     )}>
       <nav className="flex flex-col gap-2 p-4 h-full overflow-y-auto">
