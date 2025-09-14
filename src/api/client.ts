@@ -10,13 +10,13 @@ export const api = axios.create({
   },
 });
 
-// 连接异常检测函数
+// 连接异常检测函数 - 只检测真正的网络连接问题
 const isConnectionError = (error: unknown): boolean => {
   if (!error) return false;
 
   const axiosError = error as any;
 
-  // 网络错误或无响应
+  // 网络错误或无响应 - 这是真正的连接问题
   if (!axiosError.response) {
     return true;
   }
@@ -29,16 +29,15 @@ const isConnectionError = (error: unknown): boolean => {
     return true;
   }
 
-  // 检查状态码 - 5xx服务器错误也算连接异常
-  if (axiosError.response?.status >= 500) {
-    return true;
-  }
-
   return false;
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 请求成功，触发连接恢复事件
+    window.dispatchEvent(new CustomEvent('connection-success'));
+    return response;
+  },
   (error) => {
     // 检查是否是连接异常
     if (isConnectionError(error)) {

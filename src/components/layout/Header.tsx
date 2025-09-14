@@ -171,7 +171,7 @@ const Header: React.FC = () => {
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-red-800">后端连接异常</p>
+                      <p className="text-sm font-medium text-red-800">网络连接异常</p>
                       <p className="text-xs text-red-700 mt-1 break-words">
                         {connectionError || '无法连接到后端服务器'}
                       </p>

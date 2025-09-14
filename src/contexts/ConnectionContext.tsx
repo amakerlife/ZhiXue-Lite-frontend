@@ -30,10 +30,6 @@ const getConnectionErrorMessage = (error: unknown): string => {
     return '无法连接到服务器，请检查网络连接';
   }
 
-  if (axiosError.response?.status >= 500) {
-    return '服务器暂时不可用，请稍后重试';
-  }
-
   switch (axiosError.code) {
     case 'NETWORK_ERROR':
       return '网络连接失败，请检查网络设置';
@@ -44,7 +40,7 @@ const getConnectionErrorMessage = (error: unknown): string => {
     case 'ETIMEDOUT':
       return '连接超时，请检查网络连接';
     default:
-      return '后端连接异常，请稍后重试';
+      return '网络连接异常，请稍后重试';
   }
 };
 
@@ -68,7 +64,7 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
     }
   }, []);
 
-  // 监听来自API拦截器的连接异常事件
+  // 监听来自API拦截器的连接异常和恢复事件
   useEffect(() => {
     const handleConnectionError = (event: any) => {
       const error = event.detail;
@@ -79,12 +75,23 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
       setLastErrorTime(new Date());
     };
 
+    const handleConnectionSuccess = () => {
+      // 任何API请求成功时，自动清除连接异常状态
+      if (isConnectionError) {
+        console.log('Connection recovered, clearing error state');
+        setIsConnectionError(false);
+        setConnectionError(null);
+      }
+    };
+
     window.addEventListener('connection-error', handleConnectionError);
+    window.addEventListener('connection-success', handleConnectionSuccess);
 
     return () => {
       window.removeEventListener('connection-error', handleConnectionError);
+      window.removeEventListener('connection-success', handleConnectionSuccess);
     };
-  }, []);
+  }, [isConnectionError]); // 依赖isConnectionError以确保事件处理器能访问最新状态
 
   const value: ConnectionContextType = {
     isConnectionError,
