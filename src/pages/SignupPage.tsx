@@ -93,7 +93,7 @@ const SignupPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center">
+    <div className="flex flex-1 items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold flex items-center justify-center space-x-2">

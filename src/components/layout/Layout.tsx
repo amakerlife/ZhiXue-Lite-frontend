@@ -43,7 +43,7 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
             ? 'ml-64' 
             : ''
         }`}>
-          <div className="container mx-auto p-4 md:p-6 min-h-[calc(100vh-8rem)] max-w-7xl">
+          <div className="container mx-auto p-4 md:p-6 min-h-[calc(100vh-8rem)] max-w-7xl flex flex-col">
             {children}
           </div>
         </main>
