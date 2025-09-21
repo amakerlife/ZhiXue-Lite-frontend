@@ -760,17 +760,23 @@ const UserManagement: React.FC = () => {
                           const level = parseInt(levelStr, 10);
                           const isSelected = currentLevel === level;
 
+                          // 导出成绩单权限没有个人级别选项
+                          const isDisabled = permissionType === 4 && level === 1; // EXPORT_SCORE_SHEET 且 SELF
+
                           return (
                             <Button
                               key={level}
                               variant={isSelected ? 'default' : 'outline'}
                               size="sm"
                               onClick={() => updatePermission(permissionType, level)}
+                              disabled={isDisabled}
                               className={`text-xs ${
-                                level === 0 ? 'hover:bg-red-100 hover:text-red-800' :
-                                level === 1 ? 'hover:bg-blue-100 hover:text-blue-800' :
-                                level === 2 ? 'hover:bg-yellow-100 hover:text-yellow-800' :
-                                'hover:bg-green-100 hover:text-green-800'
+                                isDisabled
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : level === 0 ? 'hover:bg-red-100 hover:text-red-800' :
+                                  level === 1 ? 'hover:bg-blue-100 hover:text-blue-800' :
+                                  level === 2 ? 'hover:bg-yellow-100 hover:text-yellow-800' :
+                                  'hover:bg-green-100 hover:text-green-800'
                               }`}
                             >
                               {levelDescription}
