@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, School, GraduationCap, UserCheck, FileText, Search, RefreshCw, Edit, Save, X, Eye, Unlink, RotateCcw, ChevronDown, ChevronRight, Trash, HardDriveIcon } from 'lucide-react';
+import { Users, School, GraduationCap, UserCheck, FileText, Search, RefreshCw, Edit, Save, X, Eye, Unlink, RotateCcw, ChevronDown, ChevronRight, Trash, HardDriveIcon, Lock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { adminAPI } from '@/api/admin';
 import { examAPI } from '@/api/exam';
 import { formatUTCIsoToLocal, formatTimestampToLocalDate } from '@/utils/dateUtils';
-import { canManageSystem, getUserRoleLabel, getRoleVariant } from '@/utils/permissions';
+import { canManageSystem, getUserRoleLabel, getRoleVariant, PermissionLevel, PERMISSION_DESCRIPTIONS, PERMISSION_LEVEL_DESCRIPTIONS } from '@/utils/permissions';
 import { trackAnalyticsEvent } from '@/utils/analytics';
 import type { AdminUser, School as SchoolType, ZhiXueAccount, Teacher, AdminExam } from '@/api/admin';
 
@@ -105,24 +105,24 @@ const AdminPage: React.FC = () => {
       )}
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="users" className="flex items-center space-x-2">
+        <TabsList className="grid w-full grid-cols-1 xl:grid-cols-5 h-auto xl:h-9 p-1 gap-1 xl:gap-0">
+          <TabsTrigger value="users" className="flex items-center space-x-2 w-full">
             <Users className="h-4 w-4" />
             <span>用户管理</span>
           </TabsTrigger>
-          <TabsTrigger value="schools" className="flex items-center space-x-2">
+          <TabsTrigger value="schools" className="flex items-center space-x-2 w-full">
             <School className="h-4 w-4" />
             <span>学校管理</span>
           </TabsTrigger>
-          <TabsTrigger value="teachers" className="flex items-center space-x-2">
+          <TabsTrigger value="teachers" className="flex items-center space-x-2 w-full">
             <GraduationCap className="h-4 w-4" />
             <span>教师管理</span>
           </TabsTrigger>
-          <TabsTrigger value="students" className="flex items-center space-x-2">
+          <TabsTrigger value="students" className="flex items-center space-x-2 w-full">
             <UserCheck className="h-4 w-4" />
             <span>学生管理</span>
           </TabsTrigger>
-          <TabsTrigger value="exams" className="flex items-center space-x-2">
+          <TabsTrigger value="exams" className="flex items-center space-x-2 w-full">
             <FileText className="h-4 w-4" />
             <span>考试管理</span>
           </TabsTrigger>
@@ -169,7 +169,7 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{
     email: string;
-    role: 'admin' | 'data_viewer' | 'user' | '';
+    role: 'admin' | 'user' | '';
     is_active: boolean;
   }>({
     email: '',
@@ -179,6 +179,12 @@ const UserManagement: React.FC = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // 新增：权限编辑相关状态
+  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
+  const [editingPermissionsUser, setEditingPermissionsUser] = useState<AdminUser | null>(null);
+  const [permissionForm, setPermissionForm] = useState<Record<number, number>>({});
+  const [permissionLoading, setPermissionLoading] = useState(false);
 
   // 新增：重置密码相关状态
   const [resettingPassword, setResettingPassword] = useState<number | null>(null);
@@ -213,7 +219,7 @@ const UserManagement: React.FC = () => {
     setEditingUser(user.id);
     setEditForm({
       email: user.email,
-      role: user.role as 'admin' | 'data_viewer' | 'user',
+      role: user.role as 'admin' | 'user',
       is_active: user.is_active,
     });
   };
@@ -228,6 +234,72 @@ const UserManagement: React.FC = () => {
     });
   };
 
+  // 新增：权限编辑相关函数
+  const openPermissionDialog = (user: AdminUser) => {
+    setEditingPermissionsUser(user);
+    setPermissionDialogOpen(true);
+    setError(null);
+    setSuccess(null);
+
+    // 初始化权限表单
+    const initialPermissions: Record<number, number> = {};
+    const permissions = user.permissions || '10110'; // 默认权限
+
+    for (let i = 0; i < 5; i++) {
+      if (i < permissions.length) {
+        initialPermissions[i] = parseInt(permissions[i], 10) || 0;
+      } else {
+        initialPermissions[i] = 0;
+      }
+    }
+
+    setPermissionForm(initialPermissions);
+  };
+
+  const closePermissionDialog = () => {
+    setPermissionDialogOpen(false);
+    setEditingPermissionsUser(null);
+    setPermissionForm({});
+  };
+
+  const savePermissions = async () => {
+    if (!editingPermissionsUser) return;
+
+    setPermissionLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // 构建权限字符串
+      const permissionsString = Object.keys(permissionForm)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map(key => permissionForm[parseInt(key)].toString())
+        .join('');
+
+      const response = await adminAPI.updateUser(editingPermissionsUser.id, {
+        permissions: permissionsString
+      });
+
+      if (response.data.success) {
+        setSuccess('权限已更新');
+        closePermissionDialog();
+        await loadUsers(); // 重新加载用户列表
+      }
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '更新权限失败';
+      setError(errorMessage);
+    } finally {
+      setPermissionLoading(false);
+    }
+  };
+
+  const updatePermission = (permissionType: number, level: number) => {
+    setPermissionForm(prev => ({
+      ...prev,
+      [permissionType]: level
+    }));
+  };
+
   // 新增：保存用户修改
   const saveUserEdit = async (userId: number) => {
     setEditLoading(true);
@@ -237,7 +309,7 @@ const UserManagement: React.FC = () => {
     try {
       const updateData: {
         email: string;
-        role?: 'admin' | 'data_viewer' | 'user';
+        role?: 'admin' | 'user';
         is_active: boolean;
       } = {
         email: editForm.email,
@@ -403,14 +475,13 @@ const UserManagement: React.FC = () => {
                       {editingUser === user.id ? (
                         <Select
                           value={editForm.role}
-                          onValueChange={(value) => setEditForm(prev => ({ ...prev, role: value as 'admin' | 'data_viewer' | 'user' | '' }))}
+                          onValueChange={(value) => setEditForm(prev => ({ ...prev, role: value as 'admin' | 'user' | '' }))}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="user">普通用户</SelectItem>
-                            <SelectItem value="data_viewer">数据查看者</SelectItem>
                             <SelectItem value="admin">管理员</SelectItem>
                           </SelectContent>
                         </Select>
@@ -524,6 +595,15 @@ const UserManagement: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => openPermissionDialog(user)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Lock className="h-3 w-3 mr-1" />
+                            权限
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => openResetPasswordDialog(user)}
                             className="text-orange-600 hover:text-orange-700"
                           >
@@ -620,6 +700,106 @@ const UserManagement: React.FC = () => {
                 取消
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 权限编辑对话框 */}
+      <Dialog open={permissionDialogOpen} onOpenChange={closePermissionDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>编辑用户权限</DialogTitle>
+            <DialogDescription>
+              为用户 "{editingPermissionsUser?.username}" 设置权限
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
+            {/* Success/Error Messages */}
+            {success && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                <p className="text-green-800 text-sm">{success}</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-red-800 text-sm">{error}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-4 p-3 bg-muted/50 rounded-md">
+                <p><strong>权限级别说明：</strong></p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li><strong>禁止 (0):</strong> 完全禁止访问</li>
+                  <li><strong>个人 (1):</strong> 只能访问自己的数据</li>
+                  <li><strong>校内 (2):</strong> 可访问同校数据</li>
+                  <li><strong>全局 (3):</strong> 可访问所有数据</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                {Object.entries(PERMISSION_DESCRIPTIONS).map(([typeStr, description]) => {
+                  const permissionType = parseInt(typeStr, 10);
+                  const currentLevel = permissionForm[permissionType] || 0;
+
+                  return (
+                    <div key={permissionType} className="p-4 border rounded-md">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-sm md:text-base">
+                          {description.action} {description.object}
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {PERMISSION_LEVEL_DESCRIPTIONS[currentLevel as PermissionLevel]}
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {Object.entries(PERMISSION_LEVEL_DESCRIPTIONS).map(([levelStr, levelDescription]) => {
+                          const level = parseInt(levelStr, 10);
+                          const isSelected = currentLevel === level;
+
+                          return (
+                            <Button
+                              key={level}
+                              variant={isSelected ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updatePermission(permissionType, level)}
+                              className={`text-xs ${
+                                level === 0 ? 'hover:bg-red-100 hover:text-red-800' :
+                                level === 1 ? 'hover:bg-blue-100 hover:text-blue-800' :
+                                level === 2 ? 'hover:bg-yellow-100 hover:text-yellow-800' :
+                                'hover:bg-green-100 hover:text-green-800'
+                              }`}
+                            >
+                              {levelDescription}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 pt-4 border-t mt-4">
+            <Button
+              onClick={savePermissions}
+              disabled={permissionLoading}
+            >
+              {permissionLoading ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {permissionLoading ? '保存中...' : '保存权限'}
+            </Button>
+            <Button variant="outline" onClick={closePermissionDialog}>
+              取消
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

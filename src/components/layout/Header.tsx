@@ -40,7 +40,7 @@ const routeNameMap: Record<string, string> = {
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const { toggle } = useSidebar();
   const { getCachedExamData, getExamData } = useExam();
   const { isConnectionError, connectionError, retryConnection } = useConnection();
@@ -246,7 +246,11 @@ const Header: React.FC = () => {
 
         {/* Right: User Menu or Login/Signup */}
         <div className="flex items-center space-x-2">
-          {isAuthenticated ? (
+          {isLoading ? (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">正在获取...</span>
+            </div>
+          ) : isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">

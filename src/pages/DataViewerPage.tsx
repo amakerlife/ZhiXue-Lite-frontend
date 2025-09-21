@@ -26,7 +26,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
-import { canViewAllData } from '@/utils/permissions';
+import { canViewAllData, hasPermission, PermissionType, PermissionLevel } from '@/utils/permissions';
 import { trackAnalyticsEvent } from '@/utils/analytics';
 import type { BackgroundTask } from '@/types/api';
 
@@ -36,6 +36,7 @@ const DataViewerPage: React.FC = () => {
   // 拉取考试功能状态
   const [fetchDialog, setFetchDialog] = useState(false);
   const [fetchExamId, setFetchExamId] = useState('');
+  const [fetchSchoolId, setFetchSchoolId] = useState('');  // 新增学校ID状态
   const [fetchLoading, setFetchLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [fetchSuccess, setFetchSuccess] = useState<string | null>(null);
@@ -49,15 +50,19 @@ const DataViewerPage: React.FC = () => {
     };
   }, []);
 
-  // 权限检查
-  if (!canViewAllData(user)) {
+  // 权限检查 - 需要有全局的查看考试数据权限
+  const hasDataViewPermission = canViewAllData(user) ||
+    hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.GLOBAL) ||
+    hasPermission(user, PermissionType.VIEW_EXAM_LIST, PermissionLevel.GLOBAL);
+
+  if (!hasDataViewPermission) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-destructive">权限不足</CardTitle>
             <CardDescription>
-              您需要数据查看权限才能访问此页面
+              您需要全局数据查看权限才能访问此页面
             </CardDescription>
           </CardHeader>
         </Card>
@@ -75,17 +80,23 @@ const DataViewerPage: React.FC = () => {
     setFetchSuccess(null);
 
     try {
-      const response = await examAPI.fetchExamDetails(fetchExamId.trim(), forceRefresh);
+      const response = await examAPI.fetchExamDetails(
+        fetchExamId.trim(),
+        forceRefresh,
+        fetchSchoolId.trim() || undefined  // 传递学校ID参数
+      );
       if (response.data.success) {
         const taskId = response.data.task_id;
         setFetchDialog(false);
         setFetchExamId('');
+        setFetchSchoolId('');  // 清空学校ID
         setForceRefresh(false);
         setFetchSuccess(`考试 ${fetchExamId.trim()} 拉取任务已创建`);
 
         trackAnalyticsEvent('data_viewer_exam_fetch_started', {
           username: user?.username,
           exam_id: fetchExamId.trim(),
+          school_id: fetchSchoolId.trim() || null,  // 记录学校ID
           task_id: taskId,
           force_refresh: forceRefresh
         });
@@ -141,6 +152,7 @@ const DataViewerPage: React.FC = () => {
             setFetchError(null);
             setFetchSuccess(null);
             setFetchExamId('');
+            setFetchSchoolId('');  // 清空学校ID
           }}
           disabled={!!fetchingTask}
         >
@@ -184,12 +196,12 @@ const DataViewerPage: React.FC = () => {
       )}
 
       <Tabs defaultValue="exam-lookup" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="exam-lookup" className="flex items-center space-x-2">
+        <TabsList className="grid w-full grid-cols-1 lg:grid-cols-2 h-auto lg:h-9 p-1 gap-1 lg:gap-0">
+          <TabsTrigger value="exam-lookup" className="flex items-center space-x-2 w-full">
             <Search className="h-4 w-4" />
             <span>考试查询</span>
           </TabsTrigger>
-          <TabsTrigger value="score-lookup" className="flex items-center space-x-2">
+          <TabsTrigger value="score-lookup" className="flex items-center space-x-2 w-full">
             <Trophy className="h-4 w-4" />
             <span>成绩查询</span>
           </TabsTrigger>
@@ -230,6 +242,25 @@ const DataViewerPage: React.FC = () => {
               />
             </div>
 
+            {/* 学校ID输入框 - 仅对有校内或全局权限的用户显示 */}
+            {(hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SCHOOL) ||
+              hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.GLOBAL)) && (
+              <div className="space-y-2">
+                <label htmlFor="fetch-school-id" className="text-sm font-medium">
+                  学校 ID（可选）
+                </label>
+                <Input
+                  id="fetch-school-id"
+                  value={fetchSchoolId}
+                  onChange={(e) => setFetchSchoolId(e.target.value)}
+                  placeholder="输入学校ID以指定学校（留空则使用默认）"
+                />
+                <p className="text-xs text-muted-foreground">
+                  如果有校内或全局权限，可以指定学校ID来拉取特定学校的考试数据
+                </p>
+              </div>
+            )}
+
             {/* 强制刷新复选框 */}
             <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
               <Checkbox
@@ -266,6 +297,7 @@ const DataViewerPage: React.FC = () => {
                 onClick={() => {
                   setFetchDialog(false);
                   setForceRefresh(false);
+                  setFetchSchoolId('');  // 清空学校ID
                 }}
                 disabled={fetchLoading}
               >

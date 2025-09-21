@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw } from 'lucide-react';
+import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { authAPI } from '@/api/auth';
 import { formatUTCIsoToLocal } from '@/utils/dateUtils';
-import { getUserRoleLabel, getRoleVariant } from '@/utils/permissions';
+import { getUserRoleLabel, getRoleVariant, getUserPermissions } from '@/utils/permissions';
 import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
 import { trackAnalyticsEvent } from '@/utils/analytics';
 
@@ -467,6 +467,47 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* User Permissions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Lock className="h-5 w-5" />
+            <span>权限信息</span>
+          </CardTitle>
+          <CardDescription>
+            您当前的系统权限设置
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {getUserPermissions(user).map((permission) => (
+              <div key={permission.type} className="text-sm">
+                <span className={permission.allowed ? 'text-green-700 font-medium' : 'text-red-700 font-medium'}>
+                  {permission.allowed ? '允许' : '禁止'}
+                </span>
+                <span className="text-gray-700 mx-1">{permission.action}</span>
+                {permission.allowed && (
+                  <span className="text-blue-700 font-medium">{permission.levelDescription}</span>
+                )}
+                <span className="text-gray-700 mx-1">{permission.object}</span>
+              </div>
+            ))}
+          </div>
+
+          {user?.role !== 'admin' && (
+            <div className="mt-4 p-3 bg-muted/50 rounded-md">
+              <p className="text-sm text-muted-foreground">
+                <strong>权限说明：</strong>
+                个人 - 只能访问自己的数据；
+                校内 - 可访问同校数据；
+                全局 - 可访问所有数据。
+                如需调整权限，请联系管理员。
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

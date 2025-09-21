@@ -5,6 +5,7 @@ export interface ExamListParams {
   page?: number;
   per_page?: number;
   query?: string;
+  scope?: 'self' | 'school' | 'all';  // 新增权限范围参数
 }
 
 export const examAPI = {
@@ -17,9 +18,12 @@ export const examAPI = {
   getExamInfo: (examId: string) =>
     api.get<ApiResponse & { exam: Exam }>(`/exam/${examId}`),
 
-  fetchExamDetails: (examId: string, forceRefresh = false) =>
+  fetchExamDetails: (examId: string, forceRefresh = false, schoolId?: string) =>
     api.post<ApiResponse & { task_id: string }>(`/exam/${examId}/fetch`, {}, {
-      params: { force_refresh: forceRefresh }
+      params: {
+        force_refresh: forceRefresh,
+        ...(schoolId && { school_id: schoolId })
+      }
     }),
 
   getUserExamScore: (examId: string, studentId?: string, studentName?: string) =>

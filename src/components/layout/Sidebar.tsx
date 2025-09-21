@@ -11,7 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { canViewAllData, canManageSystem } from '@/utils/permissions';
+import { canViewAllData, canManageSystem, hasPermission, PermissionType, PermissionLevel } from '@/utils/permissions';
 
 interface NavItem {
   name: string;
@@ -79,8 +79,15 @@ const Sidebar: React.FC = () => {
     if (item.adminOnly && !canManageSystem(user)) {
       return false;
     }
-    if (item.dataViewerAccessible && !canViewAllData(user)) {
-      return false;
+    if (item.dataViewerAccessible) {
+      // 检查是否有全局数据查看权限
+      const hasGlobalViewPermission = canViewAllData(user) ||
+        hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.GLOBAL) ||
+        hasPermission(user, PermissionType.VIEW_EXAM_LIST, PermissionLevel.GLOBAL);
+
+      if (!hasGlobalViewPermission) {
+        return false;
+      }
     }
     return true;
   });

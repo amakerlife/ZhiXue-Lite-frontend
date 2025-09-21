@@ -33,6 +33,7 @@ export interface AdminUser {
   username: string;
   email: string;
   role: string;
+  permissions?: string;     // 新增权限字段
   is_active: boolean;
   created_at: string;
   last_login?: string;
@@ -97,6 +98,6 @@ export const adminAPI = {
     api.delete<ApiResponse>('/admin/cache'),
 
   // 用户管理
-  updateUser: (userId: number, data: { email?: string; role?: string; is_active?: boolean; password?: string }) =>
+  updateUser: (userId: number, data: { email?: string; role?: string; permissions?: string; is_active?: boolean; password?: string }) =>
     api.put<ApiResponse & { user: AdminUser }>(`/admin/user/${userId}`, data),
 };
