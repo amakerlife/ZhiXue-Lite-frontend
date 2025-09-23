@@ -23,7 +23,7 @@ import { useExam, type ExamData } from '@/contexts/ExamContext';
 import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
-import { canViewAllData } from '@/utils/permissions';
+import { hasPermission, PermissionType, PermissionLevel } from '@/utils/permissions';
 import { trackAnalyticsEvent } from '@/utils/analytics';
 import type { BackgroundTask } from '@/types/api';
 
@@ -254,8 +254,8 @@ const ExamDetailPage: React.FC = () => {
         </div>
 
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
-          {/* 管理员和数据查看者下载成绩单按钮 */}
-          {canViewAllData(user) && examDetail.is_saved && (
+          {/* 下载成绩单按钮 - 校内成绩单权限及以上 */}
+          {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SCHOOL) && examDetail.is_saved && (
             <Button
               onClick={handleDownloadScoresheet}
               disabled={downloadingScoresheet}
@@ -508,7 +508,7 @@ const ExamDetailPage: React.FC = () => {
         description={
           <div className="space-y-3">
             <p>获取考试详情可能需要一些时间，确定要继续吗？</p>
-            {canViewAllData(user) && examDetail?.is_saved && (
+            {hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SELF) && examDetail?.is_saved && (
               <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <Checkbox
                   id="force-refresh"

@@ -50,10 +50,16 @@ const DataViewerPage: React.FC = () => {
     };
   }, []);
 
-  // 权限检查 - 需要有全局的查看考试数据权限
+  // 权限检查 - 满足以下任一条件即可访问数据查看页面：
+  // 1. 拉取校内数据及以上权限
+  // 2. 重新拉取考试详情数据校内及以上权限
+  // 3. 查看校内考试详情及以上权限
+  // 4. 导出校内成绩单及以上权限
   const hasDataViewPermission = canViewAllData(user) ||
-    hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.GLOBAL) ||
-    hasPermission(user, PermissionType.VIEW_EXAM_LIST, PermissionLevel.GLOBAL);
+    hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SCHOOL) ||
+    hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SCHOOL) ||
+    hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.SCHOOL) ||
+    hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SCHOOL);
 
   if (!hasDataViewPermission) {
     return (
@@ -62,7 +68,7 @@ const DataViewerPage: React.FC = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-destructive">权限不足</CardTitle>
             <CardDescription>
-              您需要全局数据查看权限才能访问此页面
+              您需要校内或以上级别的数据权限才能访问此页面
             </CardDescription>
           </CardHeader>
         </Card>
@@ -237,14 +243,13 @@ const DataViewerPage: React.FC = () => {
                 id="fetch-exam-id"
                 value={fetchExamId}
                 onChange={(e) => setFetchExamId(e.target.value)}
-                placeholder="请输入要拉取的考试ID"
+                placeholder="请输入要拉取的考试 ID"
                 required
               />
             </div>
 
-            {/* 学校ID输入框 - 仅对有校内或全局权限的用户显示 */}
-            {(hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SCHOOL) ||
-              hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.GLOBAL)) && (
+            {/* 学校ID输入框 - 仅对有全局拉取数据权限的用户显示 */}
+            {hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.GLOBAL) && (
               <div className="space-y-2">
                 <label htmlFor="fetch-school-id" className="text-sm font-medium">
                   学校 ID（可选）
@@ -253,28 +258,30 @@ const DataViewerPage: React.FC = () => {
                   id="fetch-school-id"
                   value={fetchSchoolId}
                   onChange={(e) => setFetchSchoolId(e.target.value)}
-                  placeholder="输入学校ID以指定学校（留空则使用默认）"
+                  placeholder="输入学校 ID 以指定学校（留空则使用默认本校）"
                 />
                 <p className="text-xs text-muted-foreground">
-                  如果有校内或全局权限，可以指定学校ID来拉取特定学校的考试数据
+                  如果有全局拉取数据权限，可以指定学校 ID 来拉取特定学校的考试数据
                 </p>
               </div>
             )}
 
-            {/* 强制刷新复选框 */}
-            <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <Checkbox
-                id="force-refresh"
-                checked={forceRefresh}
-                onCheckedChange={(checked) => setForceRefresh(!!checked)}
-              />
-              <label
-                htmlFor="force-refresh"
-                className="text-sm text-amber-800 cursor-pointer"
-              >
-                强制重新拉取（重新从智学网获取数据）
-              </label>
-            </div>
+            {/* 强制刷新复选框 - 仅对有重新拉取个人考试详情数据及以上权限的用户显示 */}
+            {hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SELF) && (
+              <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <Checkbox
+                  id="force-refresh"
+                  checked={forceRefresh}
+                  onCheckedChange={(checked) => setForceRefresh(!!checked)}
+                />
+                <label
+                  htmlFor="force-refresh"
+                  className="text-sm text-amber-800 cursor-pointer"
+                >
+                  强制重新拉取（重新从智学网获取数据）
+                </label>
+              </div>
+            )}
 
             {fetchError && (
               <div className="bg-red-50 border border-red-200 rounded-md p-3">
