@@ -26,22 +26,25 @@ interface ConnectionProviderProps {
 const getConnectionErrorMessage = (error: unknown): string => {
   const axiosError = error as any;
 
+  // 只处理网络连接错误，不处理HTTP状态码错误
   if (!axiosError.response) {
-    return '无法连接到服务器，请检查网络连接';
+    // 真正的网络连接失败
+    switch (axiosError.code) {
+      case 'NETWORK_ERROR':
+        return '网络连接失败，请检查网络设置';
+      case 'ECONNREFUSED':
+        return '服务器拒绝连接，请稍后重试';
+      case 'ENOTFOUND':
+        return '无法找到服务器，请检查网络连接';
+      case 'ETIMEDOUT':
+        return '连接超时，请检查网络连接';
+      default:
+        return '网络连接异常，请稍后重试';
+    }
   }
 
-  switch (axiosError.code) {
-    case 'NETWORK_ERROR':
-      return '网络连接失败，请检查网络设置';
-    case 'ECONNREFUSED':
-      return '服务器拒绝连接，请稍后重试';
-    case 'ENOTFOUND':
-      return '无法找到服务器，请检查网络连接';
-    case 'ETIMEDOUT':
-      return '连接超时，请检查网络连接';
-    default:
-      return '网络连接异常，请稍后重试';
-  }
+  // 有response说明连接正常，不应该作为连接错误处理
+  return '';
 };
 
 export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children }) => {
@@ -51,16 +54,27 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
 
   const retryConnection = useCallback(async () => {
     try {
-      // 简单的连接测试，使用最基本的端点
-      await api.get('/', { timeout: 5000 });
+      // 使用专门的ping端点测试连接
+      await api.get('/ping', { timeout: 5000 });
       // 连接成功，清除错误状态
       setIsConnectionError(false);
       setConnectionError(null);
+
+      // 重连成功后触发用户状态刷新事件
+      window.dispatchEvent(new CustomEvent('connection-recovered'));
     } catch (error) {
       console.error('Retry connection failed:', error);
-      // 重试失败，更新错误信息
-      setConnectionError(getConnectionErrorMessage(error));
-      throw error; // 让UI知道重试失败了
+      const errorMessage = getConnectionErrorMessage(error);
+
+      // 只有真正的网络错误才更新连接错误状态
+      if (errorMessage) {
+        setConnectionError(errorMessage);
+        throw error; // 让UI知道重试失败了
+      } else {
+        // HTTP状态码错误不算连接异常，清除连接错误状态
+        setIsConnectionError(false);
+        setConnectionError(null);
+      }
     }
   }, []);
 

@@ -54,12 +54,12 @@ const DataViewerPage: React.FC = () => {
   // 1. 拉取校内数据及以上权限
   // 2. 重新拉取考试详情数据校内及以上权限
   // 3. 查看校内考试详情及以上权限
-  // 4. 导出校内成绩单及以上权限
+  // 4. 导出个人成绩单及以上权限
   const hasDataViewPermission = canViewAllData(user) ||
     hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SCHOOL) ||
     hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SCHOOL) ||
     hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.SCHOOL) ||
-    hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SCHOOL);
+    hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SELF);
 
   if (!hasDataViewPermission) {
     return (
@@ -68,7 +68,7 @@ const DataViewerPage: React.FC = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-destructive">权限不足</CardTitle>
             <CardDescription>
-              您需要校内或以上级别的数据权限才能访问此页面
+              您需要相应的数据权限才能访问此页面
             </CardDescription>
           </CardHeader>
         </Card>

@@ -80,12 +80,12 @@ const Sidebar: React.FC = () => {
       return false;
     }
     if (item.dataViewerAccessible) {
-      // 检查是否有校内或以上级别的数据权限
+      // 检查是否有相应数据权限
       const hasDataViewPermission = canViewAllData(user) ||
         hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SCHOOL) ||
         hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SCHOOL) ||
         hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.SCHOOL) ||
-        hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SCHOOL);
+        hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SELF);
 
       if (!hasDataViewPermission) {
         return false;

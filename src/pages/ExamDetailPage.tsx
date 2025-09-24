@@ -254,8 +254,8 @@ const ExamDetailPage: React.FC = () => {
         </div>
 
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
-          {/* 下载成绩单按钮 - 校内成绩单权限及以上 */}
-          {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SCHOOL) && examDetail.is_saved && (
+          {/* 下载成绩单按钮 - 个人成绩单权限及以上 */}
+          {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SELF) && examDetail.is_saved && (
             <Button
               onClick={handleDownloadScoresheet}
               disabled={downloadingScoresheet}

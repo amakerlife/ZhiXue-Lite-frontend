@@ -143,6 +143,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initAuth();
   }, []);
 
+  // 监听连接恢复事件，重连成功后刷新用户状态
+  useEffect(() => {
+    const handleConnectionRecovered = async () => {
+      console.log('Connection recovered, refreshing user state...');
+      try {
+        await refreshUser();
+      } catch (error) {
+        console.error('Failed to refresh user after connection recovery:', error);
+      }
+    };
+
+    window.addEventListener('connection-recovered', handleConnectionRecovered);
+
+    return () => {
+      window.removeEventListener('connection-recovered', handleConnectionRecovered);
+    };
+  }, [refreshUser]);
+
   const value: AuthContextType = {
     user,
     isLoading,
