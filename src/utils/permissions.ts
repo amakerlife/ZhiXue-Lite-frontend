@@ -31,7 +31,7 @@ export const PERMISSION_DESCRIPTIONS = {
   [PermissionType.REFETCH_EXAM_DATA]: { action: '重新拉取', object: '考试数据' },
   [PermissionType.VIEW_EXAM_LIST]: { action: '查看', object: '考试列表' },
   [PermissionType.VIEW_EXAM_DATA]: { action: '查看', object: '考试详情' },
-  [PermissionType.EXPORT_SCORE_SHEET]: { action: '导出', object: '成绩单' },
+  [PermissionType.EXPORT_SCORE_SHEET]: { action: '导出', object: '考试成绩单' },
 };
 
 // 权限级别描述映射
