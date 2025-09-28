@@ -285,7 +285,17 @@ const TasksPage: React.FC = () => {
                   </div>
                 </div>
               </CardHeader>
-              
+
+              {task.progress_message && (
+                <CardContent className="pt-0 pb-3">
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                    <p className="text-sm text-blue-800 break-words">
+                      <strong>进度详情:</strong> {task.progress_message}
+                    </p>
+                  </div>
+                </CardContent>
+              )}
+
               {task.error_message && (
                 <CardContent className="pt-0">
                   <div className="bg-red-50 border border-red-200 rounded-md p-3">
