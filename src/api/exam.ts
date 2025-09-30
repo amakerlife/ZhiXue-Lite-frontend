@@ -5,15 +5,48 @@ export interface ExamListParams {
   page?: number;
   per_page?: number;
   query?: string;
-  scope?: 'self' | 'school' | 'all';  // 新增权限范围参数
+  scope?: 'self' | 'school' | 'all';
+  start_time?: number;  // 开始时间戳
+  end_time?: number;    // 结束时间戳
+}
+
+export interface FetchListParams {
+  query_type?: 'self' | 'school_id';
+  school_id?: string;
+  params?: Record<string, any>;  // 拉取参数对象
+}
+
+export interface ExamSelections {
+  academicYear: Array<{ code: string; name: string }>;
+  academicYearTerm: Array<Record<string, Array<{ academicYearCode: string; termId: string; termName: string }>>>;
+  examTypeList: Array<{ code: string; name: string }>;
+  gradeList: Array<{ code: string; name: string; sort: number; phase?: { code: string; name: string } }>;
+  queryTypeList: Array<{ code: string; name: string }>;
+  schoolInYearList: Array<{ code: string; name: string }>;
+  teachingCycle: Array<Record<string, Array<{ academicYearCode: string; beginTime: string; endTime: string; teachingCycleId: string; teachingCycleName: string; termId: string }>>>;
 }
 
 export const examAPI = {
   getExamList: (params: ExamListParams = {}) =>
     api.get<ApiResponse & { exams: Exam[]; pagination: PaginationInfo }>('/exam/list', { params }),
 
-  fetchExamList: () =>
-    api.post<ApiResponse & { task_id: string }>('/exam/list/fetch'),
+  fetchExamList: (params?: FetchListParams) => {
+    const config: any = {};
+
+    if (params?.query_type || params?.school_id) {
+      config.params = {
+        ...(params.query_type && { query_type: params.query_type }),
+        ...(params.school_id && { school_id: params.school_id })
+      };
+    }
+
+    const requestData = params?.params ? { params: params.params } : {};
+
+    return api.post<ApiResponse & { task_id: string }>('/exam/list/fetch', requestData, config);
+  },
+
+  getFetchListParams: (schoolId: string) =>
+    api.get<ApiResponse & { params: ExamSelections }>('/exam/fetch-list-params', { params: { school_id: schoolId } }),
 
   getExamInfo: (examId: string) =>
     api.get<ApiResponse & { exam: Exam }>(`/exam/${examId}`),
@@ -63,4 +96,16 @@ export const examAPI = {
         ...(studentName && { student_name: studentName }),
       },
     }),
+
+  // 权限检查辅助方法
+  hasPermission: (user: any, permissionType: number, requiredLevel: number): boolean => {
+    if (user?.role === 'admin') return true;
+
+    if (!user?.permissions || user.permissions.length <= permissionType) {
+      return false;
+    }
+
+    const userLevel = parseInt(user.permissions[permissionType]);
+    return userLevel >= requiredLevel;
+  }
 };

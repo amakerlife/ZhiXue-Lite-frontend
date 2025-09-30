@@ -8,13 +8,18 @@ import {
   Clock,
   AlertCircle,
   CheckCircle2,
-  Link2
+  Link2,
+  Filter
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { ExamFetchDialog } from '@/components/ExamFetchDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
@@ -27,21 +32,40 @@ const ExamsPage: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [scope, setScope] = useState<'self' | 'school' | 'all'>('self');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [fetchingTask, setFetchingTask] = useState<BackgroundTask | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fetchConfirmOpen, setFetchConfirmOpen] = useState(false);
+  const [fetchDialogOpen, setFetchDialogOpen] = useState(false);
 
-  const loadExams = async (pageNum = 1, query = '') => {
+  // 检查权限
+  const canViewSchool = user && examAPI.hasPermission(user, 2, 2); // VIEW_EXAM_LIST权限，SCHOOL级别
+  const canViewAll = user && examAPI.hasPermission(user, 2, 3); // VIEW_EXAM_LIST权限，GLOBAL级别
+  const canFetchData = user && (
+    examAPI.hasPermission(user, 0, 1) || // FETCH_DATA权限，SELF级别
+    examAPI.hasPermission(user, 0, 2) || // FETCH_DATA权限，SCHOOL级别
+    examAPI.hasPermission(user, 0, 3)    // FETCH_DATA权限，GLOBAL级别
+  );
+
+  const loadExams = async (pageNum = 1, query = '', scopeParam = scope, startTime?: number, endTime?: number) => {
     try {
       setLoading(true);
-      setError(null); // 清除之前的错误信息
-      const response = await examAPI.getExamList({
+      setError(null);
+
+      const params: any = {
         page: pageNum,
         per_page: 10,
-        query: query || undefined,
-      });
+        scope: scopeParam,
+        ...(query && { query }),
+        ...(startTime && { start_time: startTime }),
+        ...(endTime && { end_time: endTime })
+      };
+
+      const response = await examAPI.getExamList(params);
 
       if (response.data.success) {
         setExams(response.data.exams);
@@ -52,6 +76,7 @@ const ExamsPage: React.FC = () => {
           page: pageNum,
           per_page: 10,
           query: query || null,
+          scope: scopeParam,
           exam_count: response.data.exams.length,
           total_pages: response.data.pagination.pages,
         });
@@ -64,6 +89,7 @@ const ExamsPage: React.FC = () => {
         username: user?.username,
         page: pageNum,
         query: query || null,
+        scope: scopeParam,
         error_message: errorMessage,
       });
     } finally {
@@ -72,7 +98,13 @@ const ExamsPage: React.FC = () => {
   };
 
   const handleFetchExams = () => {
-    setFetchConfirmOpen(true);
+    if (canFetchData && (examAPI.hasPermission(user!, 0, 2) || examAPI.hasPermission(user!, 0, 3))) {
+      // 有高级权限，打开高级拉取对话框
+      setFetchDialogOpen(true);
+    } else {
+      // 只有基础权限，使用简单确认对话框
+      setFetchConfirmOpen(true);
+    }
   };
 
   const confirmFetchExams = async () => {
@@ -85,6 +117,27 @@ const ExamsPage: React.FC = () => {
         trackAnalyticsEvent('exam_list_fetch_started', {
           username: user?.username,
           task_id: taskId
+        });
+
+        pollTaskStatus(taskId);
+      }
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试失败';
+      setError(errorMessage);
+    }
+  };
+
+  const handleAdvancedFetch = async (params: any) => {
+    try {
+      setError(null);
+      const response = await examAPI.fetchExamList(params);
+      if (response.data.success) {
+        const taskId = response.data.task_id;
+
+        trackAnalyticsEvent('exam_list_fetch_started', {
+          username: user?.username,
+          task_id: taskId,
+          fetch_type: params.query_type
         });
 
         pollTaskStatus(taskId);
@@ -120,14 +173,32 @@ const ExamsPage: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // 清除之前的错误信息
+    setError(null);
     setPage(1);
-    loadExams(1, searchQuery);
+
+    const startTime = startDate ? startDate.getTime() : undefined;
+    const endTime = endDate ? endDate.getTime() : undefined;
+
+    loadExams(1, searchQuery, scope, startTime, endTime);
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    loadExams(newPage, searchQuery);
+
+    const startTime = startDate ? startDate.getTime() : undefined;
+    const endTime = endDate ? endDate.getTime() : undefined;
+
+    loadExams(newPage, searchQuery, scope, startTime, endTime);
+  };
+
+  const handleScopeChange = (newScope: 'self' | 'school' | 'all') => {
+    setScope(newScope);
+    setPage(1);
+
+    const startTime = startDate ? startDate.getTime() : undefined;
+    const endTime = endDate ? endDate.getTime() : undefined;
+
+    loadExams(1, searchQuery, newScope, startTime, endTime);
   };
 
   useEffect(() => {
@@ -153,7 +224,21 @@ const ExamsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
-          {user?.zhixue_username && (
+          {/* Scope 选择器 */}
+          {(canViewSchool || canViewAll) && (
+            <Select value={scope} onValueChange={handleScopeChange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="self">个人</SelectItem>
+                {canViewSchool && <SelectItem value="school">校内</SelectItem>}
+                {canViewAll && <SelectItem value="all">全部</SelectItem>}
+              </SelectContent>
+            </Select>
+          )}
+
+          {canFetchData && (
             <Button
               onClick={handleFetchExams}
               disabled={!!fetchingTask}
@@ -184,20 +269,53 @@ const ExamsPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Search */}
+      {/* Search and Filters */}
       <Card>
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex space-x-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="搜索考试名称..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="搜索考试名称..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button type="submit">
+                <Filter className="h-4 w-4 mr-2" />
+                搜索
+              </Button>
             </div>
-            <Button type="submit">搜索</Button>
+
+            {/* 时间范围过滤 */}
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+              <div className="flex-1">
+                <Label htmlFor="start-date" className="text-sm font-medium">
+                  开始日期
+                </Label>
+                <div className="mt-1">
+                  <DatePicker
+                    date={startDate}
+                    onDateChange={setStartDate}
+                    placeholder="选择开始日期"
+                  />
+                </div>
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="end-date" className="text-sm font-medium">
+                  结束日期
+                </Label>
+                <div className="mt-1">
+                  <DatePicker
+                    date={endDate}
+                    onDateChange={setEndDate}
+                    placeholder="选择结束日期"
+                  />
+                </div>
+              </div>
+            </div>
           </form>
         </CardContent>
       </Card>
@@ -227,14 +345,24 @@ const ExamsPage: React.FC = () => {
             <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">暂无考试数据</h3>
             <p className="text-muted-foreground mb-4">
-              {searchQuery ? '没有找到匹配的考试' : '您还没有任何考试数据'}
+              {searchQuery ? '没有找到匹配的考试' : `您还没有任何${scope === 'self' ? '个人' : scope === 'school' ? '校内' : ''}考试数据`}
             </p>
             {!searchQuery && (
-              user?.zhixue_username ? (
+              canFetchData ? (
                 <Button onClick={handleFetchExams} disabled={!!fetchingTask}>
                   <Download className="h-4 w-4 mr-2" />
                   从智学网获取
                 </Button>
+              ) : (user?.zhixue_username ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
+                  <div className="flex items-center justify-center space-x-2 text-amber-800">
+                    <AlertCircle className="h-5 w-5" />
+                    <span className="font-medium">权限不足</span>
+                  </div>
+                  <p className="text-sm text-amber-700 mt-2 text-center">
+                    您没有拉取考试数据的权限，请联系管理员
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
@@ -253,7 +381,7 @@ const ExamsPage: React.FC = () => {
                     </Button>
                   </Link>
                 </div>
-              )
+              ))
             )}
           </CardContent>
         </Card>
@@ -359,6 +487,13 @@ const ExamsPage: React.FC = () => {
         cancelText="取消"
         variant="default"
         onConfirm={confirmFetchExams}
+      />
+
+      <ExamFetchDialog
+        open={fetchDialogOpen}
+        onOpenChange={setFetchDialogOpen}
+        onFetch={handleAdvancedFetch}
+        user={user}
       />
     </div>
   );
