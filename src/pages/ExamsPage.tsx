@@ -33,6 +33,7 @@ const ExamsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [scope, setScope] = useState<'self' | 'school' | 'all'>('self');
+  const [schoolIdFilter, setSchoolIdFilter] = useState(''); // 新增：学校 ID 过滤
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [page, setPage] = useState(1);
@@ -51,7 +52,7 @@ const ExamsPage: React.FC = () => {
     examAPI.hasPermission(user, 0, 3)    // FETCH_DATA权限，GLOBAL级别
   );
 
-  const loadExams = async (pageNum = 1, query = '', scopeParam = scope, startTime?: number, endTime?: number) => {
+  const loadExams = async (pageNum = 1, query = '', scopeParam = scope, startTime?: number, endTime?: number, schoolId = schoolIdFilter) => {
     try {
       setLoading(true);
       setError(null);
@@ -62,7 +63,8 @@ const ExamsPage: React.FC = () => {
         scope: scopeParam,
         ...(query && { query }),
         ...(startTime && { start_time: startTime }),
-        ...(endTime && { end_time: endTime })
+        ...(endTime && { end_time: endTime }),
+        ...(scopeParam === 'all' && schoolId && { school_id: schoolId })
       };
 
       const response = await examAPI.getExamList(params);
@@ -77,6 +79,7 @@ const ExamsPage: React.FC = () => {
           per_page: 10,
           query: query || null,
           scope: scopeParam,
+          school_id: scopeParam === 'all' && schoolId ? schoolId : null,
           exam_count: response.data.exams.length,
           total_pages: response.data.pagination.pages,
         });
@@ -137,7 +140,9 @@ const ExamsPage: React.FC = () => {
         trackAnalyticsEvent('exam_list_fetch_started', {
           username: user?.username,
           task_id: taskId,
-          fetch_type: params.query_type
+          fetch_type: params.query_type,
+          school_id: params.school_id || null,
+          fetch_params: params.params || null
         });
 
         pollTaskStatus(taskId);
@@ -195,10 +200,15 @@ const ExamsPage: React.FC = () => {
     setScope(newScope);
     setPage(1);
 
+    // 切换 scope 时清空学校 ID 过滤
+    if (newScope !== 'all') {
+      setSchoolIdFilter('');
+    }
+
     const startTime = startDate ? startDate.getTime() : undefined;
     const endTime = endDate ? endDate.getTime() : undefined;
 
-    loadExams(1, searchQuery, newScope, startTime, endTime);
+    loadExams(1, searchQuery, newScope, startTime, endTime, newScope === 'all' ? schoolIdFilter : '');
   };
 
   useEffect(() => {
@@ -316,6 +326,26 @@ const ExamsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* 学校 ID 过滤（仅在查看全部时显示） */}
+            {scope === 'all' && (
+              <div>
+                <Label htmlFor="school-id-filter" className="text-sm font-medium">
+                  学校 ID（可选）
+                </Label>
+                <div className="mt-1">
+                  <Input
+                    id="school-id-filter"
+                    placeholder="输入学校 ID 进行过滤"
+                    value={schoolIdFilter}
+                    onChange={(e) => setSchoolIdFilter(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    留空则显示所有学校的考试
+                  </p>
+                </div>
+              </div>
+            )}
           </form>
         </CardContent>
       </Card>

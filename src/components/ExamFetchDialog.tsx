@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -241,59 +240,49 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
 
         <div className="space-y-6">
           {/* 拉取模式选择 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">拉取模式</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={fetchMode} onValueChange={(value: 'self' | 'school') => setFetchMode(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="self">个人考试列表</SelectItem>
-                  {canFetchSchoolData && (
-                    <SelectItem value="school">学校考试列表</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
+          <div>
+            <h3 className="text-sm font-medium mb-3">拉取模式</h3>
+            <Select value={fetchMode} onValueChange={(value: 'self' | 'school') => setFetchMode(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="self">个人考试列表</SelectItem>
+                {canFetchSchoolData && (
+                  <SelectItem value="school">学校考试列表</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* 学校考试列表配置 */}
           {fetchMode === 'school' && (
             <>
               {/* 学校ID输入 */}
               {hasGlobalPermission && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">学校设置</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Label htmlFor="school-id">学校 ID</Label>
-                      <Input
-                        id="school-id"
-                        value={schoolId}
-                        onChange={(e) => handleSchoolIdChange(e.target.value)}
-                        placeholder="请输入学校 ID"
-                        className={error ? 'border-red-500' : ''}
-                      />
-                      {error && (
-                        <p className="text-sm text-red-600">{error}</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                <div>
+                  <h3 className="text-sm font-medium mb-3">学校设置</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="school-id">学校 ID</Label>
+                    <Input
+                      id="school-id"
+                      value={schoolId}
+                      onChange={(e) => handleSchoolIdChange(e.target.value)}
+                      placeholder="请输入学校 ID"
+                      className={error ? 'border-red-500' : ''}
+                    />
+                    {error && (
+                      <p className="text-sm text-red-600">{error}</p>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* 查询参数配置 */}
               {(hasSchoolOnlyPermission || (hasGlobalPermission && schoolId && selections)) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">查询配置</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-3">查询配置</h3>
+                  <div className="space-y-4">
                     {loading ? (
                       <div className="flex items-center justify-center py-8">
                         <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -399,19 +388,17 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
                         <p>请等待加载配置参数...</p>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
 
               {error && (
-                <Card className="border-red-200 bg-red-50">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center space-x-2 text-red-800">
-                      <span className="text-sm font-medium">错误</span>
-                    </div>
-                    <p className="text-sm text-red-700 mt-1">{error}</p>
-                  </CardContent>
-                </Card>
+                <div className="p-4 border border-red-200 bg-red-50 rounded-md">
+                  <div className="flex items-center space-x-2 text-red-800">
+                    <span className="text-sm font-medium">错误</span>
+                  </div>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
               )}
             </>
           )}
