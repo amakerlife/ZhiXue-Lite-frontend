@@ -20,6 +20,7 @@ import AboutPage from '@/pages/AboutPage';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
 import DataDeletionPage from '@/pages/DataDeletionPage';
 import DisclaimerPage from '@/pages/DisclaimerPage';
+import NotFoundPage from '@/pages/NotFoundPage';
 
 const App: React.FC = () => {
   return (
@@ -45,6 +46,7 @@ const App: React.FC = () => {
                     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                     <Route path="/data-deletion" element={<DataDeletionPage />} />
                     <Route path="/disclaimer" element={<DisclaimerPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </Layout>
               </Router>

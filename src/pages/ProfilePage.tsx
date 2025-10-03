@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { trackAnalyticsEvent } from '@/utils/analytics';
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -65,6 +67,19 @@ const ProfilePage: React.FC = () => {
       loadBindingInfo();
     }
   }, [user?.zhixue_username]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 新增：处理锚点导航
+  useEffect(() => {
+    if (location.hash) {
+      // 延迟一点确保 DOM 已渲染
+      setTimeout(() => {
+        const element = document.querySelector(location.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [location.hash, user]);
 
   const handleConnectZhixue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -512,7 +527,7 @@ const ProfilePage: React.FC = () => {
       </Card>
 
       {/* ZhiXue Account Connection */}
-      <Card>
+      <Card id="zhixue-binding">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Link2 className="h-5 w-5" />
