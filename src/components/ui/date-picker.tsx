@@ -61,6 +61,13 @@ export function DatePicker({
     const inputValue = e.target.value
     setValue(inputValue)
 
+    // 如果输入为空，清除日期
+    if (!inputValue.trim()) {
+      onDateChange?.(undefined)
+      setMonth(undefined)
+      return
+    }
+
     // 尝试解析输入的日期
     const parsedDate = new Date(inputValue)
     if (isValidDate(parsedDate)) {
