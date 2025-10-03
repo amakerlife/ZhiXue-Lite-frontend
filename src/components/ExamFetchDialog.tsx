@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { examAPI, type ExamSelections } from '@/api/exam';
 import type { User } from '@/types/api';
 
@@ -83,21 +83,10 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
 
   // 学校ID验证函数
   const validateSchoolId = (id: string): boolean => {
-    // 基本格式检查：应该是数字或数字加字母的组合，长度合理
     if (!id.trim()) return false;
 
-    // 检查是否包含明显的JSON格式
-    if (id.includes('{') || id.includes('}') || id.includes('[') || id.includes(']')) {
-      return false;
-    }
-
-    // 检查是否包含特殊字符（除了数字、字母、下划线、连字符）
-    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
-      return false;
-    }
-
-    // 长度检查（通常学校ID不会太长）
-    if (id.length > 50) {
+    // 学校 ID 必须是 19 位数字
+    if (!/^\d{19}$/.test(id)) {
       return false;
     }
 
@@ -107,7 +96,7 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
   const loadSelections = async (targetSchoolId?: string) => {
     // 对于 GLOBAL 权限用户，需要验证学校 ID
     if (hasGlobalPermission && targetSchoolId && !validateSchoolId(targetSchoolId)) {
-      setError('学校 ID 格式不正确，请输入有效的学校 ID');
+      setError('学校 ID 格式不正确，必须是 19 位数字');
       return;
     }
 
@@ -260,17 +249,19 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
             <>
               {/* 学校ID输入 */}
               {hasGlobalPermission && (
-                <div>
-                  <h3 className="text-sm font-medium mb-3">学校设置</h3>
+                <div className="space-y-3">
                   <div className="space-y-2">
                     <Label htmlFor="school-id">学校 ID</Label>
                     <Input
                       id="school-id"
                       value={schoolId}
                       onChange={(e) => handleSchoolIdChange(e.target.value)}
-                      placeholder="请输入学校 ID"
+                      placeholder="请输入 19 位数字学校 ID"
                       className={error ? 'border-red-500' : ''}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      学校 ID 必须是 19 位数字
+                    </p>
                     {error && (
                       <p className="text-sm text-red-600">{error}</p>
                     )}
@@ -278,18 +269,30 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
                 </div>
               )}
 
+              {/* 学校信息显示（仅对SCHOOL权限用户） */}
+              {hasSchoolOnlyPermission && schoolId && (
+                <div className="space-y-2">
+                  <Label>学校 ID</Label>
+                  <div className="px-3 py-2 bg-muted rounded-md text-sm">
+                    {schoolId}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    使用您绑定账号的学校数据
+                  </p>
+                </div>
+              )}
+
               {/* 查询参数配置 */}
-              {(hasSchoolOnlyPermission || (hasGlobalPermission && schoolId && selections)) && (
-                <div>
-                  <h3 className="text-sm font-medium mb-3">查询配置</h3>
-                  <div className="space-y-4">
-                    {loading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        <span>加载配置参数中...</span>
-                      </div>
-                    ) : selections ? (
-                      <>
+              {(hasSchoolOnlyPermission || (hasGlobalPermission && schoolId)) && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">查询配置</Label>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+                      <span>加载配置参数中...</span>
+                    </div>
+                  ) : selections ? (
+                    <div className="space-y-4">
                         {/* 查询类型 */}
                         <div className="space-y-2">
                           <Label>查询类型</Label>
@@ -382,13 +385,8 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
                         </SelectContent>
                       </Select>
                     </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                        <p>请等待加载配置参数...</p>
                       </div>
-                    )}
-                  </div>
+                    ) : null}
                 </div>
               )}
 
