@@ -56,42 +56,6 @@ const ExamsPage: React.FC = () => {
     examAPI.hasPermission(user, 0, 3)    // FETCH_DATA权限，GLOBAL级别
   );
 
-  // 如果用户未绑定智学网账号，显示提示页面
-  if (!hasZhixueAccount) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="text-amber-600">需要绑定智学网账号</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start space-x-3 mb-6">
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  您需要先绑定智学网账号才能使用考试列表功能。
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  绑定后，您可以：
-                </p>
-                <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                  <li>查看考试成绩</li>
-                  <li>同步最新数据</li>
-                </ul>
-              </div>
-            </div>
-            <Link to="/profile#zhixue-binding" className="mt-2">
-              <Button className="w-full">
-                <Link2 className="h-4 w-4 mr-2" />
-                前往绑定智学网账号
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const loadExams = async (pageNum = 1, query = '', scopeParam = scope, startTime?: number, endTime?: number, schoolId = schoolIdFilter) => {
     try {
       setLoading(true);
@@ -291,8 +255,46 @@ const ExamsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadExams();
-  }, []);
+    if (hasZhixueAccount) {
+      loadExams();
+    }
+  }, [hasZhixueAccount]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 如果用户未绑定智学网账号，显示提示页面
+  if (!hasZhixueAccount) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-amber-600">需要绑定智学网账号</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start space-x-3 mb-6">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  您需要先绑定智学网账号才能使用考试列表功能。
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  绑定后，您可以：
+                </p>
+                <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                  <li>查看考试成绩</li>
+                  <li>同步最新数据</li>
+                </ul>
+              </div>
+            </div>
+            <Link to="/profile#zhixue-binding" className="mt-2">
+              <Button className="w-full">
+                <Link2 className="h-4 w-4 mr-2" />
+                前往绑定智学网账号
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
