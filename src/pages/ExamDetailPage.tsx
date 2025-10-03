@@ -93,6 +93,21 @@ const ExamDetailPage: React.FC = () => {
 
     try {
       setError(null);
+
+      // 立即显示任务等待中状态
+      setFetchingTask({
+        id: 'pending',
+        task_type: 'fetch_exam_details',
+        status: 'pending',
+        user_id: user?.id || 0,
+        progress: 0,
+        created_at: new Date().toISOString(),
+        started_at: undefined,
+        completed_at: undefined,
+        error_message: undefined,
+        progress_message: undefined,
+      });
+
       const response = await examAPI.fetchExamDetails(examId, forceRefresh);
       if (response.data.success) {
         const taskId = response.data.task_id;
@@ -109,6 +124,7 @@ const ExamDetailPage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试详情失败';
       setError(errorMessage);
+      setFetchingTask(null);
     }
   };
 
