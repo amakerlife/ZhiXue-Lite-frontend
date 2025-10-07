@@ -45,6 +45,14 @@ api.interceptors.response.use(
       window.dispatchEvent(new CustomEvent('connection-error', { detail: error }));
     }
 
+    // 检查是否是账号被封禁（403 且 code 为 account_banned）
+    if (error.response?.status === 403 && error.response?.data?.code === 'account_banned') {
+      // 触发账号被封禁事件
+      window.dispatchEvent(new CustomEvent('account-banned', {
+        detail: { message: error.response.data?.message }
+      }));
+    }
+
     // 提取后端返回的友好错误消息
     if (error.response?.data?.message) {
       // 直接修改错误对象的message属性，保留原有的错误结构

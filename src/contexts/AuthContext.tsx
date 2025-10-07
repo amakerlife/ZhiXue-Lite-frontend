@@ -8,10 +8,12 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isBanned: boolean;
   login: (username: string, password: string, turnstileToken?: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (username: string, password: string, email: string, turnstileToken?: string) => Promise<void>;
   refreshUser: () => Promise<void>;
+  clearBanned: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +34,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBanned, setIsBanned] = useState(false);
 
   const refreshUser = async () => {
     try {
@@ -161,14 +164,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [refreshUser]);
 
+  // 监听账号被封禁事件
+  useEffect(() => {
+    const handleAccountBanned = () => {
+      console.log('Account banned, logging out...');
+      setUser(null);
+      setIsBanned(true);
+    };
+
+    window.addEventListener('account-banned', handleAccountBanned);
+
+    return () => {
+      window.removeEventListener('account-banned', handleAccountBanned);
+    };
+  }, []);
+
+  const clearBanned = () => {
+    setIsBanned(false);
+  };
+
   const value: AuthContextType = {
     user,
     isLoading,
     isAuthenticated: !!user,
+    isBanned,
     login,
     logout,
     signup,
     refreshUser,
+    clearBanned,
   };
 
   return (

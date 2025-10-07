@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AnalyticsProvider } from '@/contexts/AnalyticsContext';
 import { ExamProvider } from '@/contexts/ExamContext';
 import { ConnectionProvider } from '@/contexts/ConnectionContext';
@@ -21,6 +21,48 @@ import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
 import DataDeletionPage from '@/pages/DataDeletionPage';
 import DisclaimerPage from '@/pages/DisclaimerPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { AlertCircle } from 'lucide-react';
+
+// 账号被封禁弹窗组件
+const BannedAccountDialog: React.FC = () => {
+  const { isBanned, clearBanned } = useAuth();
+  const navigate = useNavigate();
+
+  const handleGoToLogin = () => {
+    clearBanned();
+    navigate('/login');
+  };
+
+  return (
+    <AlertDialog open={isBanned}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="h-6 w-6 text-destructive" />
+            <AlertDialogTitle>登录状态失效</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription>
+            登录状态失效，请重新登录。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={handleGoToLogin} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            前往登录
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
 
 const App: React.FC = () => {
   return (
@@ -30,6 +72,7 @@ const App: React.FC = () => {
           <ExamProvider>
             <SidebarProvider>
               <Router>
+                <BannedAccountDialog />
                 <Header />
                 <Layout>
                   <Routes>
