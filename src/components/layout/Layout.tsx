@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { AlertCircle, X } from 'lucide-react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { AlertCircle, X, ShieldAlert, LogOut } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -15,9 +15,11 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isOpen, isMobile, close } = useSidebar();
-  const { user } = useAuth();
+  const { user, isSuMode, exitSu } = useAuth();
   const [showBanner, setShowBanner] = React.useState(true);
+  const [exitingSu, setExitingSu] = React.useState(false);
 
   // 启用页面追踪
   usePageTracking();
@@ -27,7 +29,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const showSidebar = !noSidebarPages.includes(location.pathname);
 
   // 检查是否需要显示未绑定账号提醒
-  const shouldShowBanner = showSidebar && user && !user.zhixue_username && showBanner;
+  const shouldShowBanner = showSidebar && user && !user.zhixue_username && showBanner && !isSuMode;
+
+  // 处理退出 su 模式
+  const handleExitSu = async () => {
+    setExitingSu(true);
+    try {
+      await exitSu();
+      navigate('/admin'); // 退出后跳转回管理页面
+    } catch (error) {
+      console.error('Exit su failed:', error);
+      alert(error instanceof Error ? error.message : '退出 su 模式失败');
+    } finally {
+      setExitingSu(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background pt-16"> {/* 为固定Header留出空间 */}
@@ -48,6 +64,37 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             ? 'ml-64'
             : ''
         }`}>
+          {/* Su 模式提示横幅 */}
+          {isSuMode && user && (
+            <div className="bg-orange-50 border-b border-orange-200">
+              <div className="container mx-auto p-3 max-w-7xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <ShieldAlert className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-orange-900">
+                        您正在以 <span className="font-bold">{user.username}</span> 的身份浏览
+                      </p>
+                      <p className="text-xs text-orange-700">
+                        您当前处于 su 模式，请谨慎操作
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExitSu}
+                    disabled={exitingSu}
+                    className="text-orange-900 border-orange-300 hover:bg-orange-100 flex items-center space-x-1"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>{exitingSu ? '退出中...' : '退出 su 模式'}</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 未绑定账号提醒横幅 */}
           {shouldShowBanner && (
             <div className="bg-amber-50 border-b border-amber-200">

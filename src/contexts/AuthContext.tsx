@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authAPI } from '@/api/auth';
+import { adminAPI } from '@/api/admin';
 import type { User } from '@/types/api';
 import { trackAnalyticsEvent } from '@/utils/analytics';
 
@@ -9,11 +10,14 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isBanned: boolean;
+  isSuMode: boolean;
   login: (username: string, password: string, turnstileToken?: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (username: string, password: string, email: string, turnstileToken?: string) => Promise<void>;
   refreshUser: () => Promise<void>;
   clearBanned: () => void;
+  switchUser: (username: string) => Promise<void>;
+  exitSu: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBanned, setIsBanned] = useState(false);
+  const [isSuMode, setIsSuMode] = useState(false);
 
   const refreshUser = async () => {
     try {
@@ -42,9 +47,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.data.success) {
         // 后端直接返回 user 字段，不是包装在 data 中
         setUser(response.data.user);
+        // 检查是否为管理员且当前用户角色为 user，可能处于 su 模式
+        // 注意：这是一个简单的启发式检测，实际 su 状态由后端 session 管理
+        const storedSuMode = sessionStorage.getItem('su_mode') === 'true';
+        setIsSuMode(storedSuMode);
       }
     } catch {
       setUser(null);
+      setIsSuMode(false);
+      sessionStorage.removeItem('su_mode');
     }
   };
 
@@ -129,6 +140,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } finally {
       setUser(null);
+      setIsSuMode(false);
+      sessionStorage.removeItem('su_mode');
+    }
+  };
+
+  const switchUser = async (username: string) => {
+    try {
+      const response = await adminAPI.switchUser(username);
+      if (response.data.success && response.data.user) {
+        setUser(response.data.user as User);
+        setIsSuMode(true);
+        sessionStorage.setItem('su_mode', 'true');
+
+        trackAnalyticsEvent('admin_switch_user', {
+          target_username: username,
+        });
+      } else {
+        throw new Error(response.data.message || '切换用户失败');
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '切换用户失败，请稍后重试';
+      throw new Error(errorMessage);
+    }
+  };
+
+  const exitSu = async () => {
+    try {
+      const response = await adminAPI.exitSu();
+      if (response.data.success && response.data.user) {
+        setUser(response.data.user as User);
+        setIsSuMode(false);
+        sessionStorage.removeItem('su_mode');
+
+        trackAnalyticsEvent('admin_exit_su', {});
+      } else {
+        throw new Error(response.data.message || '退出 su 模式失败');
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '退出 su 模式失败，请稍后重试';
+      throw new Error(errorMessage);
     }
   };
 
@@ -188,11 +239,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     isAuthenticated: !!user,
     isBanned,
+    isSuMode,
     login,
     logout,
     signup,
     refreshUser,
     clearBanned,
+    switchUser,
+    exitSu,
   };
 
   return (

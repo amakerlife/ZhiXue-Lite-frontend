@@ -9,6 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -40,7 +48,7 @@ const routeNameMap: Record<string, string> = {
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, switchUser, isSuMode, exitSu } = useAuth();
   const { toggle } = useSidebar();
   const { getCachedExamData, getExamData } = useExam();
   const { isConnectionError, connectionError, retryConnection } = useConnection();
@@ -48,6 +56,11 @@ const Header: React.FC = () => {
     { name: '首页', path: '/' }
   ]);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [showSuDialog, setShowSuDialog] = useState(false);
+  const [suUsername, setSuUsername] = useState('');
+  const [suError, setSuError] = useState('');
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [isExitingSu, setIsExitingSu] = useState(false);
 
   // 不显示侧边栏的页面不显示菜单按钮
   const noSidebarPages = ['/login', '/signup'];
@@ -124,6 +137,45 @@ const Header: React.FC = () => {
       console.error('Connection retry failed:', error);
     } finally {
       setIsRetrying(false);
+    }
+  };
+
+  const handleOpenSuDialog = () => {
+    setSuUsername('');
+    setSuError('');
+    setShowSuDialog(true);
+  };
+
+  const handleSwitchUser = async () => {
+    if (!suUsername.trim()) {
+      setSuError('请输入用户名');
+      return;
+    }
+
+    setIsSwitching(true);
+    setSuError('');
+
+    try {
+      await switchUser(suUsername.trim());
+      setShowSuDialog(false);
+      navigate('/'); // 切换后跳转到首页
+    } catch (error) {
+      setSuError(error instanceof Error ? error.message : '切换用户失败');
+    } finally {
+      setIsSwitching(false);
+    }
+  };
+
+  const handleExitSu = async () => {
+    setIsExitingSu(true);
+    try {
+      await exitSu();
+      navigate('/admin'); // 退出 su 后跳转回管理页面
+    } catch (error) {
+      console.error('Exit su failed:', error);
+      alert(error instanceof Error ? error.message : '退出 su 模式失败');
+    } finally {
+      setIsExitingSu(false);
     }
   };
 
@@ -272,10 +324,24 @@ const Header: React.FC = () => {
                 <DropdownMenuItem asChild>
                   <Link to="/profile">个人中心</Link>
                 </DropdownMenuItem>
+                {user?.role === 'admin' && !isSuMode && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleOpenSuDialog} className="text-orange-600">
+                      切换用户
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                  退出登录
-                </DropdownMenuItem>
+                {isSuMode ? (
+                  <DropdownMenuItem onClick={handleExitSu} disabled={isExitingSu} className="text-orange-600">
+                    {isExitingSu ? '退出中...' : '退出 su 模式'}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    退出登录
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -302,6 +368,57 @@ const Header: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Su 对话框 */}
+      <Dialog open={showSuDialog} onOpenChange={setShowSuDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>切换用户</DialogTitle>
+            <DialogDescription>
+              输入要切换到的用户名。切换后您将以该用户的身份浏览系统。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="su-username" className="text-sm font-medium">
+                用户名
+              </label>
+              <Input
+                id="su-username"
+                placeholder="请输入用户名"
+                value={suUsername}
+                onChange={(e) => setSuUsername(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSwitchUser();
+                  }
+                }}
+                disabled={isSwitching}
+              />
+            </div>
+            {suError && (
+              <div className="text-sm text-red-600">
+                {suError}
+              </div>
+            )}
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowSuDialog(false)}
+                disabled={isSwitching}
+              >
+                取消
+              </Button>
+              <Button
+                onClick={handleSwitchUser}
+                disabled={isSwitching}
+              >
+                {isSwitching ? '切换中...' : '确认切换'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

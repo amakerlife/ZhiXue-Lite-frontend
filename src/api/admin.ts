@@ -100,4 +100,11 @@ export const adminAPI = {
   // 用户管理
   updateUser: (userId: number, data: { email?: string; role?: string; permissions?: string; is_active?: boolean; password?: string }) =>
     api.put<ApiResponse & { user: AdminUser }>(`/admin/user/${userId}`, data),
+
+  // Su 功能
+  switchUser: (username: string) =>
+    api.post<ApiResponse & { user: AdminUser }>(`/admin/su/${username}`),
+
+  exitSu: () =>
+    api.post<ApiResponse & { user: AdminUser }>('/admin/su/exit'),
 };
