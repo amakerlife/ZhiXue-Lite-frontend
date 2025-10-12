@@ -8,6 +8,7 @@ export interface User {
   id?: number;
   username: string;
   email: string;
+  email_verified: boolean;  // 新增：邮箱验证状态
   role: 'admin' | 'user';  // 移除 data_viewer 角色
   permissions?: string;    // 新增权限字符串字段
   is_active: boolean;

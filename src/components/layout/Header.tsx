@@ -39,6 +39,7 @@ const routeNameMap: Record<string, string> = {
   '/profile': '个人中心',
   '/login': '登录',
   '/signup': '注册',
+  '/verify-email': '邮箱验证',
   '/about': '关于',
   '/privacy-policy': '隐私政策',
   '/data-deletion': '数据删除请求',

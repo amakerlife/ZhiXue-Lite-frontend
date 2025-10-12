@@ -16,6 +16,7 @@ import TasksPage from '@/pages/TasksPage';
 import ProfilePage from '@/pages/ProfilePage';
 import AdminPage from '@/pages/AdminPage';
 import DataViewerPage from '@/pages/DataViewerPage';
+import VerifyEmailPage from '@/pages/VerifyEmailPage';
 import AboutPage from '@/pages/AboutPage';
 import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
 import DataDeletionPage from '@/pages/DataDeletionPage';
@@ -30,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Mail } from 'lucide-react';
 
 // 账号被封禁弹窗组件
 const BannedAccountDialog: React.FC = () => {
@@ -64,6 +65,50 @@ const BannedAccountDialog: React.FC = () => {
   );
 };
 
+// 邮件未验证弹窗组件
+const EmailNotVerifiedDialog: React.FC = () => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const handleEmailNotVerified = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener('email-not-verified', handleEmailNotVerified);
+
+    return () => {
+      window.removeEventListener('email-not-verified', handleEmailNotVerified);
+    };
+  }, []);
+
+  const handleGoToProfile = () => {
+    setIsOpen(false);
+    navigate('/profile');
+  };
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <div className="flex items-center space-x-2">
+            <Mail className="h-6 w-6 text-yellow-500" />
+            <AlertDialogTitle>需要验证邮箱</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription>
+            您的邮箱尚未验证，无法访问此功能。请前往个人中心验证邮箱。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={handleGoToProfile}>
+            前往个人中心
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 const App: React.FC = () => {
   return (
     <AnalyticsProvider>
@@ -73,12 +118,14 @@ const App: React.FC = () => {
             <SidebarProvider>
               <Router>
                 <BannedAccountDialog />
+                <EmailNotVerifiedDialog />
                 <Header />
                 <Layout>
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/verify-email" element={<VerifyEmailPage />} />
                     <Route path="/exams" element={<ExamsPage />} />
                     <Route path="/exams/:examId" element={<ExamDetailPage />} />
                     <Route path="/data-viewer" element={<DataViewerPage />} />

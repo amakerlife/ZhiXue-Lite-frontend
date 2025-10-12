@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, X, ShieldAlert, LogOut } from 'lucide-react';
+import { AlertCircle, X, ShieldAlert, LogOut, Mail } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -19,6 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isOpen, isMobile, close } = useSidebar();
   const { user, isSuMode, exitSu } = useAuth();
   const [showBanner, setShowBanner] = React.useState(true);
+  const [showEmailBanner, setShowEmailBanner] = React.useState(true);
   const [exitingSu, setExitingSu] = React.useState(false);
 
   // 启用页面追踪
@@ -30,6 +31,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // 检查是否需要显示未绑定账号提醒
   const shouldShowBanner = showSidebar && user && !user.zhixue_username && showBanner && !isSuMode;
+
+  // 检查是否需要显示邮箱未验证提醒
+  const shouldShowEmailBanner = showSidebar && user && !user.email_verified && showEmailBanner && !isSuMode;
 
   // 处理退出 su 模式
   const handleExitSu = async () => {
@@ -90,6 +94,42 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <LogOut className="h-4 w-4" />
                     <span>{exitingSu ? '退出中...' : '退出 su 模式'}</span>
                   </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 邮箱未验证提醒横幅 */}
+          {shouldShowEmailBanner && (
+            <div className="bg-blue-50 border-b border-blue-200">
+              <div className="container mx-auto p-3 max-w-7xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900">
+                        您的邮箱尚未验证
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        验证邮箱后可使用完整功能，请前往个人中心验证
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Link to="/profile">
+                      <Button size="sm" variant="outline" className="text-blue-900 border-blue-300 hover:bg-blue-100">
+                        前往验证
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setShowEmailBanner(false)}
+                      className="text-blue-600 hover:text-blue-900 hover:bg-blue-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

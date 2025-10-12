@@ -32,6 +32,7 @@ export interface AdminUser {
   id: number;
   username: string;
   email: string;
+  email_verified: boolean;  // 新增：邮箱验证状态
   role: string;
   permissions?: string;     // 新增权限字段
   is_active: boolean;

@@ -17,6 +17,12 @@ export interface ConnectZhixueRequest {
   turnstile_token?: string;
 }
 
+export interface EmailVerificationStatusResponse {
+  email_verification_enabled: boolean;
+  email_verified: boolean;
+  email: string;
+}
+
 export const authAPI = {
   login: (data: LoginRequest) =>
     api.post<ApiResponse & { user: User }>('/user/login', data),
@@ -41,4 +47,14 @@ export const authAPI = {
 
   updateCurrentUser: (data: Partial<UserUpdateRequest>) =>
     api.put<ApiResponse & { user: User }>('/user/me', data),
+
+  // 邮件验证相关 API
+  verifyEmail: (token: string) =>
+    api.get<ApiResponse>(`/user/email/verify/${token}`),
+
+  resendVerificationEmail: () =>
+    api.post<ApiResponse>('/user/email/resend-verification'),
+
+  getEmailVerificationStatus: () =>
+    api.get<ApiResponse & EmailVerificationStatusResponse>('/user/email/verification-status'),
 };

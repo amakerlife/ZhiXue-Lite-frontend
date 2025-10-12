@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw, Lock } from 'lucide-react';
+import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw, Lock, CheckCircle, XCircle, Send } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,9 @@ const ProfilePage: React.FC = () => {
     newPassword: '',
     confirmPassword: '',
   });
+
+  // 新增：邮件验证相关状态
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   useEffect(() => {
     document.title = '个人中心 - ZhiXue Lite';
@@ -317,6 +320,36 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  // 新增：重发验证邮件
+  const handleResendVerificationEmail = async () => {
+    setResendingEmail(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await authAPI.resendVerificationEmail();
+      if (response.data.success) {
+        setSuccess('验证邮件已发送，请检查您的邮箱');
+
+        trackAnalyticsEvent('email_verification_resend_success', {
+          username: user?.username,
+          email: user?.email
+        });
+      }
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '发送失败';
+      setError(errorMessage);
+
+      trackAnalyticsEvent('email_verification_resend_failed', {
+        username: user?.username,
+        email: user?.email,
+        error_message: errorMessage
+      });
+    } finally {
+      setResendingEmail(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="text-center py-8">
@@ -396,14 +429,55 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </form>
               ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{user.email}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{user.email}</span>
+                      {user.email_verified ? (
+                        <Badge variant="outline" className="flex items-center space-x-1 text-green-700 bg-green-50 border-green-200">
+                          <CheckCircle className="h-3 w-3" />
+                          <span>已验证</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="flex items-center space-x-1 text-red-700 bg-red-50 border-red-200">
+                          <XCircle className="h-3 w-3" />
+                          <span>未验证</span>
+                        </Badge>
+                      )}
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => startEdit('email')}>
+                      修改
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => startEdit('email')}>
-                    修改
-                  </Button>
+                  {!user.email_verified && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-yellow-800 flex-1">
+                          您的邮箱尚未验证，请检查邮箱（包括垃圾邮件）并点击验证链接。
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleResendVerificationEmail}
+                          disabled={resendingEmail}
+                          className="flex-shrink-0"
+                        >
+                          {resendingEmail ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              发送中...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4 mr-2" />
+                              重新发送验证邮件
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

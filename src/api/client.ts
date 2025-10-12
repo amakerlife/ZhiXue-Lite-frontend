@@ -53,9 +53,17 @@ api.interceptors.response.use(
       }));
     }
 
+    // 检查是否是邮箱未验证（403 且 code 为 email_not_verified）
+    if (error.response?.status === 403 && error.response?.data?.code === 'email_not_verified') {
+      // 触发邮箱未验证事件
+      window.dispatchEvent(new CustomEvent('email-not-verified', {
+        detail: { message: error.response.data?.message }
+      }));
+    }
+
     // 提取后端返回的友好错误消息
     if (error.response?.data?.message) {
-      // 直接修改错误对象的message属性，保留原有的错误结构
+      // 直接修改错误对象的 message 属性，保留原有的错误结构
       error.message = error.response.data.message;
     }
 
