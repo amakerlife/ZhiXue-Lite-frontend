@@ -50,7 +50,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading, logout, switchUser, isSuMode, exitSu } = useAuth();
   const { toggle } = useSidebar();
-  const { getCachedExamData, getExamData } = useExam();
+  const { getExamData } = useExam();
   const { isConnectionError, connectionError, retryConnection } = useConnection();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([
     { name: '首页', path: '/' }
@@ -81,22 +81,24 @@ const Header: React.FC = () => {
       if (currentPath.startsWith('/exams/') && currentPath !== '/exams' && path !== 'exams') {
         try {
           const examId = path;
-          // 先尝试从缓存获取
-          let examData = getCachedExamData(examId);
+          // 暂时使用 examId 作为显示名称
+          name = examId;
 
-          // 如果缓存中没有，则异步获取（但不阻塞面包屑显示）
-          if (!examData) {
-            getExamData(examId).then(data => {
-              if (data) {
-                // 数据获取成功后重新生成面包屑
-                generateBreadcrumbs(pathname).then(setBreadcrumbs);
-              }
-            });
-            // 暂时使用 examId 作为显示名称
-            name = examId;
-          } else {
-            name = examData.name || examId;
-          }
+          // 异步获取考试数据并更新面包屑（不递归调用 generateBreadcrumbs）
+          getExamData(examId).then(data => {
+            if (data) {
+              // 直接更新当前面包屑中的考试名称
+              setBreadcrumbs(prevBreadcrumbs =>
+                prevBreadcrumbs.map(item =>
+                  item.path === currentPath
+                    ? { ...item, name: data.name }
+                    : item
+                )
+              );
+            }
+          }).catch(error => {
+            console.warn('Failed to fetch exam name for breadcrumb:', error);
+          });
         } catch (error) {
           console.warn('Failed to fetch exam name for breadcrumb:', error);
         }

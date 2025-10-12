@@ -30,7 +30,7 @@ import type { BackgroundTask } from '@/types/api';
 const ExamDetailPage: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
   const { user } = useAuth();
-  const { getExamData, clearExamCache } = useExam();
+  const { getExamData } = useExam();
   const [examDetail, setExamDetail] = useState<ExamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,10 +138,7 @@ const ExamDetailPage: React.FC = () => {
         if (task.status === 'completed') {
           setFetchingTask(null);
 
-          // 清除缓存并重新加载
-          if (examId) {
-            clearExamCache(examId);
-          }
+          // 重新加载考试详情
           await loadExamDetail();
         } else if (task.status === 'failed') {
           setFetchingTask(null);
