@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
+import { StatusAlert } from '@/components/StatusAlert';
 
 const LoginPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -91,11 +92,7 @@ const LoginPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md">
-                {error}
-              </div>
-            )}
+            {error && <StatusAlert variant="error" message={error} />}
 
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">

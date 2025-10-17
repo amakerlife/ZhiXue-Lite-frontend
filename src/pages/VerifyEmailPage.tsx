@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { authAPI } from '@/api/auth';
+import { StatusAlert } from '@/components/StatusAlert';
 
 const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -72,51 +72,15 @@ const VerifyEmailPage: React.FC = () => {
       </div>
 
       {/* Status Card */}
-      <Card className={
-        status === 'success' ? 'border-green-200 bg-green-50' :
-        status === 'error' ? 'border-red-200 bg-red-50' :
-        'border-blue-200 bg-blue-50'
-      }>
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex-shrink-0">
-              {status === 'loading' && (
-                <div className="h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                </div>
-              )}
-              {status === 'success' && (
-                <div className="h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
-              )}
-              {status === 'error' && (
-                <div className="h-12 w-12 flex items-center justify-center rounded-full bg-red-100">
-                  <XCircle className="h-6 w-6 text-red-600" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <h3 className={`font-semibold ${
-                status === 'success' ? 'text-green-900' :
-                status === 'error' ? 'text-red-900' :
-                'text-blue-900'
-              }`}>
-                {status === 'loading' && '验证中'}
-                {status === 'success' && '验证成功'}
-                {status === 'error' && '验证失败'}
-              </h3>
-              <p className={`text-sm mt-1 ${
-                status === 'success' ? 'text-green-700' :
-                status === 'error' ? 'text-red-700' :
-                'text-blue-700'
-              }`}>
-                {message}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {status === 'loading' && (
+        <StatusAlert variant="info" message={message} />
+      )}
+      {status === 'success' && (
+        <StatusAlert variant="success" message={message} />
+      )}
+      {status === 'error' && (
+        <StatusAlert variant="error" message={message} />
+      )}
 
       {/* Actions */}
       {status === 'success' && (

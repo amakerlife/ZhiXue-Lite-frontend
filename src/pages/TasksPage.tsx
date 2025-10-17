@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Pagination } from '@/components/Pagination';
 import { taskAPI } from '@/api/task';
 import { formatUTCIsoToLocal, parseUTCIsoString } from '@/utils/dateUtils';
+import { StatusAlert } from '@/components/StatusAlert';
 import type { BackgroundTask } from '@/types/api';
 
 const TasksPage: React.FC = () => {
@@ -215,17 +216,7 @@ const TasksPage: React.FC = () => {
       </Card>
 
       {/* Error Message */}
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <div>
-              <p className="font-medium text-red-900">错误</p>
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {error && <StatusAlert variant="error" message={error} />}
 
       {/* Tasks List */}
       {tasks.length === 0 ? (
@@ -288,7 +279,7 @@ const TasksPage: React.FC = () => {
               </CardHeader>
 
               {task.progress_message && (
-                <CardContent className="pt-0 pb-3">
+                <CardContent className={task.error_message ? "pt-0 pb-3" : "pt-0"}>
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                     <p className="text-sm text-blue-800 break-words">
                       <strong>进度详情:</strong> {task.progress_message}
@@ -298,7 +289,7 @@ const TasksPage: React.FC = () => {
               )}
 
               {task.error_message && (
-                <CardContent className="pt-0">
+                <CardContent className={task.progress_message ? "pt-0" : "pt-0"}>
                   <div className="bg-red-50 border border-red-200 rounded-md p-3">
                     <p className="text-sm text-red-800 break-words">
                       <strong>错误信息:</strong> {task.error_message}

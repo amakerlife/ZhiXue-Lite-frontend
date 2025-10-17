@@ -15,6 +15,7 @@ import { examAPI } from '@/api/exam';
 import { formatUTCIsoToLocal, formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { canManageSystem, getUserRoleLabel, getRoleVariant, PermissionLevel, PERMISSION_DESCRIPTIONS, PERMISSION_LEVEL_DESCRIPTIONS } from '@/utils/permissions';
 import { trackAnalyticsEvent } from '@/utils/analytics';
+import { StatusAlert } from '@/components/StatusAlert';
 import type { AdminUser, School as SchoolType, ZhiXueAccount, Teacher, AdminExam } from '@/api/admin';
 
 const AdminPage: React.FC = () => {
@@ -93,17 +94,8 @@ const AdminPage: React.FC = () => {
       </div>
 
       {/* Success/Error Messages */}
-      {success && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-3">
-          <p className="text-green-800 text-sm">{success}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-red-800 text-sm">{error}</p>
-        </div>
-      )}
+      {success && <StatusAlert variant="success" message={success} className="text-sm" />}
+      {error && <StatusAlert variant="error" message={error} className="text-sm" />}
 
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full grid-cols-1 xl:grid-cols-5 h-auto xl:h-9 p-1 gap-1 xl:gap-0">
@@ -419,17 +411,8 @@ const UserManagement: React.FC = () => {
       </CardHeader>
       <CardContent>
         {/* Success/Error Messages */}
-        {success && (
-          <div className="mb-4 bg-green-50 border border-green-200 rounded-md p-3">
-            <p className="text-green-800 text-sm">{success}</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
-        )}
+        {success && <StatusAlert variant="success" message={success} className="mb-4 text-sm" />}
+        {error && <StatusAlert variant="error" message={error} className="mb-4 text-sm" />}
 
         {loading ? (
           <div className="text-center py-8">
@@ -700,17 +683,8 @@ const UserManagement: React.FC = () => {
 
           <div className="space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
             {/* Success/Error Messages */}
-            {success && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                <p className="text-green-800 text-sm">{success}</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-red-800 text-sm">{error}</p>
-              </div>
-            )}
+            {success && <StatusAlert variant="success" message={success} className="text-sm" />}
+            {error && <StatusAlert variant="error" message={error} className="text-sm" />}
 
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground mb-4 p-3 bg-muted/50 rounded-md">
@@ -1085,17 +1059,8 @@ const TeacherManagement: React.FC = () => {
       </CardHeader>
       <CardContent>
         {/* Success/Error Messages */}
-        {success && (
-          <div className="mb-4 bg-green-50 border border-green-200 rounded-md p-3">
-            <p className="text-green-800 text-sm">{success}</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
-        )}
+        {success && <StatusAlert variant="success" message={success} className="mb-4 text-sm" />}
+        {error && <StatusAlert variant="error" message={error} className="mb-4 text-sm" />}
 
         {loading ? (
           <div className="text-center py-8">
@@ -1521,17 +1486,8 @@ const StudentManagement: React.FC = () => {
 
           <div className="space-y-4">
             {/* Success/Error Messages */}
-            {success && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                <p className="text-green-800 text-sm">{success}</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-red-800 text-sm">{error}</p>
-              </div>
-            )}
+            {success && <StatusAlert variant="success" message={success} className="text-sm" />}
+            {error && <StatusAlert variant="error" message={error} className="text-sm" />}
 
             {loadingBindings ? (
               <div className="text-center py-8">
@@ -1723,17 +1679,8 @@ const ExamManagement: React.FC = () => {
       </CardHeader>
       <CardContent>
         {/* Success/Error Messages */}
-        {success && (
-          <div className="mb-4 bg-green-50 border border-green-200 rounded-md p-3">
-            <p className="text-green-800 text-sm">{success}</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
-        )}
+        {success && <StatusAlert variant="success" message={success} className="mb-4 text-sm" />}
+        {error && <StatusAlert variant="error" message={error} className="mb-4 text-sm" />}
 
         {loading ? (
           <div className="text-center py-8">

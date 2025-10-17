@@ -12,6 +12,7 @@ import { formatUTCIsoToLocal } from '@/utils/dateUtils';
 import { getUserRoleLabel, getRoleVariant, getUserPermissions } from '@/utils/permissions';
 import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
 import { trackAnalyticsEvent } from '@/utils/analytics';
+import { StatusAlert } from '@/components/StatusAlert';
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -369,21 +370,8 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Success/Error Messages */}
-      {success && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <p className="text-green-800">{success}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
-            <p className="text-red-800">{error}</p>
-          </CardContent>
-        </Card>
-      )}
+      {success && <StatusAlert variant="success" message={success} />}
+      {error && <StatusAlert variant="error" message={error} />}
 
       {/* User Information */}
       <Card>

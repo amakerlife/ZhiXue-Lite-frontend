@@ -12,6 +12,7 @@ import {
   TrendingUp,
   CloudDownload,
 } from 'lucide-react';
+import { StatusAlert } from '@/components/StatusAlert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -169,36 +170,19 @@ const DataViewerPage: React.FC = () => {
 
       {/* 拉取任务状态 */}
       {fetchingTask && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <RefreshCw className="h-5 w-5 animate-spin text-blue-600" />
-            <div>
-              <p className="font-medium text-blue-900">正在拉取考试数据...</p>
-              <p className="text-sm text-blue-700">
-                任务状态: {fetchingTask.status === 'pending' ? '等待中' : '处理中'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatusAlert
+          variant="info"
+          message={`正在拉取考试数据... 任务状态: ${fetchingTask.status === 'pending' ? '等待中' : '处理中'}`}
+        />
       )}
 
       {/* 成功/错误消息 */}
       {fetchSuccess && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <p className="text-green-800">{fetchSuccess}</p>
-          </CardContent>
-        </Card>
+        <StatusAlert variant="success" message={fetchSuccess} />
       )}
 
       {fetchError && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <p className="text-red-800">{fetchError}</p>
-          </CardContent>
-        </Card>
+        <StatusAlert variant="error" message={fetchError} />
       )}
 
       <Tabs defaultValue="exam-lookup" className="space-y-6">
@@ -284,9 +268,7 @@ const DataViewerPage: React.FC = () => {
             )}
 
             {fetchError && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-red-800 text-sm">{fetchError}</p>
-              </div>
+              <StatusAlert variant="error" message={fetchError} />
             )}
 
             <div className="flex items-center space-x-2">
@@ -435,12 +417,7 @@ const ExamLookup: React.FC = () => {
 
         {/* 错误信息 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <p className="text-red-800 text-sm">{error}</p>
-            </div>
-          </div>
+          <StatusAlert variant="error" message={error} />
         )}
 
         {/* 考试详情 */}
@@ -639,12 +616,7 @@ const ScoreLookup: React.FC = () => {
 
         {/* 错误信息 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <p className="text-red-800 text-sm">{error}</p>
-            </div>
-          </div>
+          <StatusAlert variant="error" message={error} />
         )}
 
         {/* 成绩详情 */}

@@ -25,6 +25,7 @@ import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { hasPermission, PermissionType, PermissionLevel } from '@/utils/permissions';
 import { trackAnalyticsEvent } from '@/utils/analytics';
+import { StatusAlert } from '@/components/StatusAlert';
 import type { BackgroundTask } from '@/types/api';
 
 const ExamDetailPage: React.FC = () => {
@@ -225,15 +226,7 @@ const ExamDetailPage: React.FC = () => {
           </Link>
         </div>
 
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <div>
-              <p className="font-medium text-red-900">错误</p>
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatusAlert variant="error" message={error} />
       </div>
     );
   }
@@ -305,31 +298,15 @@ const ExamDetailPage: React.FC = () => {
 
       {/* Task Status */}
       {fetchingTask && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <RefreshCw className="h-5 w-5 animate-spin text-blue-600" />
-            <div>
-              <p className="font-medium text-blue-900">正在获取考试详情...</p>
-              <p className="text-sm text-blue-700">
-                任务状态: {fetchingTask.status === 'pending' ? '等待中' : '处理中'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatusAlert
+          variant="info"
+          message={`任务状态: ${fetchingTask.status === 'pending' ? '等待中' : '处理中'}`}
+          title="正在获取考试详情..."
+        />
       )}
 
       {/* Error Message */}
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <div>
-              <p className="font-medium text-red-900">错误</p>
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {error && <StatusAlert variant="error" message={error} />}
 
       {/* Exam Basic Info */}
       <Card>

@@ -26,6 +26,7 @@ import { examAPI } from '@/api/exam';
 import { taskAPI } from '@/api/task';
 import { formatTimestampToLocalDate } from '@/utils/dateUtils';
 import { trackAnalyticsEvent } from '@/utils/analytics';
+import { StatusAlert } from '@/components/StatusAlert';
 import type { Exam, BackgroundTask } from '@/types/api';
 
 const ExamsPage: React.FC = () => {
@@ -340,17 +341,11 @@ const ExamsPage: React.FC = () => {
 
       {/* Task Status */}
       {fetchingTask && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <RefreshCw className="h-5 w-5 animate-spin text-blue-600" />
-            <div>
-              <p className="font-medium text-blue-900">正在获取考试数据...</p>
-              <p className="text-sm text-blue-700">
-                任务状态: {fetchingTask.status === 'pending' ? '等待中' : '处理中'}。此页面现在可以被安全关闭。
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatusAlert
+          variant="info"
+          message={`任务状态: ${fetchingTask.status === 'pending' ? '等待中' : '处理中'}。此页面现在可以被安全关闭。`}
+          title="正在获取考试数据..."
+        />
       )}
 
       {/* Search and Filters */}
@@ -425,17 +420,7 @@ const ExamsPage: React.FC = () => {
       </Card>
 
       {/* Error Message */}
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center space-x-3 pt-6">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <div>
-              <p className="font-medium text-red-900">错误</p>
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {error && <StatusAlert variant="error" message={error} />}
 
       {/* Exams List */}
       {loading ? (
@@ -492,53 +477,47 @@ const ExamsPage: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {exams.map((exam) => (
-            <Card key={exam.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
-                  <div className="space-y-1 flex-1">
-                    <CardTitle className="text-base sm:text-lg">
-                      <Link
-                        to={`/exams/${exam.id}`}
-                        className="hover:text-primary transition-colors"
-                      >
+            <Link key={exam.id} to={`/exams/${exam.id}`} className="block">
+              <Card className="transition-all duration-200 hover:bg-accent cursor-pointer">
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                    <div className="space-y-1 flex-1">
+                      <CardTitle className="text-base sm:text-lg">
                         {exam.name}
-                      </Link>
-                    </CardTitle>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatTimestampToLocalDate(exam.created_at)}</span>
+                      </CardTitle>
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>{formatTimestampToLocalDate(exam.created_at)}</span>
+                        </div>
                       </div>
                     </div>
+
+                    <div className="flex items-center space-x-2 self-start">
+                      <Badge variant={exam.is_saved ? 'default' : 'secondary'} className="text-xs">
+                        {exam.is_saved ? (
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                        ) : (
+                          <Clock className="h-3 w-3 mr-1" />
+                        )}
+                        {exam.is_saved ? '已保存' : '未保存'}
+                      </Badge>
+                    </div>
                   </div>
+                </CardHeader>
 
-                  <div className="flex items-center space-x-2 self-start">
-                    <Badge variant={exam.is_saved ? 'default' : 'secondary'} className="text-xs">
-                      {exam.is_saved ? (
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                      ) : (
-                        <Clock className="h-3 w-3 mr-1" />
-                      )}
-                      {exam.is_saved ? '已保存' : '未保存'}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="pt-0">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-                  <p className="text-sm text-muted-foreground">
-                    点击查看详细成绩信息
-                  </p>
-
-                  <Link to={`/exams/${exam.id}`}>
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <CardContent className="md:hidden">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      点击查看详细成绩信息
+                    </p>
+                    <Button variant="outline" size="sm" className="pointer-events-none">
                       查看详情
                     </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
