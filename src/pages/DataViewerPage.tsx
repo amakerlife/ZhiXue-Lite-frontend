@@ -21,7 +21,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ResponsiveDialog';
+import { DrawerClose } from '@/components/ui/drawer';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { examAPI } from '@/api/exam';
@@ -209,93 +210,116 @@ const DataViewerPage: React.FC = () => {
       </Tabs>
 
       {/* 拉取考试对话框 */}
-      <Dialog open={fetchDialog} onOpenChange={setFetchDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>拉取考试数据</DialogTitle>
-            <DialogDescription>
-              输入考试 ID 从源服务器拉取最新的考试数据
-            </DialogDescription>
-          </DialogHeader>
+      <ResponsiveDialog
+        open={fetchDialog}
+        onOpenChange={setFetchDialog}
+        title="拉取考试数据"
+        description="输入考试 ID 从源服务器拉取最新的考试数据"
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setFetchDialog(false);
+                    setForceRefresh(false);
+                    setFetchSchoolId('');
+                  }}
+                  disabled={fetchLoading}
+                >
+                  取消
+                </Button>
+                <Button
+                  type="submit"
+                  form="fetch-exam-form"
+                  disabled={fetchLoading || !fetchExamId.trim()}
+                >
+                  {fetchLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CloudDownload className="h-4 w-4 mr-2" />
+                  )}
+                  {fetchLoading ? '拉取中...' : '开始拉取'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="submit"
+                  form="fetch-exam-form"
+                  disabled={fetchLoading || !fetchExamId.trim()}
+                >
+                  {fetchLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CloudDownload className="h-4 w-4 mr-2" />
+                  )}
+                  {fetchLoading ? '拉取中...' : '开始拉取'}
+                </Button>
+                <DrawerClose asChild>
+                  <Button variant="outline">取消</Button>
+                </DrawerClose>
+              </>
+            )}
+          </>
+        )}
+      >
+        <form id="fetch-exam-form" onSubmit={handleFetchExam} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="fetch-exam-id" className="text-sm font-medium">
+              考试 ID
+            </label>
+            <Input
+              id="fetch-exam-id"
+              value={fetchExamId}
+              onChange={(e) => setFetchExamId(e.target.value)}
+              placeholder="请输入要拉取的考试 ID"
+              required
+            />
+          </div>
 
-          <form onSubmit={handleFetchExam} className="space-y-4">
+          {/* 学校ID输入框 - 仅对有全局拉取数据权限的用户显示 */}
+          {hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.GLOBAL) && (
             <div className="space-y-2">
-              <label htmlFor="fetch-exam-id" className="text-sm font-medium">
-                考试 ID
+              <label htmlFor="fetch-school-id" className="text-sm font-medium">
+                学校 ID（可选）
               </label>
               <Input
-                id="fetch-exam-id"
-                value={fetchExamId}
-                onChange={(e) => setFetchExamId(e.target.value)}
-                placeholder="请输入要拉取的考试 ID"
-                required
+                id="fetch-school-id"
+                value={fetchSchoolId}
+                onChange={(e) => setFetchSchoolId(e.target.value)}
+                placeholder="输入学校 ID 以指定学校（留空则使用默认本校）"
               />
+              <p className="text-xs text-muted-foreground">
+                如果有全局拉取数据权限，可以指定学校 ID 来拉取特定学校的考试数据
+              </p>
             </div>
+          )}
 
-            {/* 学校ID输入框 - 仅对有全局拉取数据权限的用户显示 */}
-            {hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.GLOBAL) && (
-              <div className="space-y-2">
-                <label htmlFor="fetch-school-id" className="text-sm font-medium">
-                  学校 ID（可选）
-                </label>
-                <Input
-                  id="fetch-school-id"
-                  value={fetchSchoolId}
-                  onChange={(e) => setFetchSchoolId(e.target.value)}
-                  placeholder="输入学校 ID 以指定学校（留空则使用默认本校）"
-                />
-                <p className="text-xs text-muted-foreground">
-                  如果有全局拉取数据权限，可以指定学校 ID 来拉取特定学校的考试数据
-                </p>
-              </div>
-            )}
-
-            {/* 强制刷新复选框 - 仅对有重新拉取个人考试详情数据及以上权限的用户显示 */}
-            {hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SELF) && (
-              <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                <Checkbox
-                  id="force-refresh"
-                  checked={forceRefresh}
-                  onCheckedChange={(checked) => setForceRefresh(!!checked)}
-                />
-                <label
-                  htmlFor="force-refresh"
-                  className="text-sm text-amber-800 cursor-pointer"
-                >
-                  强制重新拉取（重新从智学网获取数据）
-                </label>
-              </div>
-            )}
-
-            {fetchError && (
-              <StatusAlert variant="error" message={fetchError} />
-            )}
-
-            <div className="flex items-center space-x-2">
-              <Button type="submit" disabled={fetchLoading || !fetchExamId.trim()}>
-                {fetchLoading ? (
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CloudDownload className="h-4 w-4 mr-2" />
-                )}
-                {fetchLoading ? '拉取中...' : '开始拉取'}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setFetchDialog(false);
-                  setForceRefresh(false);
-                  setFetchSchoolId('');  // 清空学校ID
-                }}
-                disabled={fetchLoading}
+          {/* 强制刷新复选框 - 仅对有重新拉取个人考试详情数据及以上权限的用户显示 */}
+          {hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SELF) && (
+            <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <Checkbox
+                id="force-refresh"
+                checked={forceRefresh}
+                onCheckedChange={(checked) => setForceRefresh(!!checked)}
+              />
+              <label
+                htmlFor="force-refresh"
+                className="text-sm text-amber-800 cursor-pointer"
               >
-                取消
-              </Button>
+                强制重新拉取（重新从智学网获取数据）
+              </label>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          )}
+
+          {fetchError && (
+            <StatusAlert variant="error" message={fetchError} />
+          )}
+        </form>
+      </ResponsiveDialog>
     </div>
   );
 };

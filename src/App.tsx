@@ -22,15 +22,7 @@ import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
 import DataDeletionPage from '@/pages/DataDeletionPage';
 import DisclaimerPage from '@/pages/DisclaimerPage';
 import NotFoundPage from '@/pages/NotFoundPage';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ResponsiveDialog } from '@/components/ResponsiveDialog';
 import { AlertCircle, Mail } from 'lucide-react';
 
 // 账号被封禁弹窗组件
@@ -44,24 +36,22 @@ const BannedAccountDialog: React.FC = () => {
   };
 
   return (
-    <AlertDialog open={isBanned}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <div className="flex items-center space-x-2">
-            <AlertCircle className="h-6 w-6 text-destructive" />
-            <AlertDialogTitle>登录状态失效</AlertDialogTitle>
-          </div>
-          <AlertDialogDescription>
-            登录状态失效，请重新登录。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction onClick={handleGoToLogin} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            前往登录
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ResponsiveDialog
+      open={isBanned}
+      onOpenChange={() => {}} // 不允许关闭
+      title="登录状态失效"
+      description="登录状态失效，请重新登录。"
+      mode="alert"
+      variant="destructive"
+      confirmText="前往登录"
+      onConfirm={handleGoToLogin}
+      closable={false}
+      showIcon={false} // 使用自定义图标
+    >
+      <div className="flex items-center justify-center py-2">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+      </div>
+    </ResponsiveDialog>
   );
 };
 
@@ -88,24 +78,20 @@ const EmailNotVerifiedDialog: React.FC = () => {
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <div className="flex items-center space-x-2">
-            <Mail className="h-6 w-6 text-yellow-500" />
-            <AlertDialogTitle>需要验证邮箱</AlertDialogTitle>
-          </div>
-          <AlertDialogDescription>
-            您的邮箱尚未验证，无法访问此功能。请前往个人中心验证邮箱。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction onClick={handleGoToProfile}>
-            前往个人中心
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ResponsiveDialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      title="需要验证邮箱"
+      description="您的邮箱尚未验证，无法访问此功能。请前往个人中心验证邮箱。"
+      mode="alert"
+      confirmText="前往个人中心"
+      onConfirm={handleGoToProfile}
+      showIcon={false}
+    >
+      <div className="flex items-center justify-center py-2">
+        <Mail className="h-12 w-12 text-yellow-500" />
+      </div>
+    </ResponsiveDialog>
   );
 };
 

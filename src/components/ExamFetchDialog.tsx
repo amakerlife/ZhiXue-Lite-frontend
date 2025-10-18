@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ResponsiveDialog';
+import { DrawerClose } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -220,14 +221,9 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
     }));
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>拉取考试列表</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
+  // 渲染表单内容（Desktop 和 Mobile 共用）
+  const renderFormContent = () => (
+    <div className="space-y-6">
           {/* 拉取模式选择 */}
           <div>
             <h3 className="text-sm font-medium mb-3">拉取模式</h3>
@@ -401,23 +397,53 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
             </>
           )}
         </div>
+  );
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
-          </Button>
-          <Button
-            onClick={handleFetch}
-            disabled={
-              fetchMode === 'school' ?
-                (loading || error !== null || (hasGlobalPermission && !schoolId)) :
-                false
-            }
-          >
-            开始拉取
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+  return (
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="拉取考试列表"
+      className="max-w-2xl max-h-[80vh] overflow-y-auto"
+      footer={(isDesktop) => (
+        <>
+          {isDesktop ? (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                取消
+              </Button>
+              <Button
+                onClick={handleFetch}
+                disabled={
+                  fetchMode === 'school' ?
+                    (loading || error !== null || (hasGlobalPermission && !schoolId)) :
+                    false
+                }
+              >
+                开始拉取
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={handleFetch}
+                disabled={
+                  fetchMode === 'school' ?
+                    (loading || error !== null || (hasGlobalPermission && !schoolId)) :
+                    false
+                }
+              >
+                开始拉取
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="outline">取消</Button>
+              </DrawerClose>
+            </>
+          )}
+        </>
+      )}
+    >
+      {renderFormContent()}
+    </ResponsiveDialog>
   );
 };

@@ -9,13 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ResponsiveDialog';
+import { DrawerClose } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -373,55 +368,70 @@ const Header: React.FC = () => {
       </div>
 
       {/* Su 对话框 */}
-      <Dialog open={showSuDialog} onOpenChange={setShowSuDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>切换用户</DialogTitle>
-            <DialogDescription>
-              输入要切换到的用户名。切换后您将以该用户的身份浏览系统。
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="su-username" className="text-sm font-medium">
-                用户名
-              </label>
-              <Input
-                id="su-username"
-                placeholder="请输入用户名"
-                value={suUsername}
-                onChange={(e) => setSuUsername(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSwitchUser();
-                  }
-                }}
-                disabled={isSwitching}
-              />
-            </div>
-            {suError && (
-              <div className="text-sm text-red-600">
-                {suError}
-              </div>
+      <ResponsiveDialog
+        open={showSuDialog}
+        onOpenChange={setShowSuDialog}
+        title="切换用户"
+        description="输入要切换到的用户名。切换后您将以该用户的身份浏览系统。"
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSuDialog(false)}
+                  disabled={isSwitching}
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={handleSwitchUser}
+                  disabled={isSwitching}
+                >
+                  {isSwitching ? '切换中...' : '确认切换'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={handleSwitchUser}
+                  disabled={isSwitching}
+                >
+                  {isSwitching ? '切换中...' : '确认切换'}
+                </Button>
+                <DrawerClose asChild>
+                  <Button variant="outline">取消</Button>
+                </DrawerClose>
+              </>
             )}
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowSuDialog(false)}
-                disabled={isSwitching}
-              >
-                取消
-              </Button>
-              <Button
-                onClick={handleSwitchUser}
-                disabled={isSwitching}
-              >
-                {isSwitching ? '切换中...' : '确认切换'}
-              </Button>
-            </div>
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="su-username" className="text-sm font-medium">
+              用户名
+            </label>
+            <Input
+              id="su-username"
+              placeholder="请输入用户名"
+              value={suUsername}
+              onChange={(e) => setSuUsername(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSwitchUser();
+                }
+              }}
+              disabled={isSwitching}
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+          {suError && (
+            <div className="text-sm text-red-600">
+              {suError}
+            </div>
+          )}
+        </div>
+      </ResponsiveDialog>
     </header>
   );
 };
