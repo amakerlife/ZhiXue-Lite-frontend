@@ -108,7 +108,7 @@ const PrivacyPolicyPage: React.FC = () => {
         </ul>
 
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-8 mb-4">六、 我们如何处理未成年人的个人信息</h2>
-        <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">未满 14 周岁的未成年人需要在父母或其他监护人共同阅读并同意后，方可使用我们的产品、网站和服务。</p>
+        <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">未满 18 周岁的未成年人需要在父母或其他监护人共同阅读并同意后，方可使用我们的产品、网站和服务。</p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">对于经父母同意而收集儿童个人信息的情况，我们只会在受到法律允许、父母或监护人明确同意或者保护儿童所必要的情况下使用或公开披露此信息。</p>
 
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-8 mb-4">七、 本隐私政策如何更新</h2>

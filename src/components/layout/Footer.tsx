@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { GitBranch } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -20,6 +21,7 @@ const Footer: React.FC = () => {
   };
 
   const buildTime = typeof __BUILD_TIME__ !== 'undefined' ? formatBuildTime(__BUILD_TIME__) : null;
+  const commitHash = typeof __GIT_COMMIT_HASH__ !== 'undefined' ? __GIT_COMMIT_HASH__ : null;
 
   // 不显示侧边栏的页面
   const noSidebarPages = ['/login', '/signup'];
@@ -58,8 +60,14 @@ const Footer: React.FC = () => {
           {buildTime && (
             <>
               <span className="hidden md:inline">|</span>
-              <span className="hidden md:inline text-xs">
+              <span className="hidden md:inline text-xs flex items-center gap-1">
                 构建时间: {buildTime}
+                {commitHash && commitHash !== 'unknown' && (
+                  <>
+                    {' '}(<GitBranch className="inline-block w-3 h-3" />
+                    {commitHash})
+                  </>
+                )}
               </span>
             </>
           )}
