@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { authAPI } from '@/api/auth';
 import { StatusAlert } from '@/components/StatusAlert';
+import { useAuth } from '@/contexts/AuthContext';
 
 const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { updateEmailVerified } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('正在验证邮箱...');
   const hasVerified = useRef(false); // 防止重复请求
@@ -33,6 +35,8 @@ const VerifyEmailPage: React.FC = () => {
         if (response.data.success) {
           setStatus('success');
           setMessage(response.data.message || '邮箱验证成功！');
+          // 更新前端用户状态为已验证
+          updateEmailVerified();
         } else {
           setStatus('error');
           setMessage(response.data.message || '验证失败，请重试');
@@ -49,7 +53,7 @@ const VerifyEmailPage: React.FC = () => {
     return () => {
       document.title = 'ZhiXue Lite';
     };
-  }, [token]);
+  }, [token, updateEmailVerified]);
 
   const handleGoHome = () => {
     navigate('/');

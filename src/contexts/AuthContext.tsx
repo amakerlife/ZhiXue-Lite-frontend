@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   signup: (username: string, password: string, email: string, turnstileToken?: string) => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateEmailVerified: () => void;
   clearBanned: () => void;
   switchUser: (username: string) => Promise<void>;
   exitSu: () => Promise<void>;
@@ -234,6 +235,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsBanned(false);
   };
 
+  const updateEmailVerified = () => {
+    if (user) {
+      setUser({
+        ...user,
+        email_verified: true
+      });
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isLoading,
@@ -244,6 +254,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     signup,
     refreshUser,
+    updateEmailVerified,
     clearBanned,
     switchUser,
     exitSu,
