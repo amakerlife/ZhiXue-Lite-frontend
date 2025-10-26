@@ -46,12 +46,8 @@ const BannedAccountDialog: React.FC = () => {
       confirmText="前往登录"
       onConfirm={handleGoToLogin}
       closable={false}
-      showIcon={false} // 使用自定义图标
-    >
-      <div className="flex items-center justify-center py-2">
-        <AlertCircle className="h-12 w-12 text-destructive" />
-      </div>
-    </ResponsiveDialog>
+      icon={<AlertCircle className="h-12 w-12 text-destructive" />}
+    />
   );
 };
 
@@ -86,12 +82,8 @@ const EmailNotVerifiedDialog: React.FC = () => {
       mode="alert"
       confirmText="前往个人中心"
       onConfirm={handleGoToProfile}
-      showIcon={false}
-    >
-      <div className="flex items-center justify-center py-2">
-        <Mail className="h-12 w-12 text-yellow-500" />
-      </div>
-    </ResponsiveDialog>
+      icon={<Mail className="text-yellow-500" />}
+    />
   );
 };
 

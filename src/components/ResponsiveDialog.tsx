@@ -20,7 +20,6 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 type DialogMode = 'default' | 'confirm' | 'alert';
@@ -43,7 +42,7 @@ interface ResponsiveDialogProps {
   confirmText?: string;
   cancelText?: string;
   onConfirm?: () => void;
-  showIcon?: boolean;
+  icon?: React.ReactNode; // 自定义图标（将显示在标题行左侧）
 
   // 自定义 Footer（优先级高于预设按钮）
   footer?: (isDesktop: boolean) => React.ReactNode;
@@ -66,7 +65,7 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
   confirmText = '确认',
   cancelText = '取消',
   onConfirm,
-  showIcon = true,
+  icon,
   footer,
   showDefaultFooter = false,
   closable = true,
@@ -173,31 +172,6 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
     return null;
   };
 
-  // 渲染标题（带可选图标）
-  const renderTitle = () => {
-    const showWarningIcon = variant === 'destructive' && showIcon && isConfirmMode;
-
-    if (showWarningIcon && !isDesktop) {
-      return (
-        <span className="flex items-center justify-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-          {title}
-        </span>
-      );
-    }
-
-    if (showWarningIcon && isDesktop) {
-      return (
-        <span className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-          {title}
-        </span>
-      );
-    }
-
-    return title;
-  };
-
   // 桌面端渲染
   if (isDesktop) {
     // Confirm/Alert 模式使用 AlertDialog
@@ -206,7 +180,10 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
         <AlertDialog open={open} onOpenChange={handleOpenChange}>
           <AlertDialogContent className={className}>
             <AlertDialogHeader>
-              <AlertDialogTitle>{renderTitle()}</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center gap-2">
+                {icon}
+                {title}
+              </AlertDialogTitle>
               {description && (
                 <AlertDialogDescription>
                   {description}
@@ -267,7 +244,10 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent>
         <DrawerHeader className="text-center">
-          <DrawerTitle>{renderTitle()}</DrawerTitle>
+          <DrawerTitle className="flex items-center justify-center gap-2">
+            {icon}
+            {title}
+          </DrawerTitle>
           {description && (
             <DrawerDescription className="text-center">
               {description}
