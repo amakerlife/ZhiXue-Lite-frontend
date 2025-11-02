@@ -9,12 +9,16 @@ import {
   Calendar,
   Trophy,
   TrendingUp,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
@@ -37,8 +41,34 @@ const ExamDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fetchingTask, setFetchingTask] = useState<BackgroundTask | null>(null);
   const [downloadingScoresheet, setDownloadingScoresheet] = useState(false);
-  const [fetchConfirmOpen, setFetchConfirmOpen] = useState(false);
+  const [fetchDialogOpen, setFetchDialogOpen] = useState(false);
+
+  // 联考场景：学校选择相关状态
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string | undefined>();
+  const [availableSchools, setAvailableSchools] = useState<Array<{
+    school_id: string;
+    school_name?: string;
+    is_saved: boolean;
+  }>>([]);
+
+  // 下载成绩单对话框状态
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+  const [downloadSchoolId, setDownloadSchoolId] = useState<string>('');
+  const [downloadScope, setDownloadScope] = useState<'school' | 'all'>('school');
+  const [downloadIsMultiSchool, setDownloadIsMultiSchool] = useState(false);
+
+  // 拉取详情对话框状态
+  const [fetchSchoolId, setFetchSchoolId] = useState('');
   const [forceRefresh, setForceRefresh] = useState(false);
+
+  // 检查考试是否已保存（从 schools 数组判断）
+  const isExamSaved = (examData: ExamData | null): boolean => {
+    if (!examData || !examData.schools || examData.schools.length === 0) {
+      return false;
+    }
+    // 所有学校都已保存才算已保存
+    return examData.schools.every(school => school.is_saved);
+  };
 
   const loadExamDetail = async () => {
     if (!examId) return;
@@ -47,8 +77,10 @@ const ExamDetailPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // 使用 ExamContext 获取考试数据
-      const examData = await getExamData(examId);
+      // 使用 ExamContext 获取考试数据，联考场景传递 schoolId
+      const examData = await getExamData(examId, {
+        schoolId: selectedSchoolId
+      });
 
       if (examData) {
         setExamDetail(examData);
@@ -57,7 +89,7 @@ const ExamDetailPage: React.FC = () => {
           username: user?.username,
           exam_id: examId,
           exam_name: examData.name,
-          is_saved: examData.is_saved,
+          is_saved: isExamSaved(examData),
           subject_count: examData.scores.length,
         });
       } else {
@@ -86,14 +118,18 @@ const ExamDetailPage: React.FC = () => {
   };
 
   const handleFetchDetails = () => {
-    setFetchConfirmOpen(true);
+    setFetchDialogOpen(true);
   };
 
   const confirmFetchDetails = async () => {
     if (!examId) return;
 
+    // 确保尽可能传递 school_id：优先使用对话框输入的，否则使用用户自己的
+    const finalSchoolId = fetchSchoolId.trim() || user?.zhixue_info?.school_id;
+
     try {
       setError(null);
+      setFetchDialogOpen(false);
 
       // 立即显示任务等待中状态
       setFetchingTask({
@@ -109,7 +145,7 @@ const ExamDetailPage: React.FC = () => {
         progress_message: undefined,
       });
 
-      const response = await examAPI.fetchExamDetails(examId, forceRefresh);
+      const response = await examAPI.fetchExamDetails(examId, forceRefresh, finalSchoolId);
       if (response.data.success) {
         const taskId = response.data.task_id;
 
@@ -117,7 +153,8 @@ const ExamDetailPage: React.FC = () => {
           username: user?.username,
           exam_id: examId,
           task_id: taskId,
-          force_refresh: forceRefresh
+          force_refresh: forceRefresh,
+          school_id: finalSchoolId
         });
 
         pollTaskStatus(taskId);
@@ -154,12 +191,27 @@ const ExamDetailPage: React.FC = () => {
     }
   };
 
-  const handleDownloadScoresheet = async () => {
+  const handleDownloadScoresheet = () => {
+    // 初始化对话框状态，保存当前考试信息
+    setDownloadSchoolId(selectedSchoolId || '');
+    setDownloadScope('school');
+    setDownloadIsMultiSchool(examDetail?.is_multi_school || false);
+    setDownloadDialogOpen(true);
+  };
+
+  const confirmDownloadScoresheet = async () => {
     if (!examId) return;
 
     try {
       setDownloadingScoresheet(true);
-      const response = await examAPI.generateScoresheet(examId);
+      setDownloadDialogOpen(false);
+
+      // 联考场景：传递 scope 和 school_id
+      const response = await examAPI.generateScoresheet(
+        examId,
+        downloadIsMultiSchool ? downloadScope : undefined,
+        downloadIsMultiSchool ? downloadSchoolId : undefined
+      );
 
       // 创建下载链接
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -174,7 +226,9 @@ const ExamDetailPage: React.FC = () => {
       trackAnalyticsEvent('exam_detail_scoresheet_success', {
         username: user?.username,
         exam_id: examDetail?.id,
-        exam_name: examDetail?.name
+        exam_name: examDetail?.name,
+        scope: downloadScope,
+        school_id: downloadSchoolId
       });
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '下载成绩单失败';
@@ -191,9 +245,38 @@ const ExamDetailPage: React.FC = () => {
     }
   };
 
+  // 智能选择学校逻辑
+  useEffect(() => {
+    if (!examDetail) return;
+
+    // 检测是否为联考
+    const isMultiSchool = examDetail.is_multi_school || false;
+    const schools = examDetail.schools || [];
+    setAvailableSchools(schools);
+
+    if (!isMultiSchool) {
+      setSelectedSchoolId(undefined); // 非联考不需要
+      return;
+    }
+
+    const userSchoolId = user?.zhixue_info?.school_id || user?.manual_school_id;
+
+    if (userSchoolId) {
+      // 普通用户：默认选中自己的学校
+      setSelectedSchoolId(userSchoolId);
+    } else {
+      // 管理员：只有1个已保存则自动选择
+      const savedSchools = schools.filter((s: { is_saved: boolean }) => s.is_saved);
+      if (savedSchools.length === 1) {
+        setSelectedSchoolId(savedSchools[0].school_id);
+      }
+      // 多个已保存则不预选（selectedSchoolId 保持 undefined）
+    }
+  }, [examDetail, user]);
+
   useEffect(() => {
     loadExamDetail();
-  }, [examId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [examId, selectedSchoolId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 设置页面标题
   useEffect(() => {
@@ -261,7 +344,7 @@ const ExamDetailPage: React.FC = () => {
 
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
           {/* 下载成绩单按钮 - 个人成绩单权限及以上 */}
-          {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SELF) && examDetail.is_saved && (
+          {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SELF) && isExamSaved(examDetail) && (
             <Button
               onClick={handleDownloadScoresheet}
               disabled={downloadingScoresheet}
@@ -279,8 +362,8 @@ const ExamDetailPage: React.FC = () => {
             </Button>
           )}
 
-          {/* 拉取详情按钮 */}
-          {user?.zhixue_username && (
+          {/* 拉取详情按钮 - 基于 FETCH_DATA 权限显示 */}
+          {hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SELF) && (
             <Button
               onClick={handleFetchDetails}
               disabled={!!fetchingTask}
@@ -337,13 +420,13 @@ const ExamDetailPage: React.FC = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">数据状态</label>
               <div className="flex items-center space-x-2">
-                <Badge variant={examDetail.is_saved ? 'default' : 'secondary'}>
-                  {examDetail.is_saved ? (
+                <Badge variant={isExamSaved(examDetail) ? 'default' : 'secondary'}>
+                  {isExamSaved(examDetail) ? (
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                   ) : (
                     <RefreshCw className="h-3 w-3 mr-1" />
                   )}
-                  {examDetail.is_saved ? '已保存' : '未保存'}
+                  {isExamSaved(examDetail) ? '已保存' : '未保存'}
                 </Badge>
               </div>
             </div>
@@ -355,6 +438,78 @@ const ExamDetailPage: React.FC = () => {
                 <span className="font-medium">{examDetail.scores.length} 科</span>
               </div>
             </div>
+
+            {/* 联考标识 */}
+            {examDetail.is_multi_school && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">考试类型</label>
+                <Badge variant="outline" className="flex items-center space-x-1 w-fit">
+                  <Users className="h-3 w-3" />
+                  <span>联考</span>
+                </Badge>
+              </div>
+            )}
+
+            {/* 学校选择器（联考时显示） */}
+            {examDetail.is_multi_school && (
+              <div className="col-span-full space-y-3">
+                <label className="text-sm font-medium text-muted-foreground">
+                  选择学校
+                  {!user?.zhixue_info?.school_id && !user?.manual_school_id && (
+                    <span className="text-amber-600 ml-2">（管理员）</span>
+                  )}
+                </label>
+
+                <Select
+                  value={selectedSchoolId}
+                  onValueChange={setSelectedSchoolId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="请选择要查看的学校" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableSchools.map(school => (
+                      <SelectItem
+                        key={school.school_id}
+                        value={school.school_id}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span>{school.school_name || school.school_id}</span>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={school.is_saved ? 'default' : 'secondary'} className="text-xs">
+                              {school.is_saved ? '已保存' : '未保存'}
+                            </Badge>
+                            {!school.is_saved && (
+                              <AlertCircle className="h-3 w-3 text-amber-500" />
+                            )}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* 未选择警告 */}
+                {!selectedSchoolId && (
+                  <StatusAlert
+                    variant="warning"
+                    message="请先选择学校以查看成绩详情和导出数据"
+                    className="text-sm"
+                  />
+                )}
+
+                {/* 未保存数据警告 */}
+                {selectedSchoolId && !availableSchools.find(s => s.school_id === selectedSchoolId)?.is_saved && (
+                  <StatusAlert
+                    variant="warning"
+                    message="该学校的数据尚未完全保存，成绩信息可能不完整"
+                    className="text-sm"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* 导出范围选择已移至下载对话框中 */}
 
             {/* 总分信息 */}
             {examDetail.totalScores && examDetail.totalScores.length > 0 && (
@@ -389,7 +544,7 @@ const ExamDetailPage: React.FC = () => {
       </Card>
 
       {/* User Scores */}
-      {examDetail.is_saved && examDetail.scores.length > 0 && (
+      {isExamSaved(examDetail) && examDetail.scores.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -463,12 +618,16 @@ const ExamDetailPage: React.FC = () => {
       )}
 
       {/* Answer Sheet Viewer */}
-      {examDetail.is_saved && examDetail.scores.length > 0 && (
-        <AnswerSheetViewer examId={examDetail.id} scores={examDetail.scores} />
+      {isExamSaved(examDetail) && examDetail.scores.length > 0 && (
+        <AnswerSheetViewer
+          examId={examDetail.id}
+          scores={examDetail.scores}
+          schoolId={selectedSchoolId}
+        />
       )}
 
       {/* Empty State for Unsaved Exam */}
-      {!examDetail.is_saved && (
+      {!isExamSaved(examDetail) && (
         <Card>
           <CardContent className="text-center py-8 sm:py-12">
             <AlertCircle className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
@@ -476,7 +635,7 @@ const ExamDetailPage: React.FC = () => {
             <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-md mx-auto">
               此考试的详细信息尚未保存到服务器，请点击"加载最新详情"获取成绩信息
             </p>
-            {user?.zhixue_username && (
+            {hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SELF) && (
               <Button onClick={handleFetchDetails} disabled={!!fetchingTask} className="w-full sm:w-auto">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 加载最新详情
@@ -486,19 +645,45 @@ const ExamDetailPage: React.FC = () => {
         </Card>
       )}
 
+      {/* 拉取考试详情对话框 */}
       <ConfirmDialog
-        open={fetchConfirmOpen}
+        open={fetchDialogOpen}
         onOpenChange={(open) => {
-          setFetchConfirmOpen(open);
+          setFetchDialogOpen(open);
           if (!open) {
-            setForceRefresh(false); // 关闭对话框时重置状态
+            // 关闭对话框时重置状态
+            setFetchSchoolId('');
+            setForceRefresh(false);
           }
         }}
         title="确认获取考试详情"
         description={
           <div className="space-y-3">
             <p>获取考试详情可能需要一些时间，确定要继续吗？</p>
-            {hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SELF) && examDetail?.is_saved && (
+
+            {/* 学校 ID 输入（GLOBAL 权限用户） */}
+            {hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.GLOBAL) && (
+              <div className="space-y-2">
+                <Label htmlFor="fetch-school-id" className="text-sm font-medium">
+                  学校 ID（可选，19 位数字）
+                </Label>
+                <Input
+                  id="fetch-school-id"
+                  type="text"
+                  placeholder="输入学校 ID 以拉取指定学校的考试数据"
+                  value={fetchSchoolId}
+                  onChange={(e) => setFetchSchoolId(e.target.value)}
+                  maxLength={19}
+                  className="font-mono"
+                />
+                <p className="text-xs text-muted-foreground">
+                  留空则拉取当前用户所属学校的数据
+                </p>
+              </div>
+            )}
+
+            {/* Force Refresh 复选框 */}
+            {hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SELF) && isExamSaved(examDetail) && (
               <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <Checkbox
                   id="force-refresh"
@@ -519,6 +704,94 @@ const ExamDetailPage: React.FC = () => {
         cancelText="取消"
         variant="default"
         onConfirm={confirmFetchDetails}
+      />
+
+      {/* 下载成绩单对话框 */}
+      <ConfirmDialog
+        open={downloadDialogOpen}
+        onOpenChange={(open) => {
+          setDownloadDialogOpen(open);
+          if (!open) {
+            // 关闭对话框时重置状态
+            setDownloadSchoolId('');
+            setDownloadScope('school');
+            setDownloadIsMultiSchool(false);
+          }
+        }}
+        title="下载成绩单"
+        description={
+          <div className="space-y-3">
+            {/* 非联考场景：简单提示 */}
+            {!downloadIsMultiSchool && (
+              <p>即将下载成绩单 Excel 文件，确定要继续吗？</p>
+            )}
+
+            {/* 联考场景：选择参数 */}
+            {downloadIsMultiSchool && (
+              <>
+                <p>此考试为联考，请选择下载参数：</p>
+
+                {/* 学校选择 */}
+                <div className="space-y-2">
+                  <Label htmlFor="download-school-select" className="text-sm font-medium">
+                    选择学校
+                  </Label>
+                  <Select
+                    value={downloadSchoolId}
+                    onValueChange={setDownloadSchoolId}
+                  >
+                    <SelectTrigger id="download-school-select">
+                      <SelectValue placeholder="请选择要下载的学校" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSchools.map(school => (
+                        <SelectItem
+                          key={school.school_id}
+                          value={school.school_id}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span>{school.school_name || school.school_id}</span>
+                            <Badge variant={school.is_saved ? 'default' : 'secondary'} className="text-xs">
+                              {school.is_saved ? '已保存' : '未保存'}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 导出范围选择（GLOBAL 权限） */}
+                {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.GLOBAL) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="download-scope-select" className="text-sm font-medium">
+                      导出范围
+                    </Label>
+                    <Select
+                      value={downloadScope}
+                      onValueChange={(v) => setDownloadScope(v as 'school' | 'all')}
+                    >
+                      <SelectTrigger id="download-scope-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="school">仅当前学校</SelectItem>
+                        <SelectItem value="all">所有参与学校</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      导出所有学校时将包含联考中所有参与学校的成绩数据
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        }
+        confirmText="下载"
+        cancelText="取消"
+        variant="default"
+        onConfirm={confirmDownloadScoresheet}
       />
     </div>
   );

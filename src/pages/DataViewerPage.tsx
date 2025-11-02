@@ -23,6 +23,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ResponsiveDialog } from '@/components/ResponsiveDialog';
 import { DrawerClose } from '@/components/ui/drawer';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Label } from '@/components/ui/label';
 import AnswerSheetViewer from '@/components/AnswerSheetViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { examAPI } from '@/api/exam';
@@ -87,24 +89,27 @@ const DataViewerPage: React.FC = () => {
     setFetchError(null);
     setFetchSuccess(null);
 
+    // 确保尽可能传递 school_id：优先使用用户输入的，否则使用用户自己的
+    const finalSchoolId = fetchSchoolId.trim() || user?.zhixue_info?.school_id;
+
     try {
       const response = await examAPI.fetchExamDetails(
         fetchExamId.trim(),
         forceRefresh,
-        fetchSchoolId.trim() || undefined  // 传递学校ID参数
+        finalSchoolId  // 传递学校 ID 参数
       );
       if (response.data.success) {
         const taskId = response.data.task_id;
         setFetchDialog(false);
         setFetchExamId('');
-        setFetchSchoolId('');  // 清空学校ID
+        setFetchSchoolId('');  // 清空学校 ID
         setForceRefresh(false);
         setFetchSuccess(`考试 ${fetchExamId.trim()} 拉取任务已创建`);
 
         trackAnalyticsEvent('data_viewer_exam_fetch_started', {
           username: user?.username,
           exam_id: fetchExamId.trim(),
-          school_id: fetchSchoolId.trim() || null,  // 记录学校ID
+          school_id: finalSchoolId || null,  // 记录学校 ID
           task_id: taskId,
           force_refresh: forceRefresh
         });
@@ -333,6 +338,21 @@ const ExamLookup: React.FC = () => {
   const [examDetail, setExamDetail] = useState<any | null>(null);
   const [generatingScoresheet, setGeneratingScoresheet] = useState(false);
 
+  // 下载成绩单对话框状态
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+  const [downloadSchoolId, setDownloadSchoolId] = useState<string>('');
+  const [downloadScope, setDownloadScope] = useState<'school' | 'all'>('school');
+  const [downloadIsMultiSchool, setDownloadIsMultiSchool] = useState(false);
+
+  // 检查考试是否已保存（从 schools 数组判断）
+  const isExamSaved = (examData: any): boolean => {
+    if (!examData || !examData.schools || examData.schools.length === 0) {
+      return false;
+    }
+    // 所有学校都已保存才算已保存
+    return examData.schools.every((school: any) => school.is_saved);
+  };
+
   const handleExamLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!examId.trim()) return;
@@ -350,7 +370,7 @@ const ExamLookup: React.FC = () => {
           username: user?.username,
           exam_id: examId.trim(),
           exam_name: response.data.exam?.name || 'unknown',
-          is_saved: response.data.exam?.is_saved || false
+          is_saved: isExamSaved(response.data.exam)
         });
       }
     } catch (err: unknown) {
@@ -367,14 +387,34 @@ const ExamLookup: React.FC = () => {
     }
   };
 
-  const generateScoresheet = async () => {
+  const handleDownloadScoresheet = () => {
     if (!examDetail) return;
 
-    setGeneratingScoresheet(true);
-    setError(null);
+    // 初始化对话框状态，保存当前考试信息
+    // 从 schools 数组中获取第一个学校作为默认值（如果有的话）
+    const defaultSchoolId = examDetail.schools && examDetail.schools.length > 0
+      ? examDetail.schools[0].school_id
+      : '';
+
+    setDownloadSchoolId(defaultSchoolId);
+    setDownloadScope('school');
+    setDownloadIsMultiSchool(examDetail.is_multi_school || false);
+    setDownloadDialogOpen(true);
+  };
+
+  const confirmDownloadScoresheet = async () => {
+    if (!examDetail) return;
 
     try {
-      const response = await examAPI.generateScoresheet(examDetail.id);
+      setGeneratingScoresheet(true);
+      setDownloadDialogOpen(false);
+
+      // 联考场景：传递 scope 和 school_id
+      const response = await examAPI.generateScoresheet(
+        examDetail.id,
+        downloadIsMultiSchool ? downloadScope : undefined,
+        downloadIsMultiSchool ? downloadSchoolId : undefined
+      );
 
       // 创建下载链接
       const blob = new Blob([response.data], {
@@ -392,7 +432,9 @@ const ExamLookup: React.FC = () => {
       trackAnalyticsEvent('data_viewer_scoresheet_success', {
         username: user?.username,
         exam_id: examDetail.id,
-        exam_name: examDetail.name
+        exam_name: examDetail.name,
+        scope: downloadScope,
+        school_id: downloadSchoolId
       });
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '生成成绩单失败';
@@ -458,13 +500,13 @@ const ExamLookup: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <Badge variant={examDetail.is_saved ? 'default' : 'secondary'}>
-                  {examDetail.is_saved ? (
+                <Badge variant={isExamSaved(examDetail) ? 'default' : 'secondary'}>
+                  {isExamSaved(examDetail) ? (
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                   ) : (
                     <AlertCircle className="h-3 w-3 mr-1" />
                   )}
-                  {examDetail.is_saved ? '已保存' : '未保存'}
+                  {isExamSaved(examDetail) ? '已保存' : '未保存'}
                 </Badge>
               </div>
             </CardHeader>
@@ -476,19 +518,37 @@ const ExamLookup: React.FC = () => {
                   <p className="font-mono">{examDetail.id}</p>
                 </div>
                 <div>
-                  <label className="font-medium text-muted-foreground">学校 ID</label>
-                  <p className="font-mono">{examDetail.school_id || '未知'}</p>
+                  <label className="font-medium text-muted-foreground">考试类型</label>
+                  <p>{examDetail.is_multi_school ? '联考' : '单校考试'}</p>
                 </div>
+
+                {/* 学校信息 */}
                 <div className="col-span-2">
-                  <label className="font-medium text-muted-foreground">学校名称</label>
-                  <p>{examDetail.school_name || '未知'}</p>
+                  <label className="font-medium text-muted-foreground">参与学校</label>
+                  {examDetail.schools && examDetail.schools.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                      {examDetail.schools.map((school: any) => (
+                        <div key={school.school_id} className="flex items-center justify-between p-2 bg-background rounded border">
+                          <div>
+                            <p className="font-medium">{school.school_name || '未知学校'}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{school.school_id}</p>
+                          </div>
+                          <Badge variant={school.is_saved ? 'default' : 'secondary'} className="text-xs">
+                            {school.is_saved ? '已保存' : '未保存'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">无学校信息</p>
+                  )}
                 </div>
               </div>
 
-              {examDetail.is_saved && (
+              {isExamSaved(examDetail) && (
                 <div className="flex items-center space-x-2 pt-2">
                   <Button
-                    onClick={generateScoresheet}
+                    onClick={handleDownloadScoresheet}
                     disabled={generatingScoresheet}
                     className="flex-1"
                   >
@@ -504,6 +564,94 @@ const ExamLookup: React.FC = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* 下载成绩单对话框 */}
+        <ConfirmDialog
+          open={downloadDialogOpen}
+          onOpenChange={(open) => {
+            setDownloadDialogOpen(open);
+            if (!open) {
+              // 关闭对话框时重置状态
+              setDownloadSchoolId('');
+              setDownloadScope('school');
+              setDownloadIsMultiSchool(false);
+            }
+          }}
+          title="下载成绩单"
+          description={
+            <div className="space-y-3">
+              {/* 非联考场景：简单提示 */}
+              {!downloadIsMultiSchool && (
+                <p>即将下载成绩单 Excel 文件，确定要继续吗？</p>
+              )}
+
+              {/* 联考场景：选择参数 */}
+              {downloadIsMultiSchool && (
+                <>
+                  <p>此考试为联考，请选择下载参数：</p>
+
+                  {/* 学校选择 */}
+                  <div className="space-y-2">
+                    <Label htmlFor="download-school-select" className="text-sm font-medium">
+                      选择学校
+                    </Label>
+                    <Select
+                      value={downloadSchoolId}
+                      onValueChange={setDownloadSchoolId}
+                    >
+                      <SelectTrigger id="download-school-select">
+                        <SelectValue placeholder="请选择要下载的学校" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {examDetail?.schools?.map((school: any) => (
+                          <SelectItem
+                            key={school.school_id}
+                            value={school.school_id}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <span>{school.school_name || school.school_id}</span>
+                              <Badge variant={school.is_saved ? 'default' : 'secondary'} className="text-xs">
+                                {school.is_saved ? '已保存' : '未保存'}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* 导出范围选择（GLOBAL 权限） */}
+                  {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.GLOBAL) && (
+                    <div className="space-y-2">
+                      <Label htmlFor="download-scope-select" className="text-sm font-medium">
+                        导出范围
+                      </Label>
+                      <Select
+                        value={downloadScope}
+                        onValueChange={(v) => setDownloadScope(v as 'school' | 'all')}
+                      >
+                        <SelectTrigger id="download-scope-select">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="school">仅当前学校</SelectItem>
+                          <SelectItem value="all">所有参与学校</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        导出所有学校时将包含联考中所有参与学校的成绩数据
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          }
+          confirmText="下载"
+          cancelText="取消"
+          variant="default"
+          onConfirm={confirmDownloadScoresheet}
+        />
       </CardContent>
     </Card>
   );
@@ -515,6 +663,8 @@ const ScoreLookup: React.FC = () => {
   const [examId, setExamId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [studentName, setStudentName] = useState('');
+  const [schoolId, setSchoolId] = useState('');
+  const [finalSchoolId, setFinalSchoolId] = useState<string | undefined>(undefined);
   const [searchType, setSearchType] = useState<'id' | 'name'>('id');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -525,15 +675,26 @@ const ScoreLookup: React.FC = () => {
     const searchValue = searchType === 'id' ? studentId.trim() : studentName.trim();
     if (!examId.trim() || !searchValue) return;
 
+    // 确定最终使用的 school_id：优先使用输入的，否则使用用户自己的
+    const computedSchoolId = schoolId.trim() || user?.zhixue_info?.school_id || user?.manual_school_id;
+
+    // 使用学生姓名查询时必须提供 school_id
+    if (searchType === 'name' && !computedSchoolId) {
+      setError('使用学生姓名查询时必须指定学校 ID');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setScoreData(null);
+    setFinalSchoolId(computedSchoolId);
 
     try {
       const response = await examAPI.getUserExamScore(
         examId.trim(),
         searchType === 'id' ? studentId.trim() : undefined,
-        searchType === 'name' ? studentName.trim() : undefined
+        searchType === 'name' ? studentName.trim() : undefined,
+        computedSchoolId
       );
       if (response.data.success) {
         setScoreData(response.data);
@@ -543,6 +704,7 @@ const ScoreLookup: React.FC = () => {
           exam_id: examId.trim(),
           search_type: searchType,
           student_identifier: searchType === 'id' ? studentId.trim() : studentName.trim(),
+          school_id: computedSchoolId,
           has_scores: response.data.scores && response.data.scores.length > 0,
           subject_count: response.data.scores ? response.data.scores.length : 0
         });
@@ -556,6 +718,7 @@ const ScoreLookup: React.FC = () => {
         exam_id: examId.trim(),
         search_type: searchType,
         student_identifier: searchType === 'id' ? studentId.trim() : studentName.trim(),
+        school_id: computedSchoolId,
         error_message: errorMessage
       });
     } finally {
@@ -623,6 +786,30 @@ const ScoreLookup: React.FC = () => {
               }}
             />
           </div>
+
+          {/* 学校 ID 输入框 - 对于有 GLOBAL 权限的用户或使用姓名查询时显示 */}
+          {(hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.GLOBAL) || searchType === 'name') && (
+            <div className="space-y-2">
+              <label htmlFor="school-id" className="text-sm font-medium">
+                学校 ID {searchType === 'name' && !user?.zhixue_info?.school_id && !user?.manual_school_id && (
+                  <span className="text-destructive">*</span>
+                )}
+              </label>
+              <Input
+                id="school-id"
+                placeholder="请输入学校 ID（留空则使用默认学校）"
+                value={schoolId}
+                onChange={(e) => setSchoolId(e.target.value)}
+                className="font-mono"
+              />
+              {searchType === 'name' && (
+                <p className="text-xs text-muted-foreground">
+                  使用学生姓名查询时必须指定学校 ID
+                  {(user?.zhixue_info?.school_id || user?.manual_school_id) && '（留空则使用您的默认学校）'}
+                </p>
+              )}
+            </div>
+          )}
 
           <Button
             type="submit"
@@ -745,6 +932,7 @@ const ScoreLookup: React.FC = () => {
                 scores={scoreData.scores}
                 studentId={searchType === 'id' ? studentId.trim() : undefined}
                 studentName={searchType === 'name' ? studentName.trim() : undefined}
+                schoolId={finalSchoolId}
               />
             )}
           </div>

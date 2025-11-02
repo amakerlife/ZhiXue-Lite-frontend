@@ -158,16 +158,22 @@ const UserManagement: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // 新增：学校列表
+  const [schools, setSchools] = useState<SchoolType[]>([]);
+  const [loadingSchools, setLoadingSchools] = useState(false);
+
   // 新增：编辑状态管理
   const [editingUser, setEditingUser] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{
     email: string;
     role: 'admin' | 'user' | '';
     is_active: boolean;
+    manual_school_id: string | null;  // 新增：手动分配学校
   }>({
     email: '',
     role: '',
     is_active: true,
+    manual_school_id: null,
   });
   const [editLoading, setEditLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -205,15 +211,37 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // 新增：加载学校列表
+  const loadSchools = async () => {
+    try {
+      setLoadingSchools(true);
+      const response = await adminAPI.listSchools({ per_page: 1000 });  // 加载所有学校
+      if (response.data.success) {
+        setSchools(response.data.schools);
+      }
+    } catch (error) {
+      console.error('Failed to load schools:', error);
+    } finally {
+      setLoadingSchools(false);
+    }
+  };
+
   // 新增：开始编辑用户
   const startEditUser = (user: AdminUser) => {
     setError(null);
     setSuccess(null);
     setEditingUser(user.id);
+
+    // 推导 manual_school_id：如果有手动分配的学校，从 zhixue_info.school_id 获取
+    const manualSchoolId = user.is_manual_school && !user.zhixue_info?.username
+      ? user.zhixue_info?.school_id || null
+      : null;
+
     setEditForm({
       email: user.email,
       role: user.role as 'admin' | 'user',
       is_active: user.is_active,
+      manual_school_id: manualSchoolId,
     });
   };
 
@@ -224,6 +252,7 @@ const UserManagement: React.FC = () => {
       email: '',
       role: '',
       is_active: true,
+      manual_school_id: null,
     });
   };
 
@@ -295,6 +324,14 @@ const UserManagement: React.FC = () => {
 
   // 新增：保存用户修改
   const saveUserEdit = async (userId: number) => {
+    const targetUser = users.find(u => u.id === userId);
+
+    // 验证：已绑定智学网账号的用户不能手动分配学校
+    if (targetUser?.zhixue_info?.username && editForm.manual_school_id) {
+      setError('该用户已绑定智学网账号，无法手动分配学校');
+      return;
+    }
+
     setEditLoading(true);
     setError(null);
     setSuccess(null);
@@ -304,9 +341,11 @@ const UserManagement: React.FC = () => {
         email: string;
         role?: 'admin' | 'user';
         is_active: boolean;
+        manual_school_id?: string | null;
       } = {
         email: editForm.email,
         is_active: editForm.is_active,
+        manual_school_id: editForm.manual_school_id,
       };
 
       if (editForm.role !== '') {
@@ -383,6 +422,11 @@ const UserManagement: React.FC = () => {
     loadUsers();
   }, [page, search]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 新增：加载学校列表
+  useEffect(() => {
+    loadSchools();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <Card>
       <CardHeader>
@@ -430,6 +474,7 @@ const UserManagement: React.FC = () => {
                     <TableHead>角色</TableHead>
                     <TableHead>状态</TableHead>
                     <TableHead>智学网信息</TableHead>
+                    <TableHead>分配学校</TableHead>
                     <TableHead>注册时间</TableHead>
                     <TableHead>最后登录</TableHead>
                     <TableHead>登录IP</TableHead>
@@ -500,7 +545,7 @@ const UserManagement: React.FC = () => {
 
                     {/* 智学网信息 - 可折叠 */}
                     <TableCell>
-                      {user.zhixue_username ? (
+                      {user.zhixue_info?.username ? (
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <Button
@@ -516,19 +561,60 @@ const UserManagement: React.FC = () => {
                               )}
                             </Button>
                             <Badge variant="outline" className="text-xs">
-                              {user.zhixue_username}
+                              {user.zhixue_info.username}
                             </Badge>
                           </div>
 
                           {expandedZhixueInfo.has(user.id) && (
                             <div className="ml-6 space-y-1 text-xs text-muted-foreground">
-                              <div>姓名: {user.zhixue_realname || '-'}</div>
-                              <div>学校: {user.zhixue_school || '-'}</div>
+                              <div>姓名: {user.zhixue_info.realname || '-'}</div>
+                              <div>学校: {user.zhixue_info.school_name || '-'}</div>
                             </div>
                           )}
                         </div>
                       ) : (
                         <span className="text-muted-foreground text-xs">未绑定</span>
+                      )}
+                    </TableCell>
+
+                    {/* 手动分配学校 - 可编辑 */}
+                    <TableCell>
+                      {editingUser === user.id ? (
+                        <Select
+                          value={editForm.manual_school_id || 'none'}
+                          onValueChange={(value) => setEditForm(prev => ({
+                            ...prev,
+                            manual_school_id: value === 'none' ? null : value
+                          }))}
+                          disabled={!!user.zhixue_info?.username || loadingSchools}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={loadingSchools ? "加载中..." : "选择学校"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">不分配</SelectItem>
+                            {schools.map(school => (
+                              <SelectItem key={school.id} value={school.id}>
+                                {school.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="space-y-1">
+                          {user.is_manual_school ? (
+                            <Badge variant="secondary" className="text-xs">
+                              {user.zhixue_info?.school_name || '未知学校'}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">未分配</span>
+                          )}
+                          {user.zhixue_info?.username && user.is_manual_school && (
+                            <p className="text-xs text-orange-600">
+                              已绑定智学网，无法修改
+                            </p>
+                          )}
+                        </div>
                       )}
                     </TableCell>
 

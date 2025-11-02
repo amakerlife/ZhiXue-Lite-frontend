@@ -6,6 +6,7 @@ export interface ExamListParams {
   per_page?: number;
   query?: string;
   scope?: 'self' | 'school' | 'all';
+  school_id?: string;  // 新增：用于 scope=all 时过滤特定学校
   start_time?: number;  // 开始时间戳
   end_time?: number;    // 结束时间戳
 }
@@ -59,14 +60,19 @@ export const examAPI = {
       }
     }),
 
-  getUserExamScore: (examId: string, studentId?: string, studentName?: string) =>
+  getUserExamScore: (examId: string, studentId?: string, studentName?: string, schoolId?: string) =>
     api.get<ApiResponse & {
       id: string;
       name: string;
       school_id: string;
-      is_saved: boolean;
       created_at: number;
       student_id: string;
+      is_multi_school?: boolean;
+      schools?: Array<{
+        school_id: string;
+        school_name?: string;
+        is_saved: boolean;
+      }>;
       scores: Array<{
         subject_id: string;
         subject_name: string;
@@ -80,20 +86,26 @@ export const examAPI = {
       params: {
         ...(studentId && { student_id: studentId }),
         ...(studentName && { student_name: studentName }),
+        ...(schoolId && { school_id: schoolId }),
       },
     }),
 
-  generateScoresheet: (examId: string) =>
+  generateScoresheet: (examId: string, scope?: 'school' | 'all', schoolId?: string) =>
     api.get(`/exam/${examId}/scoresheet`, {
       responseType: 'blob',
+      params: {
+        ...(scope && { scope }),
+        ...(schoolId && { school_id: schoolId }),
+      },
     }),
 
-  generateAnswersheet: (examId: string, subjectId: string, studentId?: string, studentName?: string) =>
+  generateAnswersheet: (examId: string, subjectId: string, studentId?: string, studentName?: string, schoolId?: string) =>
     api.get(`/exam/${examId}/subject/${subjectId}/answersheet`, {
       responseType: 'blob',
       params: {
         ...(studentId && { student_id: studentId }),
         ...(studentName && { student_name: studentName }),
+        ...(schoolId && { school_id: schoolId }),
       },
     }),
 

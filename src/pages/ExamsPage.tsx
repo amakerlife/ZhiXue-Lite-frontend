@@ -9,7 +9,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Link2,
-  Filter
+  Filter,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,15 @@ const ExamsPage: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [scope, setScope] = useState<'self' | 'school' | 'all'>('self');
+
+  // 判断是否为手动分配学校的用户
+  const isManualSchoolUser = user?.is_manual_school && !user?.zhixue_info?.username;
+
+  // 手动分配学校的用户默认显示校内考试，其他用户显示个人考试
+  const [scope, setScope] = useState<'self' | 'school' | 'all'>(
+    isManualSchoolUser ? 'school' : 'self'
+  );
+
   const [schoolIdFilter, setSchoolIdFilter] = useState(''); // 新增：学校 ID 过滤
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
@@ -45,9 +54,6 @@ const ExamsPage: React.FC = () => {
   const [fetchConfirmOpen, setFetchConfirmOpen] = useState(false);
   const [fetchDialogOpen, setFetchDialogOpen] = useState(false);
 
-  // 检查是否绑定了智学网账号
-  const hasZhixueAccount = user?.zhixue_username;
-
   // 检查权限
   const canViewSchool = user && examAPI.hasPermission(user, 2, 2); // VIEW_EXAM_LIST权限，SCHOOL级别
   const canViewAll = user && examAPI.hasPermission(user, 2, 3); // VIEW_EXAM_LIST权限，GLOBAL级别
@@ -55,6 +61,13 @@ const ExamsPage: React.FC = () => {
     examAPI.hasPermission(user, 0, 1) || // FETCH_DATA权限，SELF级别
     examAPI.hasPermission(user, 0, 2) || // FETCH_DATA权限，SCHOOL级别
     examAPI.hasPermission(user, 0, 3)    // FETCH_DATA权限，GLOBAL级别
+  );
+
+  // 检查是否有查看考试列表的权限（基于权限系统，而非账号绑定状态）
+  const hasSchoolAccess = user && (
+    examAPI.hasPermission(user, 2, 1) || // VIEW_EXAM_LIST权限，SELF级别
+    examAPI.hasPermission(user, 2, 2) || // VIEW_EXAM_LIST权限，SCHOOL级别
+    examAPI.hasPermission(user, 2, 3)    // VIEW_EXAM_LIST权限，GLOBAL级别
   );
 
   const loadExams = async (pageNum = 1, query = '', scopeParam = scope, startTime?: number, endTime?: number, schoolId = schoolIdFilter) => {
@@ -255,29 +268,36 @@ const ExamsPage: React.FC = () => {
     };
   }, []);
 
+  // 手动分配学校的用户默认显示校内考试
   useEffect(() => {
-    if (hasZhixueAccount) {
+    if (isManualSchoolUser && scope === 'self') {
+      setScope('school');
+    }
+  }, [isManualSchoolUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (hasSchoolAccess) {
       loadExams();
     }
-  }, [hasZhixueAccount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hasSchoolAccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 如果用户未绑定智学网账号，显示提示页面
-  if (!hasZhixueAccount) {
+  // 如果用户没有学校访问权限，显示提示页面
+  if (!hasSchoolAccess) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle className="text-amber-600">需要绑定智学网账号</CardTitle>
+            <CardTitle className="text-amber-600">需要学校访问权限</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start space-x-3 mb-6">
               <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  您需要先绑定智学网账号才能使用考试列表功能。
+                  您需要先绑定智学网账号或由管理员分配学校才能使用考试列表功能。
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  绑定后，您可以：
+                  绑定智学网账号后，您可以：
                 </p>
                 <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
                   <li>查看考试成绩</li>
@@ -310,17 +330,35 @@ const ExamsPage: React.FC = () => {
 
         <div className="flex items-center space-x-2">
           {/* Scope 选择器 */}
-          {(canViewSchool || canViewAll) && (
-            <Select value={scope} onValueChange={handleScopeChange}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="self">个人</SelectItem>
-                {canViewSchool && <SelectItem value="school">校内</SelectItem>}
-                {canViewAll && <SelectItem value="all">全部</SelectItem>}
-              </SelectContent>
-            </Select>
+          {/* 手动分配学校的用户：无 GLOBAL 权限时隐藏下拉框，有 GLOBAL 权限时只显示校内和全部 */}
+          {/* 智学网绑定用户：保持原有逻辑 */}
+          {isManualSchoolUser ? (
+            // 手动分配学校的用户
+            canViewAll && (
+              <Select value={scope} onValueChange={handleScopeChange}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="school">校内</SelectItem>
+                  <SelectItem value="all">全部</SelectItem>
+                </SelectContent>
+              </Select>
+            )
+          ) : (
+            // 智学网绑定用户或其他用户
+            (canViewSchool || canViewAll) && (
+              <Select value={scope} onValueChange={handleScopeChange}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="self">个人</SelectItem>
+                  {canViewSchool && <SelectItem value="school">校内</SelectItem>}
+                  {canViewAll && <SelectItem value="all">全部</SelectItem>}
+                </SelectContent>
+              </Select>
+            )
           )}
 
           {canFetchData && (
@@ -442,7 +480,7 @@ const ExamsPage: React.FC = () => {
                   <Download className="h-4 w-4 mr-2" />
                   从智学网获取
                 </Button>
-              ) : (user?.zhixue_username ? (
+              ) : (hasSchoolAccess ? (
                 <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
                   <div className="flex items-center justify-center space-x-2 text-amber-800">
                     <AlertCircle className="h-5 w-5" />
@@ -457,10 +495,10 @@ const ExamsPage: React.FC = () => {
                   <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
                     <div className="flex items-center justify-center space-x-2 text-amber-800">
                       <AlertCircle className="h-5 w-5" />
-                      <span className="font-medium">需要先绑定智学网账号</span>
+                      <span className="font-medium">需要学校访问权限</span>
                     </div>
                     <p className="text-sm text-amber-700 mt-2 text-center">
-                      请先到个人中心绑定智学网账号，然后才能获取考试数据
+                      请先绑定智学网账号或联系管理员分配学校，然后才能获取考试数据
                     </p>
                   </div>
                   <Link to="/profile#zhixue-binding">
@@ -493,15 +531,43 @@ const ExamsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 self-start">
-                      <Badge variant={exam.is_saved ? 'default' : 'secondary'} className="text-xs">
-                        {exam.is_saved ? (
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                        ) : (
-                          <Clock className="h-3 w-3 mr-1" />
-                        )}
-                        {exam.is_saved ? '已保存' : '未保存'}
-                      </Badge>
+                    <div className="flex flex-col gap-2 self-start">
+                      {exam.is_multi_school && (
+                        <Badge variant="outline" className="text-xs flex items-center space-x-1 w-fit">
+                          <Users className="h-3 w-3" />
+                          <span>联考 ({exam.schools?.length || 0} 校)</span>
+                        </Badge>
+                      )}
+
+                      {exam.is_multi_school ? (
+                        // 联考：显示每个学校的状态
+                        <div className="flex flex-wrap gap-1">
+                          {exam.schools?.map(school => (
+                            <Badge
+                              key={school.school_id}
+                              variant={school.is_saved ? 'default' : 'secondary'}
+                              className="text-xs flex items-center space-x-1"
+                            >
+                              <span>{school.school_name || `学校${school.school_id.slice(0, 6)}`}</span>
+                              {school.is_saved ? (
+                                <CheckCircle2 className="h-3 w-3" />
+                              ) : (
+                                <Clock className="h-3 w-3" />
+                              )}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        // 普通考试：单一状态
+                        <Badge variant={exam.is_saved ? 'default' : 'secondary'} className="text-xs">
+                          {exam.is_saved ? (
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                          ) : (
+                            <Clock className="h-3 w-3 mr-1" />
+                          )}
+                          {exam.is_saved ? '已保存' : '未保存'}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </CardHeader>

@@ -40,17 +40,27 @@ export interface AdminUser {
   last_login?: string;
   registration_ip?: string;
   last_login_ip?: string;
-  zhixue_account_id?: string;
-  zhixue_username?: string;
-  zhixue_realname?: string;
-  zhixue_school?: string;
+  is_manual_school?: boolean;  // 新增：是否有手动分配的学校（用于显示判断）
+  manual_school_id?: string;   // 新增：管理员手动分配的学校 ID（用于编辑）
+  zhixue_info?: {           // 修改：使用嵌套结构
+    username?: string;
+    realname?: string;
+    school_name?: string;
+    school_id?: string;
+  };
 }
 
 export interface AdminExam {
   id: string;
   name: string;
-  is_saved: boolean;
-  school: string; // 注意：这里是学校名称，不是school_id
+  is_saved: boolean;  // 注意：联考场景下该字段可能不准确
+  school: string; // 注意：这里是学校名称，不是school_id；联考场景下可能为空或显示不全
+  school_ids?: string[]; // 新增：参与学校列表（联考）
+  schools?: Array<{  // 新增：学校详细信息（联考）
+    school_id: string;
+    school_name?: string;
+    is_saved: boolean;
+  }>;
   created_at: number;
 }
 
@@ -99,7 +109,7 @@ export const adminAPI = {
     api.delete<ApiResponse>('/admin/cache'),
 
   // 用户管理
-  updateUser: (userId: number, data: { email?: string; role?: string; permissions?: string; is_active?: boolean; password?: string }) =>
+  updateUser: (userId: number, data: { email?: string; role?: string; permissions?: string; is_active?: boolean; password?: string; manual_school_id?: string | null }) =>
     api.put<ApiResponse & { user: AdminUser }>(`/admin/user/${userId}`, data),
 
   // Su 功能

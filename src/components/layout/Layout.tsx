@@ -30,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const showSidebar = !noSidebarPages.includes(location.pathname);
 
   // 检查是否需要显示未绑定账号提醒
-  const shouldShowBanner = showSidebar && user && !user.zhixue_username && showBanner && !isSuMode;
+  const shouldShowBanner = showSidebar && user && !user.zhixue_info?.username && !user.is_manual_school && showBanner && !isSuMode;
 
   // 检查是否需要显示邮箱未验证提醒
   const shouldShowEmailBanner = showSidebar && user && !user.email_verified && showEmailBanner && !isSuMode;

@@ -6,8 +6,13 @@ export interface ExamData {
   id: string;
   name: string;
   school_id?: string;
-  is_saved: boolean;
   created_at: string;
+  is_multi_school?: boolean; // 是否为联考
+  schools?: Array<{           // 学校详细信息
+    school_id: string;
+    school_name?: string;
+    is_saved: boolean;
+  }>;
   scores: Array<{
     subject_id: string;
     subject_name: string;
@@ -30,7 +35,14 @@ export interface ExamData {
 
 interface ExamContextType {
   loadingExams: Set<string>;
-  getExamData: (examId: string) => Promise<ExamData | null>;
+  getExamData: (
+    examId: string,
+    options?: {
+      studentId?: string;
+      studentName?: string;
+      schoolId?: string;
+    }
+  ) => Promise<ExamData | null>;
   isLoadingExam: (examId: string) => boolean;
 }
 
@@ -52,7 +64,14 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   const [loadingExams] = useState(() => new Set<string>());
   const [loadingPromises] = useState(() => new Map<string, Promise<ExamData | null>>());
 
-  const getExamData = useCallback(async (examId: string): Promise<ExamData | null> => {
+  const getExamData = useCallback(async (
+    examId: string,
+    options?: {
+      studentId?: string;
+      studentName?: string;
+      schoolId?: string;
+    }
+  ): Promise<ExamData | null> => {
     // 如果正在加载，返回现有的 Promise（避免并发请求）
     if (loadingPromises.has(examId)) {
       return loadingPromises.get(examId)!;
@@ -63,7 +82,12 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
       try {
         loadingExams.add(examId);
 
-        const response = await examAPI.getUserExamScore(examId);
+        const response = await examAPI.getUserExamScore(
+          examId,
+          options?.studentId,
+          options?.studentName,
+          options?.schoolId
+        );
         if (response.data.success) {
           // 分离总分和科目分数
           const allScores = response.data.scores || [];
@@ -78,8 +102,9 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
             id: response.data.id,
             name: response.data.name,
             school_id: response.data.school_id,
-            is_saved: response.data.is_saved,
             created_at: response.data.created_at.toString(),
+            is_multi_school: response.data.is_multi_school,
+            schools: response.data.schools,
             scores: subjectScores,
             totalScores: totalScores
           };

@@ -67,10 +67,10 @@ const ProfilePage: React.FC = () => {
 
   // 新增：当用户信息加载完成且有智学网账号时，加载绑定信息
   useEffect(() => {
-    if (user?.zhixue_username) {
+    if (user?.zhixue_info?.username) {
       loadBindingInfo();
     }
-  }, [user?.zhixue_username]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.zhixue_info?.username]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 新增：处理锚点导航
   useEffect(() => {
@@ -157,7 +157,7 @@ const ProfilePage: React.FC = () => {
 
   // 新增：加载智学网账号绑定信息
   const loadBindingInfo = async () => {
-    if (!user?.zhixue_username) {
+    if (!user?.zhixue_info?.username) {
       setBindingInfo([]);
       return;
     }
@@ -182,7 +182,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const confirmDisconnectZhixue = async () => {
-    const currentZhixueUsername = user?.zhixue_username; // 保存当前智学网用户名
+    const currentZhixueUsername = user?.zhixue_info?.username; // 保存当前智学网用户名
 
     setLoading(true);
     setError(null);
@@ -600,16 +600,16 @@ const ProfilePage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {user.zhixue_username ? (
+          {user.zhixue_info?.username ? (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-md p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-green-900">已绑定智学网账号</p>
                     <p className="text-sm text-green-700 mt-1">
-                      用户名: {user.zhixue_username} |
-                      姓名: {user.zhixue_realname} |
-                      学校: {user.zhixue_school}
+                      用户名: {user.zhixue_info.username} |
+                      姓名: {user.zhixue_info.realname} |
+                      学校: {user.zhixue_info.school_name}
                     </p>
                   </div>
                   <Button
@@ -675,6 +675,19 @@ const ProfilePage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
+              {/* 显示手动分配的学校信息 */}
+              {user.is_manual_school && (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                  <p className="font-medium text-blue-900">已由管理员分配学校</p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    学校: {user.zhixue_info?.school_name || '未知学校'}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    注意：绑定智学网账号后，此手动分配的学校将被自动清除。
+                  </p>
+                </div>
+              )}
+
               <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                 <p className="text-yellow-800">
                   您还未绑定智学网账号，绑定后可以查看考试数据和成绩信息。
@@ -777,7 +790,11 @@ const ProfilePage: React.FC = () => {
         open={connectConfirmOpen}
         onOpenChange={setConnectConfirmOpen}
         title="确认绑定智学网账号"
-        description="绑定智学网账号可能需要一些时间，确定要继续吗？"
+        description={
+          user?.manual_school_id
+            ? "绑定智学网账号后，管理员为您手动分配的学校将被自动清除，改为使用智学网账号中的学校信息。确定要继续吗？"
+            : "绑定智学网账号可能需要一些时间，确定要继续吗？"
+        }
         confirmText="确认绑定"
         cancelText="取消"
         variant="default"

@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         trackAnalyticsEvent('user_login_success', {
           username: username,
-          has_zhixue: !!response.data.user.zhixue_username,
+          has_zhixue: !!response.data.user.zhixue_info?.username,
           user_role: response.data.user.role,
           login_method: turnstile_token ? 'with_captcha' : 'without_captcha'
         });
@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         trackAnalyticsEvent('user_logout_success', {
           username: currentUser.username,
           user_role: currentUser.role,
-          had_zhixue: !!currentUser.zhixue_username
+          had_zhixue: !!currentUser.zhixue_info?.username
         });
       }
     } catch (error) {

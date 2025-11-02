@@ -13,9 +13,14 @@ export interface User {
   permissions?: string;    // 新增权限字符串字段
   is_active: boolean;
   last_login?: string;
-  zhixue_username?: string;  // 后端返回的是扁平化的字段
-  zhixue_realname?: string;
-  zhixue_school?: string;
+  is_manual_school?: boolean;  // 新增：是否有手动分配的学校（用于显示判断）
+  manual_school_id?: string;   // 新增：管理员手动分配的学校 ID（用于编辑）
+  zhixue_info?: {          // 修改：使用嵌套结构
+    username?: string;
+    realname?: string;
+    school_name?: string;
+    school_id?: string;
+  };
 }
 
 export interface UserUpdateRequest {
@@ -55,8 +60,15 @@ export interface Exam {
   id: string;
   name: string;
   created_at: number; // 后端返回的是Unix时间戳（毫秒级）
-  is_saved: boolean;
-  school_id?: string; // 从后端API可以看到会返回school_id
+  is_saved: boolean;  // 注意：联考场景下该字段可能不准确，应使用 is_saved_for_school
+  school_id?: string; // DEPRECATED: 联考场景下使用 school_ids
+  is_multi_school?: boolean; // 新增：是否为联考
+  school_ids?: string[]; // 新增：参与学校列表（联考）
+  schools?: Array<{  // 新增：学校详细信息（联考）
+    school_id: string;
+    school_name?: string;
+    is_saved: boolean;
+  }>;
 }
 
 export interface Score {
