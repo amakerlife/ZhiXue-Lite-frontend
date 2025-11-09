@@ -53,15 +53,17 @@ export interface AdminUser {
 export interface AdminExam {
   id: string;
   name: string;
-  is_saved: boolean;  // 注意：联考场景下该字段可能不准确
-  school: string; // 注意：这里是学校名称，不是school_id；联考场景下可能为空或显示不全
-  school_ids?: string[]; // 新增：参与学校列表（联考）
-  schools?: Array<{  // 新增：学校详细信息（联考）
+  created_at: number;
+  schools: Array<{  // 必需字段：学校详细信息（支持联考）
     school_id: string;
-    school_name?: string;
+    school_name: string;
     is_saved: boolean;
   }>;
-  created_at: number;
+  // 以下字段已废弃，保留用于向后兼容
+  /** @deprecated 使用 schools 数组中各学校的 is_saved 状态 */
+  is_saved?: boolean;
+  /** @deprecated 使用 schools 数组获取学校名称 */
+  school?: string;
 }
 
 export const adminAPI = {

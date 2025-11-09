@@ -1653,6 +1653,25 @@ const ExamManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // 辅助函数：获取考试的数据保存状态
+  const getExamSaveStatus = (exam: AdminExam): { status: 'all' | 'partial' | 'none'; variant: 'default' | 'secondary' | 'outline'; label: string } => {
+    const savedCount = exam.schools.filter(s => s.is_saved).length;
+    const totalCount = exam.schools.length;
+
+    if (savedCount === 0) {
+      return { status: 'none', variant: 'secondary', label: '未保存' };
+    } else if (savedCount === totalCount) {
+      return { status: 'all', variant: 'default', label: '已保存' };
+    } else {
+      return { status: 'partial', variant: 'outline', label: `部分保存 (${savedCount}/${totalCount})` };
+    }
+  };
+
+  // 辅助函数：检查是否有任何学校已保存数据
+  const hasAnySavedData = (exam: AdminExam): boolean => {
+    return exam.schools.some(s => s.is_saved);
+  };
+
   const loadExams = async () => {
     try {
       setLoading(true);
@@ -1796,11 +1815,11 @@ const ExamManagement: React.FC = () => {
                   {exams.map((exam) => (
                     <TableRow key={exam.id}>
                       <TableCell className="font-medium">{exam.name}</TableCell>
-                      <TableCell>{exam.school}</TableCell>
+                      <TableCell>{exam.schools.map(s => s.school_name).join('、')}</TableCell>
                       <TableCell>{formatTimestampToLocalDate(exam.created_at)}</TableCell>
                       <TableCell>
-                        <Badge variant={exam.is_saved ? 'default' : 'secondary'}>
-                          {exam.is_saved ? '已保存' : '未保存'}
+                        <Badge variant={getExamSaveStatus(exam).variant}>
+                          {getExamSaveStatus(exam).label}
                         </Badge>
                       </TableCell>
                     <TableCell>
@@ -1813,7 +1832,7 @@ const ExamManagement: React.FC = () => {
                           <Eye className="h-3 w-3 mr-1" />
                           详情
                         </Button>
-                        {exam.is_saved && (
+                        {hasAnySavedData(exam) && (
                           <Button
                             variant="outline"
                             size="sm"
