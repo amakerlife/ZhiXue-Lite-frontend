@@ -1688,12 +1688,13 @@ const ExamManagement: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   // 辅助函数：获取考试的数据保存状态
-  const getExamSaveStatus = (exam: AdminExam | Exam): { status: 'all' | 'partial' | 'none'; variant: 'default' | 'secondary' | 'outline'; label: string } => {
+  const getExamSaveStatus = (exam: AdminExam | Exam): { status: 'all' | 'partial' | 'none'; variant: 'default' | 'secondary' | 'outline'; label: string; title?: string } => {
     if (!exam.schools || exam.schools.length === 0) {
       return { status: 'none', variant: 'secondary', label: '未知' };
     }
 
-    const savedCount = exam.schools.filter(s => s.is_saved).length;
+    const savedSchools = exam.schools.filter(s => s.is_saved);
+    const savedCount = savedSchools.length;
     const totalCount = exam.schools.length;
 
     if (savedCount === 0) {
@@ -1701,7 +1702,13 @@ const ExamManagement: React.FC = () => {
     } else if (savedCount === totalCount) {
       return { status: 'all', variant: 'default', label: '已保存' };
     } else {
-      return { status: 'partial', variant: 'outline', label: `部分保存 (${savedCount}/${totalCount})` };
+      const savedNames = savedSchools.map(s => s.school_name || '未知').join('、');
+      return {
+        status: 'partial',
+        variant: 'outline',
+        label: `部分保存 (${savedCount}/${totalCount})`,
+        title: `已保存：${savedNames}`
+      };
     }
   };
 
@@ -1856,7 +1863,7 @@ const ExamManagement: React.FC = () => {
                       <TableCell><SchoolsDisplay schools={exam.schools} /></TableCell>
                       <TableCell>{formatTimestampToLocalDate(exam.created_at)}</TableCell>
                       <TableCell>
-                        <Badge variant={getExamSaveStatus(exam).variant}>
+                        <Badge variant={getExamSaveStatus(exam).variant} title={getExamSaveStatus(exam).title}>
                           {getExamSaveStatus(exam).label}
                         </Badge>
                       </TableCell>
@@ -1953,10 +1960,7 @@ const ExamManagement: React.FC = () => {
                     <label className="text-sm font-medium text-muted-foreground">学校 ID</label>
                     <p className="font-mono text-sm break-all">
                       {examDetail.schools && examDetail.schools.length > 0 ? (
-                        <CopyableText
-                          text={examDetail.schools.map(s => s.school_name).join('、')}
-                          copyValue={examDetail.schools.map(s => s.school_id).join('、')}
-                        />
+                        <CopyableText text={examDetail.schools.map(s => s.school_id).join('、')} />
                       ) : (
                         '未知'
                       )}
@@ -1964,7 +1968,7 @@ const ExamManagement: React.FC = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">数据状态</label>
-                    <Badge variant={examDetail.schools && getExamSaveStatus(examDetail).variant}>
+                    <Badge variant={examDetail.schools && getExamSaveStatus(examDetail).variant} title={examDetail.schools ? getExamSaveStatus(examDetail).title : undefined}>
                       {examDetail.schools ? getExamSaveStatus(examDetail).label : '未知'}
                     </Badge>
                   </div>
