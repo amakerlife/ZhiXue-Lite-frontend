@@ -16,7 +16,33 @@ import { formatUTCIsoToLocal, formatTimestampToLocalDate } from '@/utils/dateUti
 import { canManageSystem, getUserRoleLabel, getRoleVariant, PermissionLevel, PERMISSION_DESCRIPTIONS, PERMISSION_LEVEL_DESCRIPTIONS } from '@/utils/permissions';
 import { trackAnalyticsEvent } from '@/utils/analytics';
 import { StatusAlert } from '@/components/StatusAlert';
+import { CopyableText } from '@/components/CopyableText';
 import type { AdminUser, School as SchoolType, ZhiXueAccount, Teacher, AdminExam } from '@/api/admin';
+import type { Exam } from '@/types/api';
+
+// 学校显示组件 - 支持单学校和多学校场景
+const SchoolsDisplay: React.FC<{ schools: Array<{ school_name?: string }> }> = ({ schools }) => {
+  if (schools.length === 0) {
+    return <span className="text-muted-foreground">未知</span>;
+  }
+
+  if (schools.length === 1) {
+    return <span>{schools[0].school_name || '未知'}</span>;
+  }
+
+  // 多学校：显示"XX 中学等 N 所学校"，使用 title 属性显示完整列表
+  const firstSchool = schools[0].school_name || '未知';
+  const allSchoolNames = schools.map(s => s.school_name || '未知').join('、');
+
+  return (
+    <span
+      className="cursor-help"
+      title={allSchoolNames}
+    >
+      {firstSchool} 等 {schools.length} 所学校
+    </span>
+  );
+};
 
 const AdminPage: React.FC = () => {
   const { user } = useAuth();
@@ -922,7 +948,9 @@ const SchoolManagement: React.FC = () => {
               <TableBody>
                 {schools.map((school) => (
                   <TableRow key={school.id}>
-                    <TableCell className="font-mono text-sm">{school.id}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      <CopyableText text={school.id} />
+                    </TableCell>
                     <TableCell className="font-medium">{school.name}</TableCell>
                   </TableRow>
                 ))}
@@ -1170,7 +1198,9 @@ const TeacherManagement: React.FC = () => {
                 <TableBody>
                   {teachers.map((teacher) => (
                     <TableRow key={teacher.id}>
-                      <TableCell className="font-mono text-sm">{teacher.id}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        <CopyableText text={teacher.id} />
+                      </TableCell>
                       <TableCell className="font-medium">{teacher.username}</TableCell>
                       <TableCell>{teacher.realname}</TableCell>
                       <TableCell>{teacher.school_name}</TableCell>
@@ -1528,11 +1558,15 @@ const StudentManagement: React.FC = () => {
                 <TableBody>
                   {students.map((student) => (
                     <TableRow key={student.id}>
-                      <TableCell className="font-mono text-sm">{student.id}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        <CopyableText text={student.id} />
+                      </TableCell>
                       <TableCell className="font-medium">{student.username}</TableCell>
                       <TableCell>{student.realname}</TableCell>
                       <TableCell>{student.school_name || '未知'}</TableCell>
-                      <TableCell className="font-mono text-sm">{student.school_id}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        <CopyableText text={student.school_id} />
+                      </TableCell>
                     <TableCell>
                       <Button
                         variant="outline"
@@ -1646,7 +1680,7 @@ const ExamManagement: React.FC = () => {
     open: false,
     exam: null,
   });
-  const [examDetail, setExamDetail] = useState<unknown | null>(null);
+  const [examDetail, setExamDetail] = useState<Exam | null>(null);
   const [loadingExamDetail, setLoadingExamDetail] = useState(false);
 
   // 消息状态
@@ -1654,7 +1688,11 @@ const ExamManagement: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   // 辅助函数：获取考试的数据保存状态
-  const getExamSaveStatus = (exam: AdminExam): { status: 'all' | 'partial' | 'none'; variant: 'default' | 'secondary' | 'outline'; label: string } => {
+  const getExamSaveStatus = (exam: AdminExam | Exam): { status: 'all' | 'partial' | 'none'; variant: 'default' | 'secondary' | 'outline'; label: string } => {
+    if (!exam.schools || exam.schools.length === 0) {
+      return { status: 'none', variant: 'secondary', label: '未知' };
+    }
+
     const savedCount = exam.schools.filter(s => s.is_saved).length;
     const totalCount = exam.schools.length;
 
@@ -1815,7 +1853,7 @@ const ExamManagement: React.FC = () => {
                   {exams.map((exam) => (
                     <TableRow key={exam.id}>
                       <TableCell className="font-medium">{exam.name}</TableCell>
-                      <TableCell>{exam.schools.map(s => s.school_name).join('、')}</TableCell>
+                      <TableCell><SchoolsDisplay schools={exam.schools} /></TableCell>
                       <TableCell>{formatTimestampToLocalDate(exam.created_at)}</TableCell>
                       <TableCell>
                         <Badge variant={getExamSaveStatus(exam).variant}>
@@ -1887,29 +1925,52 @@ const ExamManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">考试 ID</label>
-                    <p className="font-mono text-sm">{(examDetail as { id: string }).id}</p>
+                    <p className="font-mono text-sm">
+                      <CopyableText text={examDetail.id} />
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">考试名称</label>
-                    <p className="font-medium">{(examDetail as { name: string }).name}</p>
+                    <p className="font-medium">{examDetail.name}</p>
                   </div>
                   <div>
+                    <label className="text-sm font-medium text-muted-foreground">参与学校</label>
+                    <p className="font-medium">
+                      {examDetail.schools && examDetail.schools.length > 0 ? (
+                        <SchoolsDisplay schools={examDetail.schools} />
+                      ) : (
+                        <span className="text-muted-foreground">未知</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">考试类型</label>
+                    <Badge variant={examDetail.is_multi_school ? 'default' : 'secondary'}>
+                      {examDetail.is_multi_school ? '联考' : '单校考试'}
+                    </Badge>
+                  </div>
+                  <div className="col-span-2">
                     <label className="text-sm font-medium text-muted-foreground">学校 ID</label>
-                    <p className="font-mono text-sm">{(examDetail as { school_id?: string }).school_id || '未知'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">学校名称</label>
-                    <p className="font-medium">{(examDetail as { school_name?: string }).school_name || '未知'}</p>
+                    <p className="font-mono text-sm break-all">
+                      {examDetail.schools && examDetail.schools.length > 0 ? (
+                        <CopyableText
+                          text={examDetail.schools.map(s => s.school_name).join('、')}
+                          copyValue={examDetail.schools.map(s => s.school_id).join('、')}
+                        />
+                      ) : (
+                        '未知'
+                      )}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">数据状态</label>
-                    <Badge variant={(examDetail as { is_saved: boolean }).is_saved ? 'default' : 'secondary'}>
-                      {(examDetail as { is_saved: boolean }).is_saved ? '已保存' : '未保存'}
+                    <Badge variant={examDetail.schools && getExamSaveStatus(examDetail).variant}>
+                      {examDetail.schools ? getExamSaveStatus(examDetail).label : '未知'}
                     </Badge>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">考试时间</label>
-                    <p>{formatTimestampToLocalDate((examDetail as { created_at: number }).created_at)}</p>
+                    <p>{formatTimestampToLocalDate(examDetail.created_at)}</p>
                   </div>
                 </div>
               </div>

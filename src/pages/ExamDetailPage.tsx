@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { CopyableText } from '@/components/CopyableText';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -405,7 +406,9 @@ const ExamDetailPage: React.FC = () => {
               <label className="text-sm font-medium text-muted-foreground">考试 ID</label>
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="font-mono text-sm break-all">{examDetail.id}</span>
+                <span className="font-mono text-sm break-all">
+                  <CopyableText text={examDetail.id} />
+                </span>
               </div>
             </div>
 

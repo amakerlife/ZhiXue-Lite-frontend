@@ -13,6 +13,7 @@ import {
   CloudDownload,
 } from 'lucide-react';
 import { StatusAlert } from '@/components/StatusAlert';
+import { CopyableText } from '@/components/CopyableText';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -515,7 +516,9 @@ const ExamLookup: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <label className="font-medium text-muted-foreground">考试 ID</label>
-                  <p className="font-mono">{examDetail.id}</p>
+                  <p className="font-mono">
+                    <CopyableText text={examDetail.id} />
+                  </p>
                 </div>
                 <div>
                   <label className="font-medium text-muted-foreground">考试类型</label>
@@ -531,7 +534,9 @@ const ExamLookup: React.FC = () => {
                         <div key={school.school_id} className="flex items-center justify-between p-2 bg-background rounded border">
                           <div>
                             <p className="font-medium">{school.school_name || '未知学校'}</p>
-                            <p className="text-xs text-muted-foreground font-mono">{school.school_id}</p>
+                            <p className="text-xs text-muted-foreground font-mono">
+                              <CopyableText text={school.school_id} />
+                            </p>
                           </div>
                           <Badge variant={school.is_saved ? 'default' : 'secondary'} className="text-xs">
                             {school.is_saved ? '已保存' : '未保存'}
