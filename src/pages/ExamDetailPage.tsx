@@ -62,13 +62,24 @@ const ExamDetailPage: React.FC = () => {
   const [fetchSchoolId, setFetchSchoolId] = useState('');
   const [forceRefresh, setForceRefresh] = useState(false);
 
-  // 检查考试是否已保存（从 schools 数组判断）
+  // 检查考试是否已保存（从成绩数据或 schools 数组判断）
   const isExamSaved = (examData: ExamData | null): boolean => {
-    if (!examData || !examData.schools || examData.schools.length === 0) {
+    if (!examData) {
       return false;
     }
-    // 所有学校都已保存才算已保存
-    return examData.schools.every(school => school.is_saved);
+
+    // 如果有成绩数据，说明已保存
+    if (examData.scores && examData.scores.length > 0) {
+      return true;
+    }
+
+    // 否则检查 schools 数组
+    if (!examData.schools || examData.schools.length === 0) {
+      return false;
+    }
+
+    // 至少有一个学校已保存就算已保存
+    return examData.schools.some(school => school.is_saved);
   };
 
   const loadExamDetail = async () => {

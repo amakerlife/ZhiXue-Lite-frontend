@@ -345,13 +345,13 @@ const ExamLookup: React.FC = () => {
   const [downloadScope, setDownloadScope] = useState<'school' | 'all'>('school');
   const [downloadIsMultiSchool, setDownloadIsMultiSchool] = useState(false);
 
-  // 检查考试是否已保存（从 schools 数组判断）
+  // 检查考试是否已保存（至少有一个学校保存了数据）
   const isExamSaved = (examData: any): boolean => {
     if (!examData || !examData.schools || examData.schools.length === 0) {
       return false;
     }
-    // 所有学校都已保存才算已保存
-    return examData.schools.every((school: any) => school.is_saved);
+    // 至少有一个学校已保存就算已保存
+    return examData.schools.some((school: any) => school.is_saved);
   };
 
   const handleExamLookup = async (e: React.FormEvent) => {
