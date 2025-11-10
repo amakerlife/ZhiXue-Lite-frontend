@@ -128,6 +128,31 @@ const ExamsPage: React.FC = () => {
     }
   };
 
+  // 辅助函数：获取考试的数据保存状态（与管理面板逻辑一致）
+  const getExamSaveStatus = (exam: Exam): { status: 'all' | 'partial' | 'none'; variant: 'default' | 'secondary' | 'outline'; label: string; title?: string } => {
+    if (!exam.schools || exam.schools.length === 0) {
+      return { status: 'none', variant: 'secondary', label: '未知' };
+    }
+
+    const savedSchools = exam.schools.filter(s => s.is_saved);
+    const savedCount = savedSchools.length;
+    const totalCount = exam.schools.length;
+
+    if (savedCount === 0) {
+      return { status: 'none', variant: 'secondary', label: '未保存' };
+    } else if (savedCount === totalCount) {
+      return { status: 'all', variant: 'default', label: '已保存' };
+    } else {
+      const savedNames = savedSchools.map(s => s.school_name || '未知').join('、');
+      return {
+        status: 'partial',
+        variant: 'outline',
+        label: `部分保存 (${savedCount}/${totalCount})`,
+        title: `已保存：${savedNames}`
+      };
+    }
+  };
+
   const confirmFetchExams = async () => {
     try {
       setError(null);
@@ -558,14 +583,14 @@ const ExamsPage: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        // 普通考试：单一状态
-                        <Badge variant={exam.is_saved ? 'default' : 'secondary'} className="text-xs">
-                          {exam.is_saved ? (
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                        // 普通考试：使用统一的保存状态判断逻辑
+                        <Badge variant={getExamSaveStatus(exam).variant} title={getExamSaveStatus(exam).title} className="text-xs flex items-center space-x-1">
+                          {getExamSaveStatus(exam).status === 'all' ? (
+                            <CheckCircle2 className="h-3 w-3" />
                           ) : (
-                            <Clock className="h-3 w-3 mr-1" />
+                            <Clock className="h-3 w-3" />
                           )}
-                          {exam.is_saved ? '已保存' : '未保存'}
+                          <span>{getExamSaveStatus(exam).label}</span>
                         </Badge>
                       )}
                     </div>
