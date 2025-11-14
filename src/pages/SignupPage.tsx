@@ -59,12 +59,6 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    // if (formData.password.length < 6) {
-    //   setError('密码长度不能少于6位');
-    //   setIsLoading(false);
-    //   return;
-    // }
-
     try {
       await signup(formData.username, formData.password, formData.email, isTurnstileEnabled ? turnstileToken : undefined);
       navigate('/');

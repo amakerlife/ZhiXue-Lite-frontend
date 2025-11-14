@@ -35,7 +35,7 @@ export const trackAnalyticsEvent = (eventName: string, properties?: Record<strin
     if (config.clarity.enabled && window.clarity && typeof window.clarity === 'function') {
       window.clarity('event', eventName);
     }
-  } catch (error) {
-    console.warn('Event tracking error:', error);
+  } catch {
+    // Silently fail if analytics tracking fails
   }
 };

@@ -168,8 +168,7 @@ const ProfilePage: React.FC = () => {
       if (response.data.success) {
         setBindingInfo(response.data.binding_info);
       }
-    } catch (err: unknown) {
-      console.error('获取绑定信息失败:', err);
+    } catch {
       // 如果获取失败，不显示错误给用户，只是不显示绑定信息
       setBindingInfo([]);
     } finally {

@@ -76,8 +76,8 @@ export const useAnalytics = () => {
             };
             window.gtag('js', new Date());
             window.gtag('config', config.ga.trackingId);
-          } catch (gaError) {
-            console.warn('Failed to initialize Google Analytics:', gaError);
+          } catch {
+            // Silently fail if Google Analytics initialization fails
           }
         }
 
@@ -90,8 +90,8 @@ export const useAnalytics = () => {
           script.setAttribute('data-website-id', config.umami.websiteId);
           document.head.appendChild(script);
         }
-      } catch (error) {
-        console.warn('Analytics initialization error:', error);
+      } catch {
+        // Silently fail if analytics initialization fails
       }
     };
 
@@ -115,8 +115,8 @@ export const useAnalytics = () => {
       if (config.clarity.enabled && window.clarity && typeof window.clarity === 'function') {
         window.clarity('event', eventName);
       }
-    } catch (error) {
-      console.warn('Event tracking error:', error);
+    } catch {
+      // Silently fail if event tracking fails
     }
   };
 
@@ -131,8 +131,8 @@ export const useAnalytics = () => {
       }
 
       // Umami automatically tracks page views
-    } catch (error) {
-      console.warn('Page view tracking error:', error);
+    } catch {
+      // Silently fail if page view tracking fails
     }
   };
 

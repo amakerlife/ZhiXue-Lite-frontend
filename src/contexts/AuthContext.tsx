@@ -130,9 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           had_zhixue: !!currentUser.zhixue_info?.username
         });
       }
-    } catch (error) {
-      console.error('Logout error:', error);
-
+    } catch {
       if (currentUser) {
         trackAnalyticsEvent('user_logout_failed', {
           username: currentUser.username,
@@ -188,8 +186,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initAuth = async () => {
       try {
         await refreshUser();
-      } catch (error) {
-        console.error('Init auth error:', error);
+      } catch {
+        // Error handling is done by API interceptor
       } finally {
         setIsLoading(false);
       }
@@ -201,11 +199,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 监听连接恢复事件，重连成功后刷新用户状态
   useEffect(() => {
     const handleConnectionRecovered = async () => {
-      console.log('Connection recovered, refreshing user state...');
       try {
         await refreshUser();
-      } catch (error) {
-        console.error('Failed to refresh user after connection recovery:', error);
+      } catch {
+        // Error handling is done by API interceptor
       }
     };
 
@@ -219,7 +216,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 监听账号被封禁事件
   useEffect(() => {
     const handleAccountBanned = () => {
-      console.log('Account banned, logging out...');
       setUser(null);
       setIsBanned(true);
     };

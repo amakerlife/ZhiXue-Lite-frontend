@@ -92,11 +92,11 @@ const Header: React.FC = () => {
                 )
               );
             }
-          }).catch(error => {
-            console.warn('Failed to fetch exam name for breadcrumb:', error);
+          }).catch(() => {
+            // Silently fail if exam name cannot be fetched
           });
-        } catch (error) {
-          console.warn('Failed to fetch exam name for breadcrumb:', error);
+        } catch {
+          // Silently fail if exam name cannot be fetched
         }
       }
 
@@ -119,8 +119,7 @@ const Header: React.FC = () => {
     try {
       await logout();
       navigate('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch {
       navigate('/');
     }
   };
@@ -130,9 +129,8 @@ const Header: React.FC = () => {
     try {
       await retryConnection();
       // 重试成功，提示会自动消失
-    } catch (error) {
+    } catch {
       // 重试失败，错误信息已在Context中更新
-      console.error('Connection retry failed:', error);
     } finally {
       setIsRetrying(false);
     }
@@ -170,7 +168,6 @@ const Header: React.FC = () => {
       await exitSu();
       navigate('/admin'); // 退出 su 后跳转回管理页面
     } catch (error) {
-      console.error('Exit su failed:', error);
       alert(error instanceof Error ? error.message : '退出 su 模式失败');
     } finally {
       setIsExitingSu(false);

@@ -112,7 +112,6 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
         setError(response.data.message || '加载配置参数失败');
       }
     } catch (error: any) {
-      console.error('Failed to load selections:', error);
       setError(error.response?.data?.message || '加载配置参数失败，请检查学校 ID 是否正确');
       setSelections(null);
     } finally {

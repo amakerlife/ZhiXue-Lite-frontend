@@ -63,7 +63,6 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
       // 重连成功后触发用户状态刷新事件
       window.dispatchEvent(new CustomEvent('connection-recovered'));
     } catch (error) {
-      console.error('Retry connection failed:', error);
       const errorMessage = getConnectionErrorMessage(error);
 
       // 只有真正的网络错误才更新连接错误状态
@@ -82,8 +81,6 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
   useEffect(() => {
     const handleConnectionError = (event: any) => {
       const error = event.detail;
-      console.error('Connection error detected:', error);
-
       setIsConnectionError(true);
       setConnectionError(getConnectionErrorMessage(error));
       setLastErrorTime(new Date());
@@ -92,7 +89,6 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
     const handleConnectionSuccess = () => {
       // 任何API请求成功时，自动清除连接异常状态
       if (isConnectionError) {
-        console.log('Connection recovered, clearing error state');
         setIsConnectionError(false);
         setConnectionError(null);
       }

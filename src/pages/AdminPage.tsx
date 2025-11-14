@@ -230,8 +230,8 @@ const UserManagement: React.FC = () => {
         setUsers(response.data.users);
         setTotalPages(response.data.pagination.pages);
       }
-    } catch (error) {
-      console.error('Failed to load users:', error);
+    } catch {
+      // Error handling is done by API interceptor
     } finally {
       setLoading(false);
     }
@@ -245,8 +245,8 @@ const UserManagement: React.FC = () => {
       if (response.data.success) {
         setSchools(response.data.schools);
       }
-    } catch (error) {
-      console.error('Failed to load schools:', error);
+    } catch {
+      // Error handling is done by API interceptor
     } finally {
       setLoadingSchools(false);
     }
@@ -893,8 +893,8 @@ const SchoolManagement: React.FC = () => {
         setSchools(response.data.schools);
         setTotalPages(response.data.pagination.pages);
       }
-    } catch (error) {
-      console.error('Failed to load schools:', error);
+    } catch {
+      // Error handling is done by API interceptor
     } finally {
       setLoading(false);
     }
@@ -1016,8 +1016,7 @@ const TeacherManagement: React.FC = () => {
         setTeachers(response.data.teachers);
         setTotalPages(response.data.pagination.pages);
       }
-    } catch (error) {
-      console.error('Failed to load teachers:', error);
+    } catch {
       setError('加载教师列表失败');
     } finally {
       setLoading(false);
@@ -1441,8 +1440,8 @@ const StudentManagement: React.FC = () => {
         setStudents(response.data.zhixue_accounts);
         setTotalPages(response.data.pagination.pages);
       }
-    } catch (error) {
-      console.error('Failed to load students:', error);
+    } catch {
+      // Error handling is done by API interceptor
     } finally {
       setLoading(false);
     }
@@ -1726,8 +1725,7 @@ const ExamManagement: React.FC = () => {
         setExams(response.data.exams);
         setTotalPages(response.data.pagination.pages);
       }
-    } catch (error) {
-      console.error('Failed to load exams:', error);
+    } catch {
       setError('加载考试列表失败');
     } finally {
       setLoading(false);

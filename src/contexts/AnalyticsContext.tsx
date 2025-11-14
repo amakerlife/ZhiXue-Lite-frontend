@@ -1,5 +1,5 @@
 import React, { createContext, useContext, type ReactNode } from 'react';
-import { useAnalytics } from '../hooks/useAnalytics';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface AnalyticsContextType {
   trackEvent: (eventName: string, properties?: Record<string, any>) => void;

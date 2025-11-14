@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { GitBranch } from 'lucide-react';
+import { GitBranch, Github } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -35,7 +35,18 @@ const Footer: React.FC = () => {
     }`}>
       <div className="container mx-auto py-4 px-4 max-w-7xl">
         <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-          <p>© {currentYear} Makerlife</p>
+          <div className="flex items-center gap-2">
+            <p>© {currentYear} Makerlife</p>
+            <a
+              href="https://github.com/amakerlife/ZhiXue-Lite-frontend"
+              target="_blank"
+              rel="noopener"
+              className="hover:text-foreground transition-colors"
+              aria-label="GitHub"
+            >
+              <Github className="w-4 h-4" />
+            </a>
+          </div>
           <span>|</span>
           <Link
             to="/privacy-policy"
@@ -65,7 +76,14 @@ const Footer: React.FC = () => {
                 {commitHash && commitHash !== 'unknown' && (
                   <>
                     {' '}(<GitBranch className="inline-block w-3 h-3" />
-                    {commitHash})
+                    <a
+                      href={`https://github.com/amakerlife/ZhiXue-Lite-frontend/commit/${commitHash}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="hover:text-foreground hover:underline transition-colors"
+                    >
+                      {commitHash}
+                    </a>)
                   </>
                 )}
               </span>
