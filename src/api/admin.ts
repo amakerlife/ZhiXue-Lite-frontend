@@ -48,6 +48,10 @@ export interface AdminUser {
     school_name?: string;
     school_id?: string;
   };
+  su_info?: {               // 新增：su 模式信息（仅管理员返回）
+    is_su_mode: boolean;
+    original_user_username?: string;
+  };
 }
 
 export interface AdminExam {

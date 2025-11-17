@@ -46,17 +46,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authAPI.getCurrentUser();
       if (response.data.success) {
-        // 后端直接返回 user 字段，不是包装在 data 中
         setUser(response.data.user);
-        // 检查是否为管理员且当前用户角色为 user，可能处于 su 模式
-        // 注意：这是一个简单的启发式检测，实际 su 状态由后端 session 管理
-        const storedSuMode = sessionStorage.getItem('su_mode') === 'true';
-        setIsSuMode(storedSuMode);
+        // 从后端返回的 su_info 获取真实的 su 状态（仅管理员会返回此字段）
+        const backendSuMode = response.data.user.su_info?.is_su_mode || false;
+        setIsSuMode(backendSuMode);
       }
     } catch {
       setUser(null);
       setIsSuMode(false);
-      sessionStorage.removeItem('su_mode');
     }
   };
 
@@ -140,17 +137,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setUser(null);
       setIsSuMode(false);
-      sessionStorage.removeItem('su_mode');
     }
   };
 
   const switchUser = async (username: string) => {
     try {
       const response = await adminAPI.switchUser(username);
-      if (response.data.success && response.data.user) {
-        setUser(response.data.user as User);
-        setIsSuMode(true);
-        sessionStorage.setItem('su_mode', 'true');
+      if (response.data.success) {
+        // 切换成功后，调用 refreshUser 获取包含 su_info 的完整用户数据
+        await refreshUser();
 
         trackAnalyticsEvent('admin_switch_user', {
           target_username: username,
@@ -167,10 +162,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const exitSu = async () => {
     try {
       const response = await adminAPI.exitSu();
-      if (response.data.success && response.data.user) {
-        setUser(response.data.user as User);
-        setIsSuMode(false);
-        sessionStorage.removeItem('su_mode');
+      if (response.data.success) {
+        // 退出成功后，调用 refreshUser 获取包含 su_info 的完整用户数据
+        await refreshUser();
 
         trackAnalyticsEvent('admin_exit_su', {});
       } else {

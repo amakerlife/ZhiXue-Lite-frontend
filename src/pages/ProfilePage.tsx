@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw, Lock, CheckCircle, XCircle, Send } from 'lucide-react';
+import { User, Mail, Calendar, Shield, Link2, Unlink, RefreshCw, Lock, CheckCircle, XCircle, Send, ShieldAlert, LogOut } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { trackAnalyticsEvent } from '@/utils/analytics';
 import { StatusAlert } from '@/components/StatusAlert';
 
 const ProfilePage: React.FC = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, isSuMode, exitSu } = useAuth();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +48,9 @@ const ProfilePage: React.FC = () => {
 
   // 新增：邮件验证相关状态
   const [resendingEmail, setResendingEmail] = useState(false);
+
+  // 新增：su 模式相关状态
+  const [exitingSu, setExitingSu] = useState(false);
 
   useEffect(() => {
     document.title = '个人中心 - ZhiXue Lite';
@@ -350,6 +353,23 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  // 新增：退出 su 模式
+  const handleExitSu = async () => {
+    setExitingSu(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await exitSu();
+      setSuccess('已退出 su 模式');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '退出 su 模式失败';
+      setError(errorMessage);
+    } finally {
+      setExitingSu(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="text-center py-8">
@@ -381,6 +401,39 @@ const ProfilePage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Su 模式信息显示 */}
+          {isSuMode && (
+            <div className="bg-orange-50 border border-orange-200 rounded-md p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <ShieldAlert className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-orange-900">您正处于 su 模式</p>
+                    <p className="text-sm text-orange-700 mt-1">
+                      {user.su_info?.original_user_username ? (
+                        <>
+                          原管理员账号: <span className="font-medium">{user.su_info.original_user_username}</span>
+                        </>
+                      ) : (
+                        '您正在以此用户的身份浏览系统'
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExitSu}
+                  disabled={exitingSu}
+                  className="text-orange-900 border-orange-300 hover:bg-orange-100 flex items-center space-x-1"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>{exitingSu ? '退出中...' : '退出 su 模式'}</span>
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">用户名</label>

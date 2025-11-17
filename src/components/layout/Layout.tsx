@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactNode } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { AlertCircle, X, ShieldAlert, LogOut, Mail } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
@@ -15,7 +15,6 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { isOpen, isMobile, close } = useSidebar();
   const { user, isSuMode, exitSu } = useAuth();
   const [showBanner, setShowBanner] = React.useState(true);
@@ -40,7 +39,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setExitingSu(true);
     try {
       await exitSu();
-      navigate('/admin'); // 退出后跳转回管理页面
     } catch (error) {
       console.error('Exit su failed:', error);
       alert(error instanceof Error ? error.message : '退出 su 模式失败');
@@ -77,7 +75,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <ShieldAlert className="h-5 w-5 text-orange-600 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-orange-900">
-                        您正在以 <span className="font-bold">{user.username}</span> 的身份浏览
+                        {user.su_info?.original_user_username ? (
+                          <>
+                            您（管理员 <span className="font-bold">{user.su_info.original_user_username}</span>）正在以 <span className="font-bold">{user.username}</span> 的身份浏览
+                          </>
+                        ) : (
+                          <>
+                            您正在以 <span className="font-bold">{user.username}</span> 的身份浏览
+                          </>
+                        )}
                       </p>
                       <p className="text-xs text-orange-700">
                         您当前处于 su 模式，请谨慎操作

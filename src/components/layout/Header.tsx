@@ -166,7 +166,6 @@ const Header: React.FC = () => {
     setIsExitingSu(true);
     try {
       await exitSu();
-      navigate('/admin'); // 退出 su 后跳转回管理页面
     } catch (error) {
       alert(error instanceof Error ? error.message : '退出 su 模式失败');
     } finally {
