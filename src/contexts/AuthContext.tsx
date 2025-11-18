@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { authAPI } from '@/api/auth';
-import { adminAPI } from '@/api/admin';
-import type { User } from '@/types/api';
-import { trackAnalyticsEvent } from '@/utils/analytics';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import { authAPI } from "@/api/auth";
+import { adminAPI } from "@/api/admin";
+import type { User } from "@/types/api";
+import { trackAnalyticsEvent } from "@/utils/analytics";
 
 interface AuthContextType {
   user: User | null;
@@ -11,9 +11,18 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isBanned: boolean;
   isSuMode: boolean;
-  login: (username: string, password: string, turnstileToken?: string) => Promise<void>;
+  login: (
+    username: string,
+    password: string,
+    turnstileToken?: string,
+  ) => Promise<void>;
   logout: () => Promise<void>;
-  signup: (username: string, password: string, email: string, turnstileToken?: string) => Promise<void>;
+  signup: (
+    username: string,
+    password: string,
+    email: string,
+    turnstileToken?: string,
+  ) => Promise<void>;
   refreshUser: () => Promise<void>;
   updateEmailVerified: () => void;
   clearBanned: () => void;
@@ -27,7 +36,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -57,59 +66,81 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const login = async (username: string, password: string, turnstile_token?: string) => {
+  const login = async (
+    username: string,
+    password: string,
+    turnstile_token?: string,
+  ) => {
     try {
-      const response = await authAPI.login({ username, password, turnstile_token });
+      const response = await authAPI.login({
+        username,
+        password,
+        turnstile_token,
+      });
       if (response.data.success) {
         // 后端直接返回 user 字段，不是包装在 data 中
         setUser(response.data.user);
 
-        trackAnalyticsEvent('user_login_success', {
+        trackAnalyticsEvent("user_login_success", {
           username: username,
           has_zhixue: !!response.data.user.zhixue_info?.username,
           user_role: response.data.user.role,
-          login_method: turnstile_token ? 'with_captcha' : 'without_captcha'
+          login_method: turnstile_token ? "with_captcha" : "without_captcha",
         });
       } else {
-        throw new Error(response.data.message || '登录失败');
+        throw new Error(response.data.message || "登录失败");
       }
     } catch (error: unknown) {
-      trackAnalyticsEvent('user_login_failed', {
+      trackAnalyticsEvent("user_login_failed", {
         username: username,
-        error_type: error instanceof Error ? 'api_error' : 'unknown_error',
-        has_captcha: !!turnstile_token
+        error_type: error instanceof Error ? "api_error" : "unknown_error",
+        has_captcha: !!turnstile_token,
       });
 
       // API拦截器已经提取了友好的错误消息，直接使用即可
-      const errorMessage = error instanceof Error ? error.message : '登录失败，请稍后重试';
+      const errorMessage =
+        error instanceof Error ? error.message : "登录失败，请稍后重试";
       throw new Error(errorMessage);
     }
   };
 
-  const signup = async (username: string, password: string, email: string, turnstile_token?: string) => {
+  const signup = async (
+    username: string,
+    password: string,
+    email: string,
+    turnstile_token?: string,
+  ) => {
     try {
-      const response = await authAPI.signup({ username, password, email, turnstile_token });
+      const response = await authAPI.signup({
+        username,
+        password,
+        email,
+        turnstile_token,
+      });
       if (response.data.success) {
         await refreshUser();
 
-        trackAnalyticsEvent('user_signup_success', {
+        trackAnalyticsEvent("user_signup_success", {
           username: username,
-          email_domain: email.split('@')[1],
-          registration_method: turnstile_token ? 'with_captcha' : 'without_captcha'
+          email_domain: email.split("@")[1],
+          registration_method: turnstile_token
+            ? "with_captcha"
+            : "without_captcha",
         });
       } else {
-        throw new Error(response.data.message || '注册失败');
+        throw new Error(response.data.message || "注册失败");
       }
     } catch (error: unknown) {
-      trackAnalyticsEvent('user_signup_failed', {
+      trackAnalyticsEvent("user_signup_failed", {
         username: username,
-        email_domain: email.split('@')[1],
-        error_type: error instanceof Error ? 'api_error' : 'unknown_error',
-        has_captcha: !!turnstile_token
+        email_domain: email.split("@")[1],
+        error_type: error instanceof Error ? "api_error" : "unknown_error",
+        has_captcha: !!turnstile_token,
       });
 
       // API拦截器已经提取了友好的错误消息，直接使用即可
-      const errorMessage = error instanceof Error ? error.message : '注册失败，请稍后重试';
+      const errorMessage =
+        error instanceof Error ? error.message : "注册失败，请稍后重试";
       throw new Error(errorMessage);
     }
   };
@@ -121,17 +152,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authAPI.logout();
 
       if (currentUser) {
-        trackAnalyticsEvent('user_logout_success', {
+        trackAnalyticsEvent("user_logout_success", {
           username: currentUser.username,
           user_role: currentUser.role,
-          had_zhixue: !!currentUser.zhixue_info?.username
+          had_zhixue: !!currentUser.zhixue_info?.username,
         });
       }
     } catch {
       if (currentUser) {
-        trackAnalyticsEvent('user_logout_failed', {
+        trackAnalyticsEvent("user_logout_failed", {
           username: currentUser.username,
-          error_type: 'api_error'
+          error_type: "api_error",
         });
       }
     } finally {
@@ -147,14 +178,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 切换成功后，调用 refreshUser 获取包含 su_info 的完整用户数据
         await refreshUser();
 
-        trackAnalyticsEvent('admin_switch_user', {
+        trackAnalyticsEvent("admin_switch_user", {
           target_username: username,
         });
       } else {
-        throw new Error(response.data.message || '切换用户失败');
+        throw new Error(response.data.message || "切换用户失败");
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '切换用户失败，请稍后重试';
+      const errorMessage =
+        error instanceof Error ? error.message : "切换用户失败，请稍后重试";
       throw new Error(errorMessage);
     }
   };
@@ -166,12 +198,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 退出成功后，调用 refreshUser 获取包含 su_info 的完整用户数据
         await refreshUser();
 
-        trackAnalyticsEvent('admin_exit_su', {});
+        trackAnalyticsEvent("admin_exit_su", {});
       } else {
-        throw new Error(response.data.message || '退出 su 模式失败');
+        throw new Error(response.data.message || "退出 su 模式失败");
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '退出 su 模式失败，请稍后重试';
+      const errorMessage =
+        error instanceof Error ? error.message : "退出 su 模式失败，请稍后重试";
       throw new Error(errorMessage);
     }
   };
@@ -200,10 +233,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    window.addEventListener('connection-recovered', handleConnectionRecovered);
+    window.addEventListener("connection-recovered", handleConnectionRecovered);
 
     return () => {
-      window.removeEventListener('connection-recovered', handleConnectionRecovered);
+      window.removeEventListener(
+        "connection-recovered",
+        handleConnectionRecovered,
+      );
     };
   }, [refreshUser]);
 
@@ -214,10 +250,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsBanned(true);
     };
 
-    window.addEventListener('account-banned', handleAccountBanned);
+    window.addEventListener("account-banned", handleAccountBanned);
 
     return () => {
-      window.removeEventListener('account-banned', handleAccountBanned);
+      window.removeEventListener("account-banned", handleAccountBanned);
     };
   }, []);
 
@@ -229,7 +265,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (user) {
       setUser({
         ...user,
-        email_verified: true
+        email_verified: true,
       });
     }
   };
@@ -250,9 +286,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     exitSu,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

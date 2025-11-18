@@ -1,12 +1,13 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -22,10 +23,12 @@ const isConnectionError = (error: unknown): boolean => {
   }
 
   // 检查具体的网络错误类型
-  if (axiosError.code === 'NETWORK_ERROR' ||
-      axiosError.code === 'ECONNREFUSED' ||
-      axiosError.code === 'ENOTFOUND' ||
-      axiosError.code === 'ETIMEDOUT') {
+  if (
+    axiosError.code === "NETWORK_ERROR" ||
+    axiosError.code === "ECONNREFUSED" ||
+    axiosError.code === "ENOTFOUND" ||
+    axiosError.code === "ETIMEDOUT"
+  ) {
     return true;
   }
 
@@ -35,30 +38,42 @@ const isConnectionError = (error: unknown): boolean => {
 api.interceptors.response.use(
   (response) => {
     // 请求成功，触发连接恢复事件
-    window.dispatchEvent(new CustomEvent('connection-success'));
+    window.dispatchEvent(new CustomEvent("connection-success"));
     return response;
   },
   (error) => {
     // 检查是否是连接异常
     if (isConnectionError(error)) {
       // 触发全局连接异常状态
-      window.dispatchEvent(new CustomEvent('connection-error', { detail: error }));
+      window.dispatchEvent(
+        new CustomEvent("connection-error", { detail: error }),
+      );
     }
 
     // 检查是否是账号被封禁（403 且 code 为 account_banned）
-    if (error.response?.status === 403 && error.response?.data?.code === 'account_banned') {
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.code === "account_banned"
+    ) {
       // 触发账号被封禁事件
-      window.dispatchEvent(new CustomEvent('account-banned', {
-        detail: { message: error.response.data?.message }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("account-banned", {
+          detail: { message: error.response.data?.message },
+        }),
+      );
     }
 
     // 检查是否是邮箱未验证（403 且 code 为 email_not_verified）
-    if (error.response?.status === 403 && error.response?.data?.code === 'email_not_verified') {
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.code === "email_not_verified"
+    ) {
       // 触发邮箱未验证事件
-      window.dispatchEvent(new CustomEvent('email-not-verified', {
-        detail: { message: error.response.data?.message }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("email-not-verified", {
+          detail: { message: error.response.data?.message },
+        }),
+      );
     }
 
     // 提取后端返回的友好错误消息
@@ -68,7 +83,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

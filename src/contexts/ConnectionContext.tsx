@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { ReactNode } from 'react';
-import api from '@/api/client';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import type { ReactNode } from "react";
+import api from "@/api/client";
 
 interface ConnectionContextType {
   isConnectionError: boolean;
@@ -9,12 +15,14 @@ interface ConnectionContextType {
   lastErrorTime: Date | null;
 }
 
-const ConnectionContext = createContext<ConnectionContextType | undefined>(undefined);
+const ConnectionContext = createContext<ConnectionContextType | undefined>(
+  undefined,
+);
 
 export const useConnection = () => {
   const context = useContext(ConnectionContext);
   if (context === undefined) {
-    throw new Error('useConnection must be used within a ConnectionProvider');
+    throw new Error("useConnection must be used within a ConnectionProvider");
   }
   return context;
 };
@@ -30,24 +38,26 @@ const getConnectionErrorMessage = (error: unknown): string => {
   if (!axiosError.response) {
     // 真正的网络连接失败
     switch (axiosError.code) {
-      case 'NETWORK_ERROR':
-        return '网络连接失败，请检查网络设置';
-      case 'ECONNREFUSED':
-        return '服务器拒绝连接，请稍后重试';
-      case 'ENOTFOUND':
-        return '无法找到服务器，请检查网络连接';
-      case 'ETIMEDOUT':
-        return '连接超时，请检查网络连接';
+      case "NETWORK_ERROR":
+        return "网络连接失败，请检查网络设置";
+      case "ECONNREFUSED":
+        return "服务器拒绝连接，请稍后重试";
+      case "ENOTFOUND":
+        return "无法找到服务器，请检查网络连接";
+      case "ETIMEDOUT":
+        return "连接超时，请检查网络连接";
       default:
-        return '网络连接异常，请稍后重试';
+        return "网络连接异常，请稍后重试";
     }
   }
 
   // 有response说明连接正常，不应该作为连接错误处理
-  return '';
+  return "";
 };
 
-export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children }) => {
+export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({
+  children,
+}) => {
   const [isConnectionError, setIsConnectionError] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [lastErrorTime, setLastErrorTime] = useState<Date | null>(null);
@@ -55,13 +65,13 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
   const retryConnection = useCallback(async () => {
     try {
       // 使用专门的ping端点测试连接
-      await api.get('/ping', { timeout: 5000 });
+      await api.get("/ping", { timeout: 5000 });
       // 连接成功，清除错误状态
       setIsConnectionError(false);
       setConnectionError(null);
 
       // 重连成功后触发用户状态刷新事件
-      window.dispatchEvent(new CustomEvent('connection-recovered'));
+      window.dispatchEvent(new CustomEvent("connection-recovered"));
     } catch (error) {
       const errorMessage = getConnectionErrorMessage(error);
 
@@ -94,12 +104,12 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({ children
       }
     };
 
-    window.addEventListener('connection-error', handleConnectionError);
-    window.addEventListener('connection-success', handleConnectionSuccess);
+    window.addEventListener("connection-error", handleConnectionError);
+    window.addEventListener("connection-success", handleConnectionSuccess);
 
     return () => {
-      window.removeEventListener('connection-error', handleConnectionError);
-      window.removeEventListener('connection-success', handleConnectionSuccess);
+      window.removeEventListener("connection-error", handleConnectionError);
+      window.removeEventListener("connection-success", handleConnectionSuccess);
     };
   }, [isConnectionError]); // 依赖isConnectionError以确保事件处理器能访问最新状态
 

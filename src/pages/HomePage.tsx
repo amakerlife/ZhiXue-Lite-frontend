@@ -1,12 +1,18 @@
-import React, { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Users, School, TrendingUp } from 'lucide-react';
+import React, { useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { BookOpen, Users, School, TrendingUp } from "lucide-react";
 
 const HomePage: React.FC = () => {
   useEffect(() => {
-    document.title = '首页 - ZhiXue Lite';
+    document.title = "首页 - ZhiXue Lite";
     return () => {
-      document.title = 'ZhiXue Lite';
+      document.title = "ZhiXue Lite";
     };
   }, []);
   return (
@@ -32,9 +38,7 @@ const HomePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">
-                统计数据暂未实现
-              </p>
+              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
             </CardContent>
           </Card>
 
@@ -45,9 +49,7 @@ const HomePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">
-                统计数据暂未实现
-              </p>
+              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
             </CardContent>
           </Card>
 
@@ -58,9 +60,7 @@ const HomePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">
-                统计数据暂未实现
-              </p>
+              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
             </CardContent>
           </Card>
 
@@ -71,9 +71,7 @@ const HomePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">
-                统计数据暂未实现
-              </p>
+              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
             </CardContent>
           </Card>
         </div>

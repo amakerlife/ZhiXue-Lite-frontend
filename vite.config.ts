@@ -1,20 +1,20 @@
-import { defineConfig, loadEnv } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-import { execSync } from 'child_process'
+import { defineConfig, loadEnv } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import { execSync } from "child_process";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  const env = loadEnv(mode, process.cwd(), "");
 
   // 获取 Git commit hash
-  let commitHash = env.VITE_GIT_COMMIT_HASH || ''
+  let commitHash = env.VITE_GIT_COMMIT_HASH || "";
   if (!commitHash) {
     try {
-      commitHash = execSync('git rev-parse --short HEAD').toString().trim()
+      commitHash = execSync("git rev-parse --short HEAD").toString().trim();
     } catch (error) {
-      console.warn('无法获取 Git commit hash:', error)
-      commitHash = 'unknown'
+      console.warn("无法获取 Git commit hash:", error);
+      commitHash = "unknown";
     }
   }
 
@@ -34,9 +34,9 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: env.VITE_BACKEND_URL,
           changeOrigin: true,
-          rewrite: path => path.replace(/^\/api/, ''),
+          rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },
     },
-  }
-})
+  };
+});

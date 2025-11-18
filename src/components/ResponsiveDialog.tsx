@@ -1,5 +1,12 @@
-import React from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,7 +16,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   Drawer,
   DrawerClose,
@@ -18,12 +25,12 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from '@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
-import { useMediaQuery } from '@/hooks/use-media-query';
+} from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
-type DialogMode = 'default' | 'confirm' | 'alert';
-type DialogVariant = 'default' | 'destructive';
+type DialogMode = "default" | "confirm" | "alert";
+type DialogVariant = "default" | "destructive";
 
 interface ResponsiveDialogProps {
   // 基础属性
@@ -60,10 +67,10 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
   description,
   children,
   className,
-  mode = 'default',
-  variant = 'default',
-  confirmText = '确认',
-  cancelText = '取消',
+  mode = "default",
+  variant = "default",
+  confirmText = "确认",
+  cancelText = "取消",
   onConfirm,
   icon,
   footer,
@@ -88,7 +95,7 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
   };
 
   // Confirm/Alert 模式使用预设按钮
-  const isConfirmMode = mode === 'confirm' || mode === 'alert';
+  const isConfirmMode = mode === "confirm" || mode === "alert";
   const useAlertDialog = isConfirmMode && isDesktop;
 
   // 渲染 Footer
@@ -99,7 +106,7 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
     }
 
     // Confirm 模式预设按钮
-    if (mode === 'confirm') {
+    if (mode === "confirm") {
       if (isDesktop) {
         return (
           <>
@@ -108,9 +115,10 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
             </Button>
             <Button
               onClick={handleConfirm}
-              className={variant === 'destructive' ?
-                'bg-red-600 hover:bg-red-700 focus:ring-red-600' :
-                undefined
+              className={
+                variant === "destructive"
+                  ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                  : undefined
               }
             >
               {confirmText}
@@ -122,9 +130,10 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
           <>
             <Button
               onClick={handleConfirm}
-              className={variant === 'destructive' ?
-                'bg-red-600 hover:bg-red-700 focus:ring-red-600' :
-                undefined
+              className={
+                variant === "destructive"
+                  ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                  : undefined
               }
             >
               {confirmText}
@@ -138,13 +147,14 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
     }
 
     // Alert 模式单按钮
-    if (mode === 'alert') {
+    if (mode === "alert") {
       return (
         <Button
           onClick={handleConfirm}
-          className={variant === 'destructive' ?
-            'bg-red-600 hover:bg-red-700 focus:ring-red-600' :
-            undefined
+          className={
+            variant === "destructive"
+              ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              : undefined
           }
         >
           {confirmText}
@@ -185,19 +195,18 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
                 {title}
               </AlertDialogTitle>
               {description && (
-                <AlertDialogDescription>
-                  {description}
-                </AlertDialogDescription>
+                <AlertDialogDescription>{description}</AlertDialogDescription>
               )}
             </AlertDialogHeader>
             {children}
             <AlertDialogFooter>
-              {mode === 'alert' ? (
+              {mode === "alert" ? (
                 <AlertDialogAction
                   onClick={handleConfirm}
-                  className={variant === 'destructive' ?
-                    'bg-red-600 hover:bg-red-700 focus:ring-red-600' :
-                    undefined
+                  className={
+                    variant === "destructive"
+                      ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                      : undefined
                   }
                 >
                   {confirmText}
@@ -207,9 +216,10 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
                   <AlertDialogCancel>{cancelText}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleConfirm}
-                    className={variant === 'destructive' ?
-                      'bg-red-600 hover:bg-red-700 focus:ring-red-600' :
-                      undefined
+                    className={
+                      variant === "destructive"
+                        ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                        : undefined
                     }
                   >
                     {confirmText}
@@ -228,10 +238,12 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
         <DialogContent className={className} showCloseButton={showCloseButton}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            {description && <DialogDescription>{description}</DialogDescription>}
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
           </DialogHeader>
           {children}
-          {(footer || showDefaultFooter || mode !== 'default') && (
+          {(footer || showDefaultFooter || mode !== "default") && (
             <DialogFooter>{renderFooter(true)}</DialogFooter>
           )}
         </DialogContent>
@@ -254,13 +266,9 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
             </DrawerDescription>
           )}
         </DrawerHeader>
-        <div className="px-4 max-h-[60vh] overflow-y-auto">
-          {children}
-        </div>
+        <div className="px-4 max-h-[60vh] overflow-y-auto">{children}</div>
         {(footer || showDefaultFooter || isConfirmMode) && (
-          <DrawerFooter className="pt-2">
-            {renderFooter(false)}
-          </DrawerFooter>
+          <DrawerFooter className="pt-2">{renderFooter(false)}</DrawerFooter>
         )}
       </DrawerContent>
     </Drawer>

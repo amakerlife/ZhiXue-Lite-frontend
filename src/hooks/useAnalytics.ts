@@ -1,19 +1,19 @@
-import { useEffect } from 'react';
-import type { AnalyticsConfig } from '@/types/analytics';
+import { useEffect } from "react";
+import type { AnalyticsConfig } from "@/types/analytics";
 
 const config: AnalyticsConfig = {
   clarity: {
-    enabled: import.meta.env.VITE_CLARITY_ENABLED === 'true',
-    projectId: import.meta.env.VITE_CLARITY_PROJECT_ID || '',
+    enabled: import.meta.env.VITE_CLARITY_ENABLED === "true",
+    projectId: import.meta.env.VITE_CLARITY_PROJECT_ID || "",
   },
   ga: {
-    enabled: import.meta.env.VITE_GA_ENABLED === 'true',
-    trackingId: import.meta.env.VITE_GA_TRACKING_ID || '',
+    enabled: import.meta.env.VITE_GA_ENABLED === "true",
+    trackingId: import.meta.env.VITE_GA_TRACKING_ID || "",
   },
   umami: {
-    enabled: import.meta.env.VITE_UMAMI_ENABLED === 'true',
-    websiteId: import.meta.env.VITE_UMAMI_WEBSITE_ID || '',
-    scriptUrl: import.meta.env.VITE_UMAMI_SCRIPT_URL || '',
+    enabled: import.meta.env.VITE_UMAMI_ENABLED === "true",
+    websiteId: import.meta.env.VITE_UMAMI_WEBSITE_ID || "",
+    scriptUrl: import.meta.env.VITE_UMAMI_SCRIPT_URL || "",
   },
 };
 
@@ -26,12 +26,13 @@ export const useAnalytics = () => {
           return;
         }
 
-        const script = document.createElement('script');
+        const script = document.createElement("script");
         script.id = id;
         script.src = src;
         script.async = true;
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        script.onerror = () =>
+          reject(new Error(`Failed to load script: ${src}`));
         document.head.appendChild(script);
       });
     };
@@ -42,7 +43,7 @@ export const useAnalytics = () => {
         if (config.clarity.enabled && config.clarity.projectId) {
           // 初始化 window.clarity 对象以避免 undefined 错误
           if (!window.clarity) {
-            window.clarity = function(action: string, ...args: any[]) {
+            window.clarity = function (action: string, ...args: any[]) {
               // 创建一个队列来存储在实际脚本加载前的调用
               if (window.clarity) {
                 window.clarity.q = window.clarity.q || [];
@@ -55,8 +56,8 @@ export const useAnalytics = () => {
           }
 
           // 使用同步方式加载 Clarity 脚本以确保正确的执行顺序
-          const script = document.createElement('script');
-          script.id = 'clarity-script';
+          const script = document.createElement("script");
+          script.id = "clarity-script";
           script.src = `https://www.clarity.ms/tag/${config.clarity.projectId}`;
           script.async = false; // 使用同步加载而不是异步
           document.head.appendChild(script);
@@ -67,27 +68,31 @@ export const useAnalytics = () => {
           try {
             await loadScript(
               `https://www.googletagmanager.com/gtag/js?id=${config.ga.trackingId}`,
-              'ga-script'
+              "ga-script",
             );
 
             window.dataLayer = window.dataLayer || [];
             window.gtag = function gtag(...args: any[]) {
               window.dataLayer!.push(args);
             };
-            window.gtag('js', new Date());
-            window.gtag('config', config.ga.trackingId);
+            window.gtag("js", new Date());
+            window.gtag("config", config.ga.trackingId);
           } catch {
             // Silently fail if Google Analytics initialization fails
           }
         }
 
         // Initialize Umami
-        if (config.umami.enabled && config.umami.scriptUrl && config.umami.websiteId) {
-          const script = document.createElement('script');
-          script.id = 'umami-script';
+        if (
+          config.umami.enabled &&
+          config.umami.scriptUrl &&
+          config.umami.websiteId
+        ) {
+          const script = document.createElement("script");
+          script.id = "umami-script";
           script.src = config.umami.scriptUrl;
           script.async = true;
-          script.setAttribute('data-website-id', config.umami.websiteId);
+          script.setAttribute("data-website-id", config.umami.websiteId);
           document.head.appendChild(script);
         }
       } catch {
@@ -102,7 +107,7 @@ export const useAnalytics = () => {
     try {
       // Track with Google Analytics
       if (config.ga.enabled && window.gtag) {
-        window.gtag('event', eventName, properties);
+        window.gtag("event", eventName, properties);
       }
 
       // Track with Umami
@@ -112,8 +117,12 @@ export const useAnalytics = () => {
 
       // Clarity automatically tracks events, but we can send custom events
       // 确保 clarity 对象存在且有效再调用
-      if (config.clarity.enabled && window.clarity && typeof window.clarity === 'function') {
-        window.clarity('event', eventName);
+      if (
+        config.clarity.enabled &&
+        window.clarity &&
+        typeof window.clarity === "function"
+      ) {
+        window.clarity("event", eventName);
       }
     } catch {
       // Silently fail if event tracking fails
@@ -124,7 +133,7 @@ export const useAnalytics = () => {
     try {
       // Track with Google Analytics
       if (config.ga.enabled && window.gtag) {
-        window.gtag('config', config.ga.trackingId, {
+        window.gtag("config", config.ga.trackingId, {
           page_path: path,
           page_title: title,
         });

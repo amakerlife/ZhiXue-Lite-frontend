@@ -1,6 +1,6 @@
 /**
  * 日期时间工具函数
- * 
+ *
  * 后端存储UTC时间但isoformat()返回不带时区标识的ISO字符串
  * 需要手动处理时区转换
  */
@@ -12,7 +12,7 @@
  */
 export const parseUTCIsoString = (isoString: string): Date => {
   // 后端返回的是UTC时间但没有Z标识，需要手动添加Z来明确指定UTC
-  return new Date(isoString + 'Z');
+  return new Date(isoString + "Z");
 };
 
 /**
@@ -22,13 +22,13 @@ export const parseUTCIsoString = (isoString: string): Date => {
  */
 export const formatUTCIsoToLocal = (isoString: string): string => {
   const date = parseUTCIsoString(isoString);
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 };
 
@@ -39,10 +39,10 @@ export const formatUTCIsoToLocal = (isoString: string): string => {
  */
 export const formatUTCIsoToLocalDate = (isoString: string): string => {
   const date = parseUTCIsoString(isoString);
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
 };
 
@@ -53,9 +53,9 @@ export const formatUTCIsoToLocalDate = (isoString: string): string => {
  */
 export const formatTimestampToLocalDate = (timestamp: number): string => {
   const date = new Date(timestamp);
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
 };

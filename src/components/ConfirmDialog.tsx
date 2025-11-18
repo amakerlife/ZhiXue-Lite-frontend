@@ -1,5 +1,5 @@
-import React from 'react';
-import { ResponsiveDialog } from '@/components/ResponsiveDialog';
+import React from "react";
+import { ResponsiveDialog } from "@/components/ResponsiveDialog";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -8,7 +8,7 @@ interface ConfirmDialogProps {
   description: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
-  variant?: 'default' | 'destructive';
+  variant?: "default" | "destructive";
   onConfirm: () => void;
 }
 
@@ -19,8 +19,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   description,
   confirmText = "确认",
   cancelText = "取消",
-  variant = 'default',
-  onConfirm
+  variant = "default",
+  onConfirm,
 }) => {
   return (
     <ResponsiveDialog

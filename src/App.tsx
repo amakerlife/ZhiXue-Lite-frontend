@@ -1,29 +1,34 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { AnalyticsProvider } from '@/contexts/AnalyticsContext';
-import { ExamProvider } from '@/contexts/ExamContext';
-import { ConnectionProvider } from '@/contexts/ConnectionContext';
-import { SidebarProvider } from '@/contexts/SidebarContext';
-import Header from '@/components/layout/Header';
-import Layout from '@/components/layout/Layout';
-import HomePage from '@/pages/HomePage';
-import LoginPage from '@/pages/LoginPage';
-import SignupPage from '@/pages/SignupPage';
-import ExamsPage from '@/pages/ExamsPage';
-import ExamDetailPage from '@/pages/ExamDetailPage';
-import TasksPage from '@/pages/TasksPage';
-import ProfilePage from '@/pages/ProfilePage';
-import AdminPage from '@/pages/AdminPage';
-import DataViewerPage from '@/pages/DataViewerPage';
-import VerifyEmailPage from '@/pages/VerifyEmailPage';
-import AboutPage from '@/pages/AboutPage';
-import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
-import DataDeletionPage from '@/pages/DataDeletionPage';
-import DisclaimerPage from '@/pages/DisclaimerPage';
-import NotFoundPage from '@/pages/NotFoundPage';
-import { ResponsiveDialog } from '@/components/ResponsiveDialog';
-import { AlertCircle, Mail } from 'lucide-react';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
+import { ExamProvider } from "@/contexts/ExamContext";
+import { ConnectionProvider } from "@/contexts/ConnectionContext";
+import { SidebarProvider } from "@/contexts/SidebarContext";
+import Header from "@/components/layout/Header";
+import Layout from "@/components/layout/Layout";
+import HomePage from "@/pages/HomePage";
+import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import ExamsPage from "@/pages/ExamsPage";
+import ExamDetailPage from "@/pages/ExamDetailPage";
+import TasksPage from "@/pages/TasksPage";
+import ProfilePage from "@/pages/ProfilePage";
+import AdminPage from "@/pages/AdminPage";
+import DataViewerPage from "@/pages/DataViewerPage";
+import VerifyEmailPage from "@/pages/VerifyEmailPage";
+import AboutPage from "@/pages/AboutPage";
+import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
+import DataDeletionPage from "@/pages/DataDeletionPage";
+import DisclaimerPage from "@/pages/DisclaimerPage";
+import NotFoundPage from "@/pages/NotFoundPage";
+import { ResponsiveDialog } from "@/components/ResponsiveDialog";
+import { AlertCircle, Mail } from "lucide-react";
 
 // 账号被封禁弹窗组件
 const BannedAccountDialog: React.FC = () => {
@@ -32,7 +37,7 @@ const BannedAccountDialog: React.FC = () => {
 
   const handleGoToLogin = () => {
     clearBanned();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -61,16 +66,16 @@ const EmailNotVerifiedDialog: React.FC = () => {
       setIsOpen(true);
     };
 
-    window.addEventListener('email-not-verified', handleEmailNotVerified);
+    window.addEventListener("email-not-verified", handleEmailNotVerified);
 
     return () => {
-      window.removeEventListener('email-not-verified', handleEmailNotVerified);
+      window.removeEventListener("email-not-verified", handleEmailNotVerified);
     };
   }, []);
 
   const handleGoToProfile = () => {
     setIsOpen(false);
-    navigate('/profile');
+    navigate("/profile");
   };
 
   return (
@@ -111,8 +116,14 @@ const App: React.FC = () => {
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/admin" element={<AdminPage />} />
                     <Route path="/about" element={<AboutPage />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                    <Route path="/data-deletion" element={<DataDeletionPage />} />
+                    <Route
+                      path="/privacy-policy"
+                      element={<PrivacyPolicyPage />}
+                    />
+                    <Route
+                      path="/data-deletion"
+                      element={<DataDeletionPage />}
+                    />
                     <Route path="/disclaimer" element={<DisclaimerPage />} />
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>

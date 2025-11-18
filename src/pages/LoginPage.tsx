@@ -1,40 +1,46 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
-import Turnstile, { type TurnstileRef } from '@/components/ui/turnstile';
-import { StatusAlert } from '@/components/StatusAlert';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogIn, Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import Turnstile, { type TurnstileRef } from "@/components/ui/turnstile";
+import { StatusAlert } from "@/components/StatusAlert";
 
 const LoginPage: React.FC = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
 
   const { login } = useAuth();
   const navigate = useNavigate();
   const turnstileRef = useRef<TurnstileRef>(null);
 
   // 检查是否启用验证码
-  const isTurnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED === 'true';
+  const isTurnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED === "true";
 
   useEffect(() => {
-    document.title = '用户登录 - ZhiXue Lite';
+    document.title = "用户登录 - ZhiXue Lite";
     return () => {
-      document.title = 'ZhiXue Lite';
+      document.title = "ZhiXue Lite";
     };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
   };
 
@@ -45,20 +51,25 @@ const LoginPage: React.FC = () => {
 
     // 只在启用验证码时检查 token
     if (isTurnstileEnabled && !turnstileToken) {
-      setError('请完成验证码验证');
+      setError("请完成验证码验证");
       setIsLoading(false);
       return;
     }
 
     try {
-      await login(formData.username, formData.password, isTurnstileEnabled ? turnstileToken : undefined);
-      navigate('/');
+      await login(
+        formData.username,
+        formData.password,
+        isTurnstileEnabled ? turnstileToken : undefined,
+      );
+      navigate("/");
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '登录失败，请稍后重试';
+      const errorMessage =
+        err instanceof Error ? err.message : "登录失败，请稍后重试";
       setError(errorMessage);
       // 重置验证码
       if (isTurnstileEnabled) {
-        setTurnstileToken('');
+        setTurnstileToken("");
         turnstileRef.current?.reset();
       }
     } finally {
@@ -72,8 +83,8 @@ const LoginPage: React.FC = () => {
   }, []);
 
   const handleTurnstileError = useCallback(() => {
-    setTurnstileToken('');
-    setError('验证码验证失败，请重试');
+    setTurnstileToken("");
+    setError("验证码验证失败，请重试");
     // 自动重置验证码
     turnstileRef.current?.reset();
   }, []);
@@ -86,9 +97,7 @@ const LoginPage: React.FC = () => {
             <LogIn className="h-6 w-6 text-primary" />
             <span>用户登录</span>
           </CardTitle>
-          <CardDescription>
-            欢迎回来
-          </CardDescription>
+          <CardDescription>欢迎回来</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -118,7 +127,7 @@ const LoginPage: React.FC = () => {
                 <Input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="请输入密码"
@@ -144,12 +153,13 @@ const LoginPage: React.FC = () => {
 
             {isTurnstileEnabled && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  安全验证
-                </label>
+                <label className="text-sm font-medium">安全验证</label>
                 <Turnstile
                   ref={turnstileRef}
-                  siteKey={import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+                  siteKey={
+                    import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY ||
+                    "1x00000000000000000000AA"
+                  }
                   onVerify={handleTurnstileVerify}
                   onError={handleTurnstileError}
                   theme="auto"
@@ -159,21 +169,14 @@ const LoginPage: React.FC = () => {
               </div>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? '登录中...' : '登录'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "登录中..." : "登录"}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">还没有账号？</span>
-            <Link
-              to="/signup"
-              className="ml-1 text-primary hover:underline"
-            >
+            <Link to="/signup" className="ml-1 text-primary hover:underline">
               立即注册
             </Link>
           </div>

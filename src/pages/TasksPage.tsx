@@ -1,15 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, CheckCircle2, XCircle, AlertCircle, RefreshCw, Filter } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { Pagination } from '@/components/Pagination';
-import { taskAPI } from '@/api/task';
-import { formatUTCIsoToLocal, parseUTCIsoString } from '@/utils/dateUtils';
-import { StatusAlert } from '@/components/StatusAlert';
-import type { BackgroundTask } from '@/types/api';
+import React, { useState, useEffect } from "react";
+import {
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+  Filter,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Pagination } from "@/components/Pagination";
+import { taskAPI } from "@/api/task";
+import { formatUTCIsoToLocal, parseUTCIsoString } from "@/utils/dateUtils";
+import { StatusAlert } from "@/components/StatusAlert";
+import type { BackgroundTask } from "@/types/api";
 
 const TasksPage: React.FC = () => {
   const [tasks, setTasks] = useState<BackgroundTask[]>([]);
@@ -18,13 +31,16 @@ const TasksPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [cancelDialog, setCancelDialog] = useState<{ open: boolean; taskUuid: string | null }>({
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [cancelDialog, setCancelDialog] = useState<{
+    open: boolean;
+    taskUuid: string | null;
+  }>({
     open: false,
-    taskUuid: null
+    taskUuid: null,
   });
 
-  const loadTasks = async (pageNum = 1, statusFilter = 'all') => {
+  const loadTasks = async (pageNum = 1, statusFilter = "all") => {
     try {
       setLoading(true);
       setError(null);
@@ -32,7 +48,7 @@ const TasksPage: React.FC = () => {
         page: pageNum,
         per_page: 10,
       };
-      if (statusFilter && statusFilter !== 'all') {
+      if (statusFilter && statusFilter !== "all") {
         params.status = statusFilter;
       }
       const response = await taskAPI.getUserTasks(params);
@@ -42,7 +58,9 @@ const TasksPage: React.FC = () => {
         setTotalTasks(response.data.pagination.total);
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取任务列表失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "获取任务列表失败";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -55,7 +73,7 @@ const TasksPage: React.FC = () => {
 
   const confirmCancelTask = async () => {
     if (!cancelDialog.taskUuid) return;
-    
+
     try {
       setError(null);
       const response = await taskAPI.cancelTask(cancelDialog.taskUuid);
@@ -63,7 +81,9 @@ const TasksPage: React.FC = () => {
         await loadTasks(page, statusFilter);
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '取消任务失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "取消任务失败";
       setError(errorMessage);
     }
   };
@@ -80,25 +100,25 @@ const TasksPage: React.FC = () => {
   };
 
   useEffect(() => {
-    document.title = '任务列表 - ZhiXue Lite';
+    document.title = "任务列表 - ZhiXue Lite";
     return () => {
-      document.title = 'ZhiXue Lite';
+      document.title = "ZhiXue Lite";
     };
   }, []);
 
   useEffect(() => {
-    loadTasks(1, 'all');
+    loadTasks(1, "all");
   }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'processing':
+      case "processing":
         return <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />;
-      case 'pending':
+      case "pending":
         return <Clock className="h-4 w-4 text-yellow-600" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-600" />;
@@ -107,16 +127,16 @@ const TasksPage: React.FC = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed':
-        return '已完成';
-      case 'failed':
-        return '失败';
-      case 'processing':
-        return '处理中';
-      case 'pending':
-        return '等待中';
-      case 'cancelled':
-        return '已取消';
+      case "completed":
+        return "已完成";
+      case "failed":
+        return "失败";
+      case "processing":
+        return "处理中";
+      case "pending":
+        return "等待中";
+      case "cancelled":
+        return "已取消";
       default:
         return status;
     }
@@ -124,32 +144,32 @@ const TasksPage: React.FC = () => {
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'default';
-      case 'failed':
-        return 'destructive';
-      case 'processing':
-        return 'secondary';
-      case 'pending':
-        return 'outline';
+      case "completed":
+        return "default";
+      case "failed":
+        return "destructive";
+      case "processing":
+        return "secondary";
+      case "pending":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const getTaskTypeText = (taskType: string) => {
     switch (taskType) {
-      case 'fetch_exam_list':
-        return '拉取考试列表';
-      case 'fetch_exam_details':
-        return '拉取考试详情';
+      case "fetch_exam_list":
+        return "拉取考试列表";
+      case "fetch_exam_details":
+        return "拉取考试详情";
       default:
         return taskType;
     }
   };
 
   const formatDuration = (startTime: string, endTime?: string) => {
-    if (!startTime) return 'N/A';
+    if (!startTime) return "N/A";
     // 使用正确的UTC时区解析
     const start = parseUTCIsoString(startTime);
     const end = endTime ? parseUTCIsoString(endTime) : new Date();
@@ -181,7 +201,11 @@ const TasksPage: React.FC = () => {
             查看和管理您的后台任务状态
           </p>
         </div>
-        <Button onClick={() => loadTasks(page, statusFilter)} variant="outline" size="sm">
+        <Button
+          onClick={() => loadTasks(page, statusFilter)}
+          variant="outline"
+          size="sm"
+        >
           <RefreshCw className="h-4 w-4 mr-2" />
           刷新
         </Button>
@@ -195,7 +219,10 @@ const TasksPage: React.FC = () => {
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">状态筛选:</span>
             </div>
-            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <Select
+              value={statusFilter}
+              onValueChange={handleStatusFilterChange}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="全部状态" />
               </SelectTrigger>
@@ -224,9 +251,7 @@ const TasksPage: React.FC = () => {
           <CardContent className="text-center py-12">
             <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">暂无任务</h3>
-            <p className="text-muted-foreground">
-              您还没有任何后台任务
-            </p>
+            <p className="text-muted-foreground">您还没有任何后台任务</p>
           </CardContent>
         </Card>
       ) : (
@@ -242,30 +267,44 @@ const TasksPage: React.FC = () => {
                     </CardTitle>
                     <div className="space-y-1">
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>ID: {task.id?.slice(0, 8) || 'N/A'}...</span>
+                        <span>ID: {task.id?.slice(0, 8) || "N/A"}...</span>
                         {/* 只有实际执行的任务才显示执行时间 */}
-                        {(['completed', 'processing'].includes(task.status)) && (
-                          <span>执行时间: {formatDuration(task.started_at || task.created_at, task.completed_at)}</span>
+                        {["completed", "processing"].includes(task.status) && (
+                          <span>
+                            执行时间:{" "}
+                            {formatDuration(
+                              task.started_at || task.created_at,
+                              task.completed_at,
+                            )}
+                          </span>
                         )}
-                        {task.progress > 0 && <span>进度: {task.progress} %</span>}
+                        {task.progress > 0 && (
+                          <span>进度: {task.progress} %</span>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        <span>创建: {formatUTCIsoToLocal(task.created_at)}</span>
+                        <span>
+                          创建: {formatUTCIsoToLocal(task.created_at)}
+                        </span>
                         {task.started_at && (
-                          <span className="ml-4">开始: {formatUTCIsoToLocal(task.started_at)}</span>
+                          <span className="ml-4">
+                            开始: {formatUTCIsoToLocal(task.started_at)}
+                          </span>
                         )}
                         {task.completed_at && (
-                          <span className="ml-4">完成: {formatUTCIsoToLocal(task.completed_at)}</span>
+                          <span className="ml-4">
+                            完成: {formatUTCIsoToLocal(task.completed_at)}
+                          </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Badge variant={getStatusVariant(task.status)}>
                       {getStatusText(task.status)}
                     </Badge>
-                    {task.status === 'pending' && (
+                    {task.status === "pending" && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -279,7 +318,9 @@ const TasksPage: React.FC = () => {
               </CardHeader>
 
               {task.progress_message && (
-                <CardContent className={task.error_message ? "pt-0 pb-3" : "pt-0"}>
+                <CardContent
+                  className={task.error_message ? "pt-0 pb-3" : "pt-0"}
+                >
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                     <p className="text-sm text-blue-800 break-words">
                       <strong>进度详情:</strong> {task.progress_message}
@@ -289,7 +330,9 @@ const TasksPage: React.FC = () => {
               )}
 
               {task.error_message && (
-                <CardContent className={task.progress_message ? "pt-0" : "pt-0"}>
+                <CardContent
+                  className={task.progress_message ? "pt-0" : "pt-0"}
+                >
                   <div className="bg-red-50 border border-red-200 rounded-md p-3">
                     <p className="text-sm text-red-800 break-words">
                       <strong>错误信息:</strong> {task.error_message}

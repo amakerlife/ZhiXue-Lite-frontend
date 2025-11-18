@@ -1,24 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronRight, User, LogIn, UserPlus, Menu, AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  ChevronRight,
+  User,
+  LogIn,
+  UserPlus,
+  Menu,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ResponsiveDialog } from '@/components/ResponsiveDialog';
-import { DrawerClose } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAuth } from '@/contexts/AuthContext';
-import { useSidebar } from '@/contexts/SidebarContext';
-import { useExam } from '@/contexts/ExamContext';
-import { useConnection } from '@/contexts/ConnectionContext';
-import { cn } from '@/lib/utils';
-import logo from '@/assets/logo.png';
+} from "@/components/ui/dropdown-menu";
+import { ResponsiveDialog } from "@/components/ResponsiveDialog";
+import { DrawerClose } from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { useExam } from "@/contexts/ExamContext";
+import { useConnection } from "@/contexts/ConnectionContext";
+import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 interface BreadcrumbItem {
   name: string;
@@ -26,75 +34,90 @@ interface BreadcrumbItem {
 }
 
 const routeNameMap: Record<string, string> = {
-  '/': '首页',
-  '/exams': '考试列表',
-  '/data-viewer': '数据查看',
-  '/admin': '管理面板',
-  '/tasks': '任务列表',
-  '/profile': '个人中心',
-  '/login': '登录',
-  '/signup': '注册',
-  '/verify-email': '邮箱验证',
-  '/about': '关于',
-  '/privacy-policy': '隐私政策',
-  '/data-deletion': '数据删除请求',
-  '/disclaimer': '免责声明',
+  "/": "首页",
+  "/exams": "考试列表",
+  "/data-viewer": "数据查看",
+  "/admin": "管理面板",
+  "/tasks": "任务列表",
+  "/profile": "个人中心",
+  "/login": "登录",
+  "/signup": "注册",
+  "/verify-email": "邮箱验证",
+  "/about": "关于",
+  "/privacy-policy": "隐私政策",
+  "/data-deletion": "数据删除请求",
+  "/disclaimer": "免责声明",
 };
 
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading, logout, switchUser, isSuMode, exitSu } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    logout,
+    switchUser,
+    isSuMode,
+    exitSu,
+  } = useAuth();
   const { toggle } = useSidebar();
   const { getExamData } = useExam();
-  const { isConnectionError, connectionError, retryConnection } = useConnection();
+  const { isConnectionError, connectionError, retryConnection } =
+    useConnection();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([
-    { name: '首页', path: '/' }
+    { name: "首页", path: "/" },
   ]);
   const [isRetrying, setIsRetrying] = useState(false);
   const [showSuDialog, setShowSuDialog] = useState(false);
-  const [suUsername, setSuUsername] = useState('');
-  const [suError, setSuError] = useState('');
+  const [suUsername, setSuUsername] = useState("");
+  const [suError, setSuError] = useState("");
   const [isSwitching, setIsSwitching] = useState(false);
   const [isExitingSu, setIsExitingSu] = useState(false);
 
   // 不显示侧边栏的页面不显示菜单按钮
-  const noSidebarPages = ['/login', '/signup'];
+  const noSidebarPages = ["/login", "/signup"];
   const showMenuButton = !noSidebarPages.includes(location.pathname);
 
-  const generateBreadcrumbs = async (pathname: string): Promise<BreadcrumbItem[]> => {
-    const paths = pathname.split('/').filter(Boolean);
-    const breadcrumbs: BreadcrumbItem[] = [
-      { name: '首页', path: '/' }
-    ];
+  const generateBreadcrumbs = async (
+    pathname: string,
+  ): Promise<BreadcrumbItem[]> => {
+    const paths = pathname.split("/").filter(Boolean);
+    const breadcrumbs: BreadcrumbItem[] = [{ name: "首页", path: "/" }];
 
-    let currentPath = '';
+    let currentPath = "";
     for (const path of paths) {
       currentPath += `/${path}`;
       let name = routeNameMap[currentPath] || path;
 
       // 处理考试详情页面的动态路由
-      if (currentPath.startsWith('/exams/') && currentPath !== '/exams' && path !== 'exams') {
+      if (
+        currentPath.startsWith("/exams/") &&
+        currentPath !== "/exams" &&
+        path !== "exams"
+      ) {
         try {
           const examId = path;
           // 暂时使用 examId 作为显示名称
           name = examId;
 
           // 异步获取考试数据并更新面包屑（不递归调用 generateBreadcrumbs）
-          getExamData(examId).then(data => {
-            if (data) {
-              // 直接更新当前面包屑中的考试名称
-              setBreadcrumbs(prevBreadcrumbs =>
-                prevBreadcrumbs.map(item =>
-                  item.path === currentPath
-                    ? { ...item, name: data.name }
-                    : item
-                )
-              );
-            }
-          }).catch(() => {
-            // Silently fail if exam name cannot be fetched
-          });
+          getExamData(examId)
+            .then((data) => {
+              if (data) {
+                // 直接更新当前面包屑中的考试名称
+                setBreadcrumbs((prevBreadcrumbs) =>
+                  prevBreadcrumbs.map((item) =>
+                    item.path === currentPath
+                      ? { ...item, name: data.name }
+                      : item,
+                  ),
+                );
+              }
+            })
+            .catch(() => {
+              // Silently fail if exam name cannot be fetched
+            });
         } catch {
           // Silently fail if exam name cannot be fetched
         }
@@ -118,9 +141,9 @@ const Header: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      navigate("/");
     } catch {
-      navigate('/');
+      navigate("/");
     }
   };
 
@@ -137,26 +160,26 @@ const Header: React.FC = () => {
   };
 
   const handleOpenSuDialog = () => {
-    setSuUsername('');
-    setSuError('');
+    setSuUsername("");
+    setSuError("");
     setShowSuDialog(true);
   };
 
   const handleSwitchUser = async () => {
     if (!suUsername.trim()) {
-      setSuError('请输入用户名');
+      setSuError("请输入用户名");
       return;
     }
 
     setIsSwitching(true);
-    setSuError('');
+    setSuError("");
 
     try {
       await switchUser(suUsername.trim());
       setShowSuDialog(false);
-      navigate('/'); // 切换后跳转到首页
+      navigate("/"); // 切换后跳转到首页
     } catch (error) {
-      setSuError(error instanceof Error ? error.message : '切换用户失败');
+      setSuError(error instanceof Error ? error.message : "切换用户失败");
     } finally {
       setIsSwitching(false);
     }
@@ -167,7 +190,7 @@ const Header: React.FC = () => {
     try {
       await exitSu();
     } catch (error) {
-      alert(error instanceof Error ? error.message : '退出 su 模式失败');
+      alert(error instanceof Error ? error.message : "退出 su 模式失败");
     } finally {
       setIsExitingSu(false);
     }
@@ -189,9 +212,14 @@ const Header: React.FC = () => {
               <Menu className="h-5 w-5" />
             </Button>
           )}
-          <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+          <Link
+            to="/"
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          >
             <img src={logo} alt="ZhiXue Lite" className="h-8 w-8" />
-            <span className="text-lg font-semibold text-primary hidden sm:block">ZhiXue Lite</span>
+            <span className="text-lg font-semibold text-primary hidden sm:block">
+              ZhiXue Lite
+            </span>
           </Link>
         </div>
 
@@ -217,9 +245,11 @@ const Header: React.FC = () => {
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-red-800">网络连接异常</p>
+                      <p className="text-sm font-medium text-red-800">
+                        网络连接异常
+                      </p>
                       <p className="text-xs text-red-700 mt-1 break-words">
-                        {connectionError || '无法连接到后端服务器'}
+                        {connectionError || "无法连接到后端服务器"}
                       </p>
                     </div>
                   </div>
@@ -231,7 +261,12 @@ const Header: React.FC = () => {
                       disabled={isRetrying}
                       className="h-7 px-3 text-xs border-red-300 text-red-700 hover:bg-red-50"
                     >
-                      <RefreshCw className={cn("h-3 w-3 mr-1", isRetrying && "animate-spin")} />
+                      <RefreshCw
+                        className={cn(
+                          "h-3 w-3 mr-1",
+                          isRetrying && "animate-spin",
+                        )}
+                      />
                       重试连接
                     </Button>
                   </div>
@@ -268,9 +303,10 @@ const Header: React.FC = () => {
                       className={cn(
                         "hover:text-foreground transition-colors truncate",
                         // 首页和倒数第二项保持固定，不收缩
-                        isFirst || isSecondToLast ? "flex-shrink-0" :
-                        // 中间项可以收缩，但保持最小可读宽度
-                        "flex-shrink-1 min-w-[2.5rem]"
+                        isFirst || isSecondToLast
+                          ? "flex-shrink-0"
+                          : // 中间项可以收缩，但保持最小可读宽度
+                            "flex-shrink-1 min-w-[2.5rem]",
                       )}
                       title={item.name}
                     >
@@ -299,7 +335,10 @@ const Header: React.FC = () => {
           ) : isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full"
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarFallback>
                       <User className="h-4 w-4" />
@@ -309,7 +348,9 @@ const Header: React.FC = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex flex-col space-y-1 p-2">
-                  <p className="text-sm font-medium leading-none">{user?.username}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.username}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground truncate">
                     {user?.email}
                   </p>
@@ -318,21 +359,31 @@ const Header: React.FC = () => {
                 <DropdownMenuItem asChild>
                   <Link to="/profile">个人中心</Link>
                 </DropdownMenuItem>
-                {user?.role === 'admin' && !isSuMode && (
+                {user?.role === "admin" && !isSuMode && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleOpenSuDialog} className="text-orange-600">
+                    <DropdownMenuItem
+                      onClick={handleOpenSuDialog}
+                      className="text-orange-600"
+                    >
                       切换用户
                     </DropdownMenuItem>
                   </>
                 )}
                 <DropdownMenuSeparator />
                 {isSuMode ? (
-                  <DropdownMenuItem onClick={handleExitSu} disabled={isExitingSu} className="text-orange-600">
-                    {isExitingSu ? '退出中...' : '退出 su 模式'}
+                  <DropdownMenuItem
+                    onClick={handleExitSu}
+                    disabled={isExitingSu}
+                    className="text-orange-600"
+                  >
+                    {isExitingSu ? "退出中..." : "退出 su 模式"}
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-600"
+                  >
                     退出登录
                   </DropdownMenuItem>
                 )}
@@ -340,7 +391,12 @@ const Header: React.FC = () => {
             </DropdownMenu>
           ) : (
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="hidden sm:flex"
+              >
                 <Link to="/login" className="flex items-center space-x-1">
                   <LogIn className="h-4 w-4" />
                   <span>登录</span>
@@ -380,20 +436,14 @@ const Header: React.FC = () => {
                 >
                   取消
                 </Button>
-                <Button
-                  onClick={handleSwitchUser}
-                  disabled={isSwitching}
-                >
-                  {isSwitching ? '切换中...' : '确认切换'}
+                <Button onClick={handleSwitchUser} disabled={isSwitching}>
+                  {isSwitching ? "切换中..." : "确认切换"}
                 </Button>
               </>
             ) : (
               <>
-                <Button
-                  onClick={handleSwitchUser}
-                  disabled={isSwitching}
-                >
-                  {isSwitching ? '切换中...' : '确认切换'}
+                <Button onClick={handleSwitchUser} disabled={isSwitching}>
+                  {isSwitching ? "切换中..." : "确认切换"}
                 </Button>
                 <DrawerClose asChild>
                   <Button variant="outline">取消</Button>
@@ -414,18 +464,14 @@ const Header: React.FC = () => {
               value={suUsername}
               onChange={(e) => setSuUsername(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   handleSwitchUser();
                 }
               }}
               disabled={isSwitching}
             />
           </div>
-          {suError && (
-            <div className="text-sm text-red-600">
-              {suError}
-            </div>
-          )}
+          {suError && <div className="text-sm text-red-600">{suError}</div>}
         </div>
       </ResponsiveDialog>
     </header>

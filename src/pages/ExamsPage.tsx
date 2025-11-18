@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Search,
   RefreshCw,
@@ -10,41 +10,48 @@ import {
   CheckCircle2,
   Link2,
   Filter,
-  Users
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker';
-import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { ExamFetchDialog } from '@/components/ExamFetchDialog';
-import { Pagination } from '@/components/Pagination';
-import { useAuth } from '@/contexts/AuthContext';
-import { examAPI } from '@/api/exam';
-import { taskAPI } from '@/api/task';
-import { formatTimestampToLocalDate } from '@/utils/dateUtils';
-import { trackAnalyticsEvent } from '@/utils/analytics';
-import { StatusAlert } from '@/components/StatusAlert';
-import type { Exam, BackgroundTask } from '@/types/api';
+  Users,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ExamFetchDialog } from "@/components/ExamFetchDialog";
+import { Pagination } from "@/components/Pagination";
+import { useAuth } from "@/contexts/AuthContext";
+import { examAPI } from "@/api/exam";
+import { taskAPI } from "@/api/task";
+import { formatTimestampToLocalDate } from "@/utils/dateUtils";
+import { trackAnalyticsEvent } from "@/utils/analytics";
+import { StatusAlert } from "@/components/StatusAlert";
+import type { Exam, BackgroundTask } from "@/types/api";
 
 const ExamsPage: React.FC = () => {
   const { user } = useAuth();
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // 判断是否为手动分配学校的用户
-  const isManualSchoolUser = user?.is_manual_school && !user?.zhixue_info?.username;
+  const isManualSchoolUser =
+    user?.is_manual_school && !user?.zhixue_info?.username;
 
   // 手动分配学校的用户默认显示校内考试，其他用户显示个人考试
-  const [scope, setScope] = useState<'self' | 'school' | 'all'>(
-    isManualSchoolUser ? 'school' : 'self'
+  const [scope, setScope] = useState<"self" | "school" | "all">(
+    isManualSchoolUser ? "school" : "self",
   );
 
-  const [schoolIdFilter, setSchoolIdFilter] = useState(''); // 新增：学校 ID 过滤
+  const [schoolIdFilter, setSchoolIdFilter] = useState(""); // 新增：学校 ID 过滤
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [page, setPage] = useState(1);
@@ -57,20 +64,27 @@ const ExamsPage: React.FC = () => {
   // 检查权限
   const canViewSchool = user && examAPI.hasPermission(user, 2, 2); // VIEW_EXAM_LIST权限，SCHOOL级别
   const canViewAll = user && examAPI.hasPermission(user, 2, 3); // VIEW_EXAM_LIST权限，GLOBAL级别
-  const canFetchData = user && (
-    examAPI.hasPermission(user, 0, 1) || // FETCH_DATA权限，SELF级别
-    examAPI.hasPermission(user, 0, 2) || // FETCH_DATA权限，SCHOOL级别
-    examAPI.hasPermission(user, 0, 3)    // FETCH_DATA权限，GLOBAL级别
-  );
+  const canFetchData =
+    user &&
+    (examAPI.hasPermission(user, 0, 1) || // FETCH_DATA权限，SELF级别
+      examAPI.hasPermission(user, 0, 2) || // FETCH_DATA权限，SCHOOL级别
+      examAPI.hasPermission(user, 0, 3)); // FETCH_DATA权限，GLOBAL级别
 
   // 检查是否有查看考试列表的权限（基于权限系统，而非账号绑定状态）
-  const hasSchoolAccess = user && (
-    examAPI.hasPermission(user, 2, 1) || // VIEW_EXAM_LIST权限，SELF级别
-    examAPI.hasPermission(user, 2, 2) || // VIEW_EXAM_LIST权限，SCHOOL级别
-    examAPI.hasPermission(user, 2, 3)    // VIEW_EXAM_LIST权限，GLOBAL级别
-  );
+  const hasSchoolAccess =
+    user &&
+    (examAPI.hasPermission(user, 2, 1) || // VIEW_EXAM_LIST权限，SELF级别
+      examAPI.hasPermission(user, 2, 2) || // VIEW_EXAM_LIST权限，SCHOOL级别
+      examAPI.hasPermission(user, 2, 3)); // VIEW_EXAM_LIST权限，GLOBAL级别
 
-  const loadExams = async (pageNum = 1, query = '', scopeParam = scope, startTime?: number, endTime?: number, schoolId = schoolIdFilter) => {
+  const loadExams = async (
+    pageNum = 1,
+    query = "",
+    scopeParam = scope,
+    startTime?: number,
+    endTime?: number,
+    schoolId = schoolIdFilter,
+  ) => {
     try {
       setLoading(true);
       setError(null);
@@ -82,7 +96,7 @@ const ExamsPage: React.FC = () => {
         ...(query && { query }),
         ...(startTime && { start_time: startTime }),
         ...(endTime && { end_time: endTime }),
-        ...(scopeParam === 'all' && schoolId && { school_id: schoolId })
+        ...(scopeParam === "all" && schoolId && { school_id: schoolId }),
       };
 
       const response = await examAPI.getExamList(params);
@@ -91,22 +105,24 @@ const ExamsPage: React.FC = () => {
         setExams(response.data.exams);
         setTotalPages(response.data.pagination.pages);
 
-        trackAnalyticsEvent('exam_list_load_success', {
+        trackAnalyticsEvent("exam_list_load_success", {
           username: user?.username,
           page: pageNum,
           per_page: 10,
           query: query || null,
           scope: scopeParam,
-          school_id: scopeParam === 'all' && schoolId ? schoolId : null,
+          school_id: scopeParam === "all" && schoolId ? schoolId : null,
           exam_count: response.data.exams.length,
           total_pages: response.data.pagination.pages,
         });
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试列表失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "获取考试列表失败";
       setError(errorMessage);
 
-      trackAnalyticsEvent('exam_list_load_failed', {
+      trackAnalyticsEvent("exam_list_load_failed", {
         username: user?.username,
         page: pageNum,
         query: query || null,
@@ -119,7 +135,10 @@ const ExamsPage: React.FC = () => {
   };
 
   const handleFetchExams = () => {
-    if (canFetchData && (examAPI.hasPermission(user!, 0, 2) || examAPI.hasPermission(user!, 0, 3))) {
+    if (
+      canFetchData &&
+      (examAPI.hasPermission(user!, 0, 2) || examAPI.hasPermission(user!, 0, 3))
+    ) {
       // 有高级权限，打开高级拉取对话框
       setFetchDialogOpen(true);
     } else {
@@ -129,26 +148,35 @@ const ExamsPage: React.FC = () => {
   };
 
   // 辅助函数：获取考试的数据保存状态（与管理面板逻辑一致）
-  const getExamSaveStatus = (exam: Exam): { status: 'all' | 'partial' | 'none'; variant: 'default' | 'secondary' | 'outline'; label: string; title?: string } => {
+  const getExamSaveStatus = (
+    exam: Exam,
+  ): {
+    status: "all" | "partial" | "none";
+    variant: "default" | "secondary" | "outline";
+    label: string;
+    title?: string;
+  } => {
     if (!exam.schools || exam.schools.length === 0) {
-      return { status: 'none', variant: 'secondary', label: '未知' };
+      return { status: "none", variant: "secondary", label: "未知" };
     }
 
-    const savedSchools = exam.schools.filter(s => s.is_saved);
+    const savedSchools = exam.schools.filter((s) => s.is_saved);
     const savedCount = savedSchools.length;
     const totalCount = exam.schools.length;
 
     if (savedCount === 0) {
-      return { status: 'none', variant: 'secondary', label: '未保存' };
+      return { status: "none", variant: "secondary", label: "未保存" };
     } else if (savedCount === totalCount) {
-      return { status: 'all', variant: 'default', label: '已保存' };
+      return { status: "all", variant: "default", label: "已保存" };
     } else {
-      const savedNames = savedSchools.map(s => s.school_name || '未知').join('、');
+      const savedNames = savedSchools
+        .map((s) => s.school_name || "未知")
+        .join("、");
       return {
-        status: 'partial',
-        variant: 'outline',
+        status: "partial",
+        variant: "outline",
         label: `部分保存 (${savedCount}/${totalCount})`,
-        title: `已保存：${savedNames}`
+        title: `已保存：${savedNames}`,
       };
     }
   };
@@ -159,9 +187,9 @@ const ExamsPage: React.FC = () => {
 
       // 立即显示任务等待中状态
       setFetchingTask({
-        id: 'pending',
-        task_type: 'fetch_exam_list',
-        status: 'pending',
+        id: "pending",
+        task_type: "fetch_exam_list",
+        status: "pending",
         user_id: user?.id || 0,
         progress: 0,
         created_at: new Date().toISOString(),
@@ -175,15 +203,17 @@ const ExamsPage: React.FC = () => {
       if (response.data.success) {
         const taskId = response.data.task_id;
 
-        trackAnalyticsEvent('exam_list_fetch_started', {
+        trackAnalyticsEvent("exam_list_fetch_started", {
           username: user?.username,
-          task_id: taskId
+          task_id: taskId,
         });
 
         pollTaskStatus(taskId);
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "拉取考试失败";
       setError(errorMessage);
       setFetchingTask(null);
     }
@@ -195,9 +225,9 @@ const ExamsPage: React.FC = () => {
 
       // 立即显示任务等待中状态
       setFetchingTask({
-        id: 'pending',
-        task_type: 'fetch_exam_list',
-        status: 'pending',
+        id: "pending",
+        task_type: "fetch_exam_list",
+        status: "pending",
         user_id: user?.id || 0,
         progress: 0,
         created_at: new Date().toISOString(),
@@ -211,18 +241,20 @@ const ExamsPage: React.FC = () => {
       if (response.data.success) {
         const taskId = response.data.task_id;
 
-        trackAnalyticsEvent('exam_list_fetch_started', {
+        trackAnalyticsEvent("exam_list_fetch_started", {
           username: user?.username,
           task_id: taskId,
           fetch_type: params.query_type,
           school_id: params.school_id || null,
-          fetch_params: params.params || null
+          fetch_params: params.params || null,
         });
 
         pollTaskStatus(taskId);
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "拉取考试失败";
       setError(errorMessage);
       setFetchingTask(null);
     }
@@ -235,19 +267,19 @@ const ExamsPage: React.FC = () => {
         const task = response.data.task;
         setFetchingTask(task);
 
-        if (task.status === 'completed') {
+        if (task.status === "completed") {
           setFetchingTask(null);
           loadExams(page, searchQuery);
-        } else if (task.status === 'failed') {
+        } else if (task.status === "failed") {
           setFetchingTask(null);
-          setError(task.error_message || '任务执行失败');
-        } else if (['pending', 'processing'].includes(task.status)) {
+          setError(task.error_message || "任务执行失败");
+        } else if (["pending", "processing"].includes(task.status)) {
           setTimeout(() => pollTaskStatus(taskId), 2000);
         }
       }
     } catch {
       setFetchingTask(null);
-      setError('获取任务状态失败');
+      setError("获取任务状态失败");
     }
   };
 
@@ -271,32 +303,39 @@ const ExamsPage: React.FC = () => {
     loadExams(newPage, searchQuery, scope, startTime, endTime);
   };
 
-  const handleScopeChange = (newScope: 'self' | 'school' | 'all') => {
+  const handleScopeChange = (newScope: "self" | "school" | "all") => {
     setScope(newScope);
     setPage(1);
 
     // 切换 scope 时清空学校 ID 过滤
-    if (newScope !== 'all') {
-      setSchoolIdFilter('');
+    if (newScope !== "all") {
+      setSchoolIdFilter("");
     }
 
     const startTime = startDate ? startDate.getTime() : undefined;
     const endTime = endDate ? endDate.getTime() : undefined;
 
-    loadExams(1, searchQuery, newScope, startTime, endTime, newScope === 'all' ? schoolIdFilter : '');
+    loadExams(
+      1,
+      searchQuery,
+      newScope,
+      startTime,
+      endTime,
+      newScope === "all" ? schoolIdFilter : "",
+    );
   };
 
   useEffect(() => {
-    document.title = '考试列表 - ZhiXue Lite';
+    document.title = "考试列表 - ZhiXue Lite";
     return () => {
-      document.title = 'ZhiXue Lite';
+      document.title = "ZhiXue Lite";
     };
   }, []);
 
   // 手动分配学校的用户默认显示校内考试
   useEffect(() => {
-    if (isManualSchoolUser && scope === 'self') {
-      setScope('school');
+    if (isManualSchoolUser && scope === "self") {
+      setScope("school");
     }
   }, [isManualSchoolUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -357,34 +396,34 @@ const ExamsPage: React.FC = () => {
           {/* Scope 选择器 */}
           {/* 手动分配学校的用户：无 GLOBAL 权限时隐藏下拉框，有 GLOBAL 权限时只显示校内和全部 */}
           {/* 智学网绑定用户：保持原有逻辑 */}
-          {isManualSchoolUser ? (
-            // 手动分配学校的用户
-            canViewAll && (
-              <Select value={scope} onValueChange={handleScopeChange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="school">校内</SelectItem>
-                  <SelectItem value="all">全部</SelectItem>
-                </SelectContent>
-              </Select>
-            )
-          ) : (
-            // 智学网绑定用户或其他用户
-            (canViewSchool || canViewAll) && (
-              <Select value={scope} onValueChange={handleScopeChange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="self">个人</SelectItem>
-                  {canViewSchool && <SelectItem value="school">校内</SelectItem>}
-                  {canViewAll && <SelectItem value="all">全部</SelectItem>}
-                </SelectContent>
-              </Select>
-            )
-          )}
+          {isManualSchoolUser
+            ? // 手动分配学校的用户
+              canViewAll && (
+                <Select value={scope} onValueChange={handleScopeChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="school">校内</SelectItem>
+                    <SelectItem value="all">全部</SelectItem>
+                  </SelectContent>
+                </Select>
+              )
+            : // 智学网绑定用户或其他用户
+              (canViewSchool || canViewAll) && (
+                <Select value={scope} onValueChange={handleScopeChange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="self">个人</SelectItem>
+                    {canViewSchool && (
+                      <SelectItem value="school">校内</SelectItem>
+                    )}
+                    {canViewAll && <SelectItem value="all">全部</SelectItem>}
+                  </SelectContent>
+                </Select>
+              )}
 
           {canFetchData && (
             <Button
@@ -394,9 +433,15 @@ const ExamsPage: React.FC = () => {
               size="sm"
               className="text-xs sm:text-sm"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${fetchingTask ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{fetchingTask ? '获取中...' : '从智学网重新获取'}</span>
-              <span className="sm:hidden">{fetchingTask ? '获取中' : '从智学网重新获取'}</span>
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${fetchingTask ? "animate-spin" : ""}`}
+              />
+              <span className="hidden sm:inline">
+                {fetchingTask ? "获取中..." : "从智学网重新获取"}
+              </span>
+              <span className="sm:hidden">
+                {fetchingTask ? "获取中" : "从智学网重新获取"}
+              </span>
             </Button>
           )}
         </div>
@@ -406,7 +451,7 @@ const ExamsPage: React.FC = () => {
       {fetchingTask && (
         <StatusAlert
           variant="info"
-          message={`任务状态: ${fetchingTask.status === 'pending' ? '等待中' : '处理中'}。此页面现在可以被安全关闭。`}
+          message={`任务状态: ${fetchingTask.status === "pending" ? "等待中" : "处理中"}。此页面现在可以被安全关闭。`}
           title="正在获取考试数据..."
         />
       )}
@@ -460,9 +505,12 @@ const ExamsPage: React.FC = () => {
             </div>
 
             {/* 学校 ID 过滤（仅在查看全部时显示） */}
-            {scope === 'all' && (
+            {scope === "all" && (
               <div>
-                <Label htmlFor="school-id-filter" className="text-sm font-medium">
+                <Label
+                  htmlFor="school-id-filter"
+                  className="text-sm font-medium"
+                >
                   学校 ID（可选）
                 </Label>
                 <div className="mt-1">
@@ -497,15 +545,17 @@ const ExamsPage: React.FC = () => {
             <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">暂无考试数据</h3>
             <p className="text-muted-foreground mb-4">
-              {searchQuery ? '没有找到匹配的考试' : `您还没有任何${scope === 'self' ? '个人' : scope === 'school' ? '校内' : ''}考试数据`}
+              {searchQuery
+                ? "没有找到匹配的考试"
+                : `您还没有任何${scope === "self" ? "个人" : scope === "school" ? "校内" : ""}考试数据`}
             </p>
-            {!searchQuery && (
-              canFetchData ? (
+            {!searchQuery &&
+              (canFetchData ? (
                 <Button onClick={handleFetchExams} disabled={!!fetchingTask}>
                   <Download className="h-4 w-4 mr-2" />
                   从智学网获取
                 </Button>
-              ) : (hasSchoolAccess ? (
+              ) : hasSchoolAccess ? (
                 <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
                   <div className="flex items-center justify-center space-x-2 text-amber-800">
                     <AlertCircle className="h-5 w-5" />
@@ -533,8 +583,7 @@ const ExamsPage: React.FC = () => {
                     </Button>
                   </Link>
                 </div>
-              ))
-            )}
+              ))}
           </CardContent>
         </Card>
       ) : (
@@ -551,14 +600,19 @@ const ExamsPage: React.FC = () => {
                       <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-4 w-4" />
-                          <span>{formatTimestampToLocalDate(exam.created_at)}</span>
+                          <span>
+                            {formatTimestampToLocalDate(exam.created_at)}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-2 self-start">
                       {exam.is_multi_school && (
-                        <Badge variant="outline" className="text-xs flex items-center space-x-1 w-fit">
+                        <Badge
+                          variant="outline"
+                          className="text-xs flex items-center space-x-1 w-fit"
+                        >
                           <Users className="h-3 w-3" />
                           <span>联考 ({exam.schools?.length || 0} 校)</span>
                         </Badge>
@@ -567,13 +621,18 @@ const ExamsPage: React.FC = () => {
                       {exam.is_multi_school ? (
                         // 联考：显示每个学校的状态
                         <div className="flex flex-wrap gap-1">
-                          {exam.schools?.map(school => (
+                          {exam.schools?.map((school) => (
                             <Badge
                               key={school.school_id}
-                              variant={school.is_saved ? 'default' : 'secondary'}
+                              variant={
+                                school.is_saved ? "default" : "secondary"
+                              }
                               className="text-xs flex items-center space-x-1"
                             >
-                              <span>{school.school_name || `学校${school.school_id.slice(0, 6)}`}</span>
+                              <span>
+                                {school.school_name ||
+                                  `学校${school.school_id.slice(0, 6)}`}
+                              </span>
                               {school.is_saved ? (
                                 <CheckCircle2 className="h-3 w-3" />
                               ) : (
@@ -584,8 +643,12 @@ const ExamsPage: React.FC = () => {
                         </div>
                       ) : (
                         // 普通考试：使用统一的保存状态判断逻辑
-                        <Badge variant={getExamSaveStatus(exam).variant} title={getExamSaveStatus(exam).title} className="text-xs flex items-center space-x-1">
-                          {getExamSaveStatus(exam).status === 'all' ? (
+                        <Badge
+                          variant={getExamSaveStatus(exam).variant}
+                          title={getExamSaveStatus(exam).title}
+                          className="text-xs flex items-center space-x-1"
+                        >
+                          {getExamSaveStatus(exam).status === "all" ? (
                             <CheckCircle2 className="h-3 w-3" />
                           ) : (
                             <Clock className="h-3 w-3" />
@@ -602,7 +665,11 @@ const ExamsPage: React.FC = () => {
                     <p className="text-sm text-muted-foreground">
                       点击查看详细成绩信息
                     </p>
-                    <Button variant="outline" size="sm" className="pointer-events-none">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="pointer-events-none"
+                    >
                       查看详情
                     </Button>
                   </div>

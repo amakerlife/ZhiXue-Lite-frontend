@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 
 const DataDeletionPage: React.FC = () => {
   useEffect(() => {
-    document.title = '数据删除请求 - ZhiXue Lite';
+    document.title = "数据删除请求 - ZhiXue Lite";
     return () => {
-      document.title = 'ZhiXue Lite';
+      document.title = "ZhiXue Lite";
     };
   }, []);
 

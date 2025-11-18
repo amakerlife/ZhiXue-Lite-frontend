@@ -1,6 +1,11 @@
-import React from 'react';
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import {
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PaginationProps {
   currentPage: number;
@@ -46,11 +51,12 @@ export const Pagination: React.FC<PaginationProps> = ({
       {showPageNumbers ? (
         <div className="flex items-center space-x-1">
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+            const pageNum =
+              Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
             return (
               <Button
                 key={pageNum}
-                variant={pageNum === currentPage ? 'default' : 'outline'}
+                variant={pageNum === currentPage ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(pageNum)}
                 className="w-7"

@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Eye, AlertCircle, RefreshCw, ZoomIn } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { examAPI } from '@/api/exam';
-import type { Score } from '@/types/api';
+import React, { useState, useEffect } from "react";
+import { Download, Eye, AlertCircle, RefreshCw, ZoomIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { examAPI } from "@/api/exam";
+import type { Score } from "@/types/api";
 
 interface AnswerSheetViewerProps {
   examId: string;
@@ -16,8 +27,14 @@ interface AnswerSheetViewerProps {
   schoolId?: string; // 可选的学校 ID，用于联考场景
 }
 
-const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, studentId, studentName, schoolId }) => {
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
+const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
+  examId,
+  scores,
+  studentId,
+  studentName,
+  schoolId,
+}) => {
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -26,11 +43,12 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
   const [imageCache, setImageCache] = useState<Map<string, string>>(new Map());
 
   // 过滤出有效的科目（排除总分等）
-  const validSubjects = scores.filter(score =>
-    !score.subject_name.includes('总') &&
-    !score.subject_name.includes('合计') &&
-    score.subject_id &&
-    score.subject_id.trim() !== ''
+  const validSubjects = scores.filter(
+    (score) =>
+      !score.subject_name.includes("总") &&
+      !score.subject_name.includes("合计") &&
+      score.subject_id &&
+      score.subject_id.trim() !== "",
   );
 
   // 清理缓存的URL以避免内存泄漏
@@ -43,17 +61,23 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 生成缓存key
-  const getCacheKey = (examId: string, subjectId: string, studentId?: string, studentName?: string, schoolId?: string) => {
+  const getCacheKey = (
+    examId: string,
+    subjectId: string,
+    studentId?: string,
+    studentName?: string,
+    schoolId?: string,
+  ) => {
     const parts = [examId, subjectId];
-    if (studentId) parts.push('id', studentId);
-    if (studentName) parts.push('name', studentName);
-    if (schoolId) parts.push('school', schoolId);
-    return parts.join('-');
+    if (studentId) parts.push("id", studentId);
+    if (studentName) parts.push("name", studentName);
+    if (schoolId) parts.push("school", schoolId);
+    return parts.join("-");
   };
 
   const handleViewAnswerSheet = async () => {
     if (!selectedSubjectId) {
-      setError('请选择科目');
+      setError("请选择科目");
       return;
     }
 
@@ -61,7 +85,13 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
     setDialogOpen(true);
 
     // 检查缓存
-    const cacheKey = getCacheKey(examId, selectedSubjectId, studentId, studentName, schoolId);
+    const cacheKey = getCacheKey(
+      examId,
+      selectedSubjectId,
+      studentId,
+      studentName,
+      schoolId,
+    );
     const cachedUrl = imageCache.get(cacheKey);
 
     if (cachedUrl) {
@@ -74,7 +104,13 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
       setLoading(true);
       setImageUrl(null);
 
-      const response = await examAPI.generateAnswersheet(examId, selectedSubjectId, studentId, studentName, schoolId);
+      const response = await examAPI.generateAnswersheet(
+        examId,
+        selectedSubjectId,
+        studentId,
+        studentName,
+        schoolId,
+      );
 
       // 创建图片URL并缓存
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -85,7 +121,9 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
       newCache.set(cacheKey, url);
       setImageCache(newCache);
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取答题卡失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "获取答题卡失败";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -94,24 +132,35 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
 
   const handleDownloadAnswerSheet = async () => {
     if (!selectedSubjectId) {
-      setError('请选择科目');
+      setError("请选择科目");
       return;
     }
 
-    const selectedSubject = validSubjects.find(s => s.subject_id === selectedSubjectId);
+    const selectedSubject = validSubjects.find(
+      (s) => s.subject_id === selectedSubjectId,
+    );
 
     try {
       setError(null);
 
       // 检查缓存，如果有缓存就直接下载
-      const cacheKey = getCacheKey(examId, selectedSubjectId, studentId, studentName, schoolId);
+      const cacheKey = getCacheKey(
+        examId,
+        selectedSubjectId,
+        studentId,
+        studentName,
+        schoolId,
+      );
       const cachedUrl = imageCache.get(cacheKey);
 
       if (cachedUrl) {
         // 使用缓存的图片进行下载
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = cachedUrl;
-        link.setAttribute('download', `${selectedSubject?.subject_name || '答题卡'}.png`);
+        link.setAttribute(
+          "download",
+          `${selectedSubject?.subject_name || "答题卡"}.png`,
+        );
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -120,7 +169,13 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
 
       // 缓存中没有，发起请求
       setLoading(true);
-      const response = await examAPI.generateAnswersheet(examId, selectedSubjectId, studentId, studentName, schoolId);
+      const response = await examAPI.generateAnswersheet(
+        examId,
+        selectedSubjectId,
+        studentId,
+        studentName,
+        schoolId,
+      );
 
       // 创建URL并缓存
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -129,14 +184,19 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
       setImageCache(newCache);
 
       // 下载
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `${selectedSubject?.subject_name || '答题卡'}.png`);
+      link.setAttribute(
+        "download",
+        `${selectedSubject?.subject_name || "答题卡"}.png`,
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '下载答题卡失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "下载答题卡失败";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -198,7 +258,10 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
 
         <div className="space-y-3">
           <label className="text-sm font-medium">选择科目</label>
-          <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+          <Select
+            value={selectedSubjectId}
+            onValueChange={setSelectedSubjectId}
+          >
             <SelectTrigger>
               <SelectValue placeholder="请选择要查看的科目" />
             </SelectTrigger>
@@ -208,7 +271,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
                   <div className="flex items-center justify-between w-full">
                     <span>{subject.subject_name}</span>
                     <Badge variant="secondary" className="ml-2">
-                      {subject.score || '-'}/{subject.standard_score || '-'}
+                      {subject.score || "-"}/{subject.standard_score || "-"}
                     </Badge>
                   </div>
                 </SelectItem>
@@ -246,7 +309,11 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
             <DialogHeader>
               <DialogTitle>
-                {validSubjects.find(s => s.subject_id === selectedSubjectId)?.subject_name} - 答题卡
+                {
+                  validSubjects.find((s) => s.subject_id === selectedSubjectId)
+                    ?.subject_name
+                }{" "}
+                - 答题卡
               </DialogTitle>
             </DialogHeader>
 
@@ -262,7 +329,10 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
               </div>
             ) : imageUrl ? (
               <div className="flex justify-center">
-                <div className="relative group cursor-pointer" onClick={handleImageClick}>
+                <div
+                  className="relative group cursor-pointer"
+                  onClick={handleImageClick}
+                >
                   <img
                     src={imageUrl}
                     alt="答题卡"
@@ -280,11 +350,18 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
         </Dialog>
 
         {/* 放大图片的Dialog */}
-        <Dialog open={enlargedDialogOpen} onOpenChange={handleEnlargedDialogClose}>
+        <Dialog
+          open={enlargedDialogOpen}
+          onOpenChange={handleEnlargedDialogClose}
+        >
           <DialogContent className="max-w-[95vw] max-h-[95vh] p-2">
             <DialogHeader className="pb-2">
               <DialogTitle>
-                {validSubjects.find(s => s.subject_id === selectedSubjectId)?.subject_name} - 答题卡（放大视图）
+                {
+                  validSubjects.find((s) => s.subject_id === selectedSubjectId)
+                    ?.subject_name
+                }{" "}
+                - 答题卡（放大视图）
               </DialogTitle>
             </DialogHeader>
             {imageUrl && (
@@ -300,7 +377,9 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({ examId, scores, s
         </Dialog>
 
         <div className="text-xs text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="font-medium text-blue-900">数据仅供参考，请以智学网官方成绩为准</p>
+          <p className="font-medium text-blue-900">
+            数据仅供参考，请以智学网官方成绩为准
+          </p>
         </div>
       </CardContent>
     </Card>

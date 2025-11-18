@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { CalendarIcon } from "lucide-react"
+import * as React from "react";
+import { CalendarIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 
 function formatDate(date: Date | undefined) {
   if (!date) {
-    return ""
+    return "";
   }
 
   return date.toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  })
+  });
 }
 
 function isValidDate(date: Date | undefined) {
   if (!date) {
-    return false
+    return false;
   }
-  return !isNaN(date.getTime())
+  return !isNaN(date.getTime());
 }
 
 interface DatePickerProps {
-  date?: Date
-  onDateChange?: (date: Date | undefined) => void
-  placeholder?: string
-  className?: string
-  disabled?: boolean
+  date?: Date;
+  onDateChange?: (date: Date | undefined) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
 }
 
 export function DatePicker({
@@ -47,47 +47,47 @@ export function DatePicker({
   className,
   disabled = false,
 }: DatePickerProps) {
-  const [open, setOpen] = React.useState(false)
-  const [month, setMonth] = React.useState<Date | undefined>(date)
-  const [value, setValue] = React.useState(formatDate(date))
+  const [open, setOpen] = React.useState(false);
+  const [month, setMonth] = React.useState<Date | undefined>(date);
+  const [value, setValue] = React.useState(formatDate(date));
 
   // 同步外部date变化到内部state
   React.useEffect(() => {
-    setValue(formatDate(date))
-    setMonth(date)
-  }, [date])
+    setValue(formatDate(date));
+    setMonth(date);
+  }, [date]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value
-    setValue(inputValue)
+    const inputValue = e.target.value;
+    setValue(inputValue);
 
     // 如果输入为空，清除日期
     if (!inputValue.trim()) {
-      onDateChange?.(undefined)
-      setMonth(undefined)
-      return
+      onDateChange?.(undefined);
+      setMonth(undefined);
+      return;
     }
 
     // 尝试解析输入的日期
-    const parsedDate = new Date(inputValue)
+    const parsedDate = new Date(inputValue);
     if (isValidDate(parsedDate)) {
-      setMonth(parsedDate)
-      onDateChange?.(parsedDate)
+      setMonth(parsedDate);
+      onDateChange?.(parsedDate);
     }
-  }
+  };
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
-    onDateChange?.(selectedDate)
-    setValue(formatDate(selectedDate))
-    setOpen(false)
-  }
+    onDateChange?.(selectedDate);
+    setValue(formatDate(selectedDate));
+    setOpen(false);
+  };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown" && !disabled) {
-      e.preventDefault()
-      setOpen(true)
+      e.preventDefault();
+      setOpen(true);
     }
-  }
+  };
 
   return (
     <div className={cn("relative flex", className)}>
@@ -129,5 +129,5 @@ export function DatePicker({
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

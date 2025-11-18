@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Download,
@@ -11,37 +11,61 @@ import {
   Trophy,
   TrendingUp,
   CloudDownload,
-} from 'lucide-react';
-import { StatusAlert } from '@/components/StatusAlert';
-import { CopyableText } from '@/components/CopyableText';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ResponsiveDialog } from '@/components/ResponsiveDialog';
-import { DrawerClose } from '@/components/ui/drawer';
-import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { Label } from '@/components/ui/label';
-import AnswerSheetViewer from '@/components/AnswerSheetViewer';
-import { useAuth } from '@/contexts/AuthContext';
-import { examAPI } from '@/api/exam';
-import { taskAPI } from '@/api/task';
-import { formatTimestampToLocalDate } from '@/utils/dateUtils';
-import { canViewAllData, hasPermission, PermissionType, PermissionLevel } from '@/utils/permissions';
-import { trackAnalyticsEvent } from '@/utils/analytics';
-import type { BackgroundTask } from '@/types/api';
+} from "lucide-react";
+import { StatusAlert } from "@/components/StatusAlert";
+import { CopyableText } from "@/components/CopyableText";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ResponsiveDialog } from "@/components/ResponsiveDialog";
+import { DrawerClose } from "@/components/ui/drawer";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Label } from "@/components/ui/label";
+import AnswerSheetViewer from "@/components/AnswerSheetViewer";
+import { useAuth } from "@/contexts/AuthContext";
+import { examAPI } from "@/api/exam";
+import { taskAPI } from "@/api/task";
+import { formatTimestampToLocalDate } from "@/utils/dateUtils";
+import {
+  canViewAllData,
+  hasPermission,
+  PermissionType,
+  PermissionLevel,
+} from "@/utils/permissions";
+import { trackAnalyticsEvent } from "@/utils/analytics";
+import type { BackgroundTask } from "@/types/api";
 
 const DataViewerPage: React.FC = () => {
   const { user } = useAuth();
 
   // 拉取考试功能状态
   const [fetchDialog, setFetchDialog] = useState(false);
-  const [fetchExamId, setFetchExamId] = useState('');
-  const [fetchSchoolId, setFetchSchoolId] = useState('');  // 新增学校ID状态
+  const [fetchExamId, setFetchExamId] = useState("");
+  const [fetchSchoolId, setFetchSchoolId] = useState(""); // 新增学校ID状态
   const [fetchLoading, setFetchLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [fetchSuccess, setFetchSuccess] = useState<string | null>(null);
@@ -49,9 +73,9 @@ const DataViewerPage: React.FC = () => {
   const [forceRefresh, setForceRefresh] = useState(false);
 
   useEffect(() => {
-    document.title = '数据查看 - ZhiXue Lite';
+    document.title = "数据查看 - ZhiXue Lite";
     return () => {
-      document.title = 'ZhiXue Lite';
+      document.title = "ZhiXue Lite";
     };
   }, []);
 
@@ -60,11 +84,24 @@ const DataViewerPage: React.FC = () => {
   // 2. 重新拉取考试详情数据校内及以上权限
   // 3. 查看校内考试详情及以上权限
   // 4. 导出个人成绩单及以上权限
-  const hasDataViewPermission = canViewAllData(user) ||
+  const hasDataViewPermission =
+    canViewAllData(user) ||
     hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.SCHOOL) ||
-    hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SCHOOL) ||
-    hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.SCHOOL) ||
-    hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.SELF);
+    hasPermission(
+      user,
+      PermissionType.REFETCH_EXAM_DATA,
+      PermissionLevel.SCHOOL,
+    ) ||
+    hasPermission(
+      user,
+      PermissionType.VIEW_EXAM_DATA,
+      PermissionLevel.SCHOOL,
+    ) ||
+    hasPermission(
+      user,
+      PermissionType.EXPORT_SCORE_SHEET,
+      PermissionLevel.SELF,
+    );
 
   if (!hasDataViewPermission) {
     return (
@@ -97,28 +134,30 @@ const DataViewerPage: React.FC = () => {
       const response = await examAPI.fetchExamDetails(
         fetchExamId.trim(),
         forceRefresh,
-        finalSchoolId  // 传递学校 ID 参数
+        finalSchoolId, // 传递学校 ID 参数
       );
       if (response.data.success) {
         const taskId = response.data.task_id;
         setFetchDialog(false);
-        setFetchExamId('');
-        setFetchSchoolId('');  // 清空学校 ID
+        setFetchExamId("");
+        setFetchSchoolId(""); // 清空学校 ID
         setForceRefresh(false);
         setFetchSuccess(`考试 ${fetchExamId.trim()} 拉取任务已创建`);
 
-        trackAnalyticsEvent('data_viewer_exam_fetch_started', {
+        trackAnalyticsEvent("data_viewer_exam_fetch_started", {
           username: user?.username,
           exam_id: fetchExamId.trim(),
-          school_id: finalSchoolId || null,  // 记录学校 ID
+          school_id: finalSchoolId || null, // 记录学校 ID
           task_id: taskId,
-          force_refresh: forceRefresh
+          force_refresh: forceRefresh,
         });
 
         pollTaskStatus(taskId);
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '拉取考试失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "拉取考试失败";
       setFetchError(errorMessage);
     } finally {
       setFetchLoading(false);
@@ -133,19 +172,19 @@ const DataViewerPage: React.FC = () => {
         const task = response.data.task;
         setFetchingTask(task);
 
-        if (task.status === 'completed') {
+        if (task.status === "completed") {
           setFetchingTask(null);
-          setFetchSuccess('考试数据拉取完成！');
-        } else if (task.status === 'failed') {
+          setFetchSuccess("考试数据拉取完成！");
+        } else if (task.status === "failed") {
           setFetchingTask(null);
-          setFetchError(task.error_message || '考试数据拉取失败');
-        } else if (['pending', 'processing'].includes(task.status)) {
+          setFetchError(task.error_message || "考试数据拉取失败");
+        } else if (["pending", "processing"].includes(task.status)) {
           setTimeout(() => pollTaskStatus(taskId), 2000);
         }
       }
     } catch {
       setFetchingTask(null);
-      setFetchError('获取任务状态失败');
+      setFetchError("获取任务状态失败");
     }
   };
 
@@ -165,8 +204,8 @@ const DataViewerPage: React.FC = () => {
             setFetchDialog(true);
             setFetchError(null);
             setFetchSuccess(null);
-            setFetchExamId('');
-            setFetchSchoolId('');  // 清空学校ID
+            setFetchExamId("");
+            setFetchSchoolId(""); // 清空学校ID
           }}
           disabled={!!fetchingTask}
         >
@@ -179,26 +218,28 @@ const DataViewerPage: React.FC = () => {
       {fetchingTask && (
         <StatusAlert
           variant="info"
-          message={`正在拉取考试数据... 任务状态: ${fetchingTask.status === 'pending' ? '等待中' : '处理中'}`}
+          message={`正在拉取考试数据... 任务状态: ${fetchingTask.status === "pending" ? "等待中" : "处理中"}`}
         />
       )}
 
       {/* 成功/错误消息 */}
-      {fetchSuccess && (
-        <StatusAlert variant="success" message={fetchSuccess} />
-      )}
+      {fetchSuccess && <StatusAlert variant="success" message={fetchSuccess} />}
 
-      {fetchError && (
-        <StatusAlert variant="error" message={fetchError} />
-      )}
+      {fetchError && <StatusAlert variant="error" message={fetchError} />}
 
       <Tabs defaultValue="exam-lookup" className="space-y-6">
         <TabsList className="grid w-full grid-cols-1 lg:grid-cols-2 h-auto lg:h-9 p-1 gap-1 lg:gap-0">
-          <TabsTrigger value="exam-lookup" className="flex items-center space-x-2 w-full">
+          <TabsTrigger
+            value="exam-lookup"
+            className="flex items-center space-x-2 w-full"
+          >
             <Search className="h-4 w-4" />
             <span>考试查询</span>
           </TabsTrigger>
-          <TabsTrigger value="score-lookup" className="flex items-center space-x-2 w-full">
+          <TabsTrigger
+            value="score-lookup"
+            className="flex items-center space-x-2 w-full"
+          >
             <Trophy className="h-4 w-4" />
             <span>成绩查询</span>
           </TabsTrigger>
@@ -231,7 +272,7 @@ const DataViewerPage: React.FC = () => {
                   onClick={() => {
                     setFetchDialog(false);
                     setForceRefresh(false);
-                    setFetchSchoolId('');
+                    setFetchSchoolId("");
                   }}
                   disabled={fetchLoading}
                 >
@@ -247,7 +288,7 @@ const DataViewerPage: React.FC = () => {
                   ) : (
                     <CloudDownload className="h-4 w-4 mr-2" />
                   )}
-                  {fetchLoading ? '拉取中...' : '开始拉取'}
+                  {fetchLoading ? "拉取中..." : "开始拉取"}
                 </Button>
               </>
             ) : (
@@ -262,7 +303,7 @@ const DataViewerPage: React.FC = () => {
                   ) : (
                     <CloudDownload className="h-4 w-4 mr-2" />
                   )}
-                  {fetchLoading ? '拉取中...' : '开始拉取'}
+                  {fetchLoading ? "拉取中..." : "开始拉取"}
                 </Button>
                 <DrawerClose asChild>
                   <Button variant="outline">取消</Button>
@@ -272,7 +313,11 @@ const DataViewerPage: React.FC = () => {
           </>
         )}
       >
-        <form id="fetch-exam-form" onSubmit={handleFetchExam} className="space-y-4">
+        <form
+          id="fetch-exam-form"
+          onSubmit={handleFetchExam}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <label htmlFor="fetch-exam-id" className="text-sm font-medium">
               考试 ID
@@ -287,7 +332,11 @@ const DataViewerPage: React.FC = () => {
           </div>
 
           {/* 学校ID输入框 - 仅对有全局拉取数据权限的用户显示 */}
-          {hasPermission(user, PermissionType.FETCH_DATA, PermissionLevel.GLOBAL) && (
+          {hasPermission(
+            user,
+            PermissionType.FETCH_DATA,
+            PermissionLevel.GLOBAL,
+          ) && (
             <div className="space-y-2">
               <label htmlFor="fetch-school-id" className="text-sm font-medium">
                 学校 ID（可选）
@@ -305,7 +354,11 @@ const DataViewerPage: React.FC = () => {
           )}
 
           {/* 强制刷新复选框 - 仅对有重新拉取个人考试详情数据及以上权限的用户显示 */}
-          {hasPermission(user, PermissionType.REFETCH_EXAM_DATA, PermissionLevel.SELF) && (
+          {hasPermission(
+            user,
+            PermissionType.REFETCH_EXAM_DATA,
+            PermissionLevel.SELF,
+          ) && (
             <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
               <Checkbox
                 id="force-refresh"
@@ -321,9 +374,7 @@ const DataViewerPage: React.FC = () => {
             </div>
           )}
 
-          {fetchError && (
-            <StatusAlert variant="error" message={fetchError} />
-          )}
+          {fetchError && <StatusAlert variant="error" message={fetchError} />}
         </form>
       </ResponsiveDialog>
     </div>
@@ -333,7 +384,7 @@ const DataViewerPage: React.FC = () => {
 // 考试查询组件
 const ExamLookup: React.FC = () => {
   const { user } = useAuth();
-  const [examId, setExamId] = useState('');
+  const [examId, setExamId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [examDetail, setExamDetail] = useState<any | null>(null);
@@ -341,8 +392,10 @@ const ExamLookup: React.FC = () => {
 
   // 下载成绩单对话框状态
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
-  const [downloadSchoolId, setDownloadSchoolId] = useState<string>('');
-  const [downloadScope, setDownloadScope] = useState<'school' | 'all'>('school');
+  const [downloadSchoolId, setDownloadSchoolId] = useState<string>("");
+  const [downloadScope, setDownloadScope] = useState<"school" | "all">(
+    "school",
+  );
   const [downloadIsMultiSchool, setDownloadIsMultiSchool] = useState(false);
 
   // 检查考试是否已保存（至少有一个学校保存了数据）
@@ -367,21 +420,23 @@ const ExamLookup: React.FC = () => {
       if (response.data.success) {
         setExamDetail(response.data.exam);
 
-        trackAnalyticsEvent('data_viewer_exam_info_success', {
+        trackAnalyticsEvent("data_viewer_exam_info_success", {
           username: user?.username,
           exam_id: examId.trim(),
-          exam_name: response.data.exam?.name || 'unknown',
-          is_saved: isExamSaved(response.data.exam)
+          exam_name: response.data.exam?.name || "unknown",
+          is_saved: isExamSaved(response.data.exam),
         });
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取考试信息失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "获取考试信息失败";
       setError(errorMessage);
 
-      trackAnalyticsEvent('data_viewer_exam_info_failed', {
+      trackAnalyticsEvent("data_viewer_exam_info_failed", {
         username: user?.username,
         exam_id: examId.trim(),
-        error_message: errorMessage
+        error_message: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -393,12 +448,13 @@ const ExamLookup: React.FC = () => {
 
     // 初始化对话框状态，保存当前考试信息
     // 从 schools 数组中获取第一个学校作为默认值（如果有的话）
-    const defaultSchoolId = examDetail.schools && examDetail.schools.length > 0
-      ? examDetail.schools[0].school_id
-      : '';
+    const defaultSchoolId =
+      examDetail.schools && examDetail.schools.length > 0
+        ? examDetail.schools[0].school_id
+        : "";
 
     setDownloadSchoolId(defaultSchoolId);
-    setDownloadScope('school');
+    setDownloadScope("school");
     setDownloadIsMultiSchool(examDetail.is_multi_school || false);
     setDownloadDialogOpen(true);
   };
@@ -414,15 +470,15 @@ const ExamLookup: React.FC = () => {
       const response = await examAPI.generateScoresheet(
         examDetail.id,
         downloadIsMultiSchool ? downloadScope : undefined,
-        downloadIsMultiSchool ? downloadSchoolId : undefined
+        downloadIsMultiSchool ? downloadSchoolId : undefined,
       );
 
       // 创建下载链接
       const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = downloadUrl;
       link.download = `${examDetail.name}_成绩单.xlsx`;
       document.body.appendChild(link);
@@ -430,22 +486,24 @@ const ExamLookup: React.FC = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
 
-      trackAnalyticsEvent('data_viewer_scoresheet_success', {
+      trackAnalyticsEvent("data_viewer_scoresheet_success", {
         username: user?.username,
         exam_id: examDetail.id,
         exam_name: examDetail.name,
         scope: downloadScope,
-        school_id: downloadSchoolId
+        school_id: downloadSchoolId,
       });
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '生成成绩单失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "生成成绩单失败";
       setError(errorMessage);
 
-      trackAnalyticsEvent('data_viewer_scoresheet_failed', {
+      trackAnalyticsEvent("data_viewer_scoresheet_failed", {
         username: user?.username,
         exam_id: examDetail.id,
         exam_name: examDetail.name,
-        error_message: errorMessage
+        error_message: errorMessage,
       });
     } finally {
       setGeneratingScoresheet(false);
@@ -456,9 +514,7 @@ const ExamLookup: React.FC = () => {
     <Card>
       <CardHeader>
         <CardTitle>考试查询</CardTitle>
-        <CardDescription>
-          输入考试 ID 查看考试详情和生成成绩单
-        </CardDescription>
+        <CardDescription>输入考试 ID 查看考试详情和生成成绩单</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* 搜索表单 */}
@@ -478,14 +534,12 @@ const ExamLookup: React.FC = () => {
             ) : (
               <Search className="h-4 w-4 mr-2" />
             )}
-            {loading ? '查询中...' : '查询'}
+            {loading ? "查询中..." : "查询"}
           </Button>
         </form>
 
         {/* 错误信息 */}
-        {error && (
-          <StatusAlert variant="error" message={error} />
-        )}
+        {error && <StatusAlert variant="error" message={error} />}
 
         {/* 考试详情 */}
         {examDetail && (
@@ -497,17 +551,21 @@ const ExamLookup: React.FC = () => {
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{formatTimestampToLocalDate(examDetail.created_at)}</span>
+                      <span>
+                        {formatTimestampToLocalDate(examDetail.created_at)}
+                      </span>
                     </div>
                   </div>
                 </div>
-                <Badge variant={isExamSaved(examDetail) ? 'default' : 'secondary'}>
+                <Badge
+                  variant={isExamSaved(examDetail) ? "default" : "secondary"}
+                >
                   {isExamSaved(examDetail) ? (
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                   ) : (
                     <AlertCircle className="h-3 w-3 mr-1" />
                   )}
-                  {isExamSaved(examDetail) ? '已保存' : '未保存'}
+                  {isExamSaved(examDetail) ? "已保存" : "未保存"}
                 </Badge>
               </div>
             </CardHeader>
@@ -515,31 +573,45 @@ const ExamLookup: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <label className="font-medium text-muted-foreground">考试 ID</label>
+                  <label className="font-medium text-muted-foreground">
+                    考试 ID
+                  </label>
                   <p className="font-mono">
                     <CopyableText text={examDetail.id} />
                   </p>
                 </div>
                 <div>
-                  <label className="font-medium text-muted-foreground">考试类型</label>
-                  <p>{examDetail.is_multi_school ? '联考' : '单校考试'}</p>
+                  <label className="font-medium text-muted-foreground">
+                    考试类型
+                  </label>
+                  <p>{examDetail.is_multi_school ? "联考" : "单校考试"}</p>
                 </div>
 
                 {/* 学校信息 */}
                 <div className="col-span-2">
-                  <label className="font-medium text-muted-foreground">参与学校</label>
+                  <label className="font-medium text-muted-foreground">
+                    参与学校
+                  </label>
                   {examDetail.schools && examDetail.schools.length > 0 ? (
                     <div className="mt-2 space-y-2">
                       {examDetail.schools.map((school: any) => (
-                        <div key={school.school_id} className="flex items-center justify-between p-2 bg-background rounded border">
+                        <div
+                          key={school.school_id}
+                          className="flex items-center justify-between p-2 bg-background rounded border"
+                        >
                           <div>
-                            <p className="font-medium">{school.school_name || '未知学校'}</p>
+                            <p className="font-medium">
+                              {school.school_name || "未知学校"}
+                            </p>
                             <p className="text-xs text-muted-foreground font-mono">
                               <CopyableText text={school.school_id} />
                             </p>
                           </div>
-                          <Badge variant={school.is_saved ? 'default' : 'secondary'} className="text-xs">
-                            {school.is_saved ? '已保存' : '未保存'}
+                          <Badge
+                            variant={school.is_saved ? "default" : "secondary"}
+                            className="text-xs"
+                          >
+                            {school.is_saved ? "已保存" : "未保存"}
                           </Badge>
                         </div>
                       ))}
@@ -562,7 +634,7 @@ const ExamLookup: React.FC = () => {
                     ) : (
                       <Download className="h-4 w-4 mr-2" />
                     )}
-                    {generatingScoresheet ? '生成中...' : '下载成绩单'}
+                    {generatingScoresheet ? "生成中..." : "下载成绩单"}
                   </Button>
                 </div>
               )}
@@ -577,8 +649,8 @@ const ExamLookup: React.FC = () => {
             setDownloadDialogOpen(open);
             if (!open) {
               // 关闭对话框时重置状态
-              setDownloadSchoolId('');
-              setDownloadScope('school');
+              setDownloadSchoolId("");
+              setDownloadScope("school");
               setDownloadIsMultiSchool(false);
             }
           }}
@@ -597,7 +669,10 @@ const ExamLookup: React.FC = () => {
 
                   {/* 学校选择 */}
                   <div className="space-y-2">
-                    <Label htmlFor="download-school-select" className="text-sm font-medium">
+                    <Label
+                      htmlFor="download-school-select"
+                      className="text-sm font-medium"
+                    >
                       选择学校
                     </Label>
                     <Select
@@ -614,9 +689,16 @@ const ExamLookup: React.FC = () => {
                             value={school.school_id}
                           >
                             <div className="flex items-center justify-between gap-3">
-                              <span>{school.school_name || school.school_id}</span>
-                              <Badge variant={school.is_saved ? 'default' : 'secondary'} className="text-xs">
-                                {school.is_saved ? '已保存' : '未保存'}
+                              <span>
+                                {school.school_name || school.school_id}
+                              </span>
+                              <Badge
+                                variant={
+                                  school.is_saved ? "default" : "secondary"
+                                }
+                                className="text-xs"
+                              >
+                                {school.is_saved ? "已保存" : "未保存"}
                               </Badge>
                             </div>
                           </SelectItem>
@@ -626,14 +708,23 @@ const ExamLookup: React.FC = () => {
                   </div>
 
                   {/* 导出范围选择（GLOBAL 权限） */}
-                  {hasPermission(user, PermissionType.EXPORT_SCORE_SHEET, PermissionLevel.GLOBAL) && (
+                  {hasPermission(
+                    user,
+                    PermissionType.EXPORT_SCORE_SHEET,
+                    PermissionLevel.GLOBAL,
+                  ) && (
                     <div className="space-y-2">
-                      <Label htmlFor="download-scope-select" className="text-sm font-medium">
+                      <Label
+                        htmlFor="download-scope-select"
+                        className="text-sm font-medium"
+                      >
                         导出范围
                       </Label>
                       <Select
                         value={downloadScope}
-                        onValueChange={(v) => setDownloadScope(v as 'school' | 'all')}
+                        onValueChange={(v) =>
+                          setDownloadScope(v as "school" | "all")
+                        }
                       >
                         <SelectTrigger id="download-scope-select">
                           <SelectValue />
@@ -665,27 +756,31 @@ const ExamLookup: React.FC = () => {
 // 成绩查询组件
 const ScoreLookup: React.FC = () => {
   const { user } = useAuth();
-  const [examId, setExamId] = useState('');
-  const [studentId, setStudentId] = useState('');
-  const [studentName, setStudentName] = useState('');
-  const [schoolId, setSchoolId] = useState('');
-  const [finalSchoolId, setFinalSchoolId] = useState<string | undefined>(undefined);
-  const [searchType, setSearchType] = useState<'id' | 'name'>('id');
+  const [examId, setExamId] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [studentName, setStudentName] = useState("");
+  const [schoolId, setSchoolId] = useState("");
+  const [finalSchoolId, setFinalSchoolId] = useState<string | undefined>(
+    undefined,
+  );
+  const [searchType, setSearchType] = useState<"id" | "name">("id");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scoreData, setScoreData] = useState<any | null>(null);
 
   const handleScoreLookup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const searchValue = searchType === 'id' ? studentId.trim() : studentName.trim();
+    const searchValue =
+      searchType === "id" ? studentId.trim() : studentName.trim();
     if (!examId.trim() || !searchValue) return;
 
     // 确定最终使用的 school_id：优先使用输入的，否则使用用户自己的
-    const computedSchoolId = schoolId.trim() || user?.zhixue_info?.school_id || user?.manual_school_id;
+    const computedSchoolId =
+      schoolId.trim() || user?.zhixue_info?.school_id || user?.manual_school_id;
 
     // 使用学生姓名查询时必须提供 school_id
-    if (searchType === 'name' && !computedSchoolId) {
-      setError('使用学生姓名查询时必须指定学校 ID');
+    if (searchType === "name" && !computedSchoolId) {
+      setError("使用学生姓名查询时必须指定学校 ID");
       return;
     }
 
@@ -697,34 +792,38 @@ const ScoreLookup: React.FC = () => {
     try {
       const response = await examAPI.getUserExamScore(
         examId.trim(),
-        searchType === 'id' ? studentId.trim() : undefined,
-        searchType === 'name' ? studentName.trim() : undefined,
-        computedSchoolId
+        searchType === "id" ? studentId.trim() : undefined,
+        searchType === "name" ? studentName.trim() : undefined,
+        computedSchoolId,
       );
       if (response.data.success) {
         setScoreData(response.data);
 
-        trackAnalyticsEvent('data_viewer_score_lookup_success', {
+        trackAnalyticsEvent("data_viewer_score_lookup_success", {
           username: user?.username,
           exam_id: examId.trim(),
           search_type: searchType,
-          student_identifier: searchType === 'id' ? studentId.trim() : studentName.trim(),
+          student_identifier:
+            searchType === "id" ? studentId.trim() : studentName.trim(),
           school_id: computedSchoolId,
           has_scores: response.data.scores && response.data.scores.length > 0,
-          subject_count: response.data.scores ? response.data.scores.length : 0
+          subject_count: response.data.scores ? response.data.scores.length : 0,
         });
       }
     } catch (err: unknown) {
-      const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || '获取成绩信息失败';
+      const errorMessage =
+        (err as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "获取成绩信息失败";
       setError(errorMessage);
 
-      trackAnalyticsEvent('data_viewer_score_lookup_failed', {
+      trackAnalyticsEvent("data_viewer_score_lookup_failed", {
         username: user?.username,
         exam_id: examId.trim(),
         search_type: searchType,
-        student_identifier: searchType === 'id' ? studentId.trim() : studentName.trim(),
+        student_identifier:
+          searchType === "id" ? studentId.trim() : studentName.trim(),
         school_id: computedSchoolId,
-        error_message: errorMessage
+        error_message: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -758,11 +857,14 @@ const ScoreLookup: React.FC = () => {
               <label htmlFor="search-type" className="text-sm font-medium">
                 学生查找方式
               </label>
-              <Select value={searchType} onValueChange={(value: 'id' | 'name') => {
-                setSearchType(value);
-                setStudentId('');
-                setStudentName('');
-              }}>
+              <Select
+                value={searchType}
+                onValueChange={(value: "id" | "name") => {
+                  setSearchType(value);
+                  setStudentId("");
+                  setStudentName("");
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -776,14 +878,16 @@ const ScoreLookup: React.FC = () => {
 
           <div className="space-y-2">
             <label htmlFor="student-info" className="text-sm font-medium">
-              {searchType === 'id' ? '学生 ID' : '学生姓名'}
+              {searchType === "id" ? "学生 ID" : "学生姓名"}
             </label>
             <Input
               id="student-info"
-              placeholder={searchType === 'id' ? '请输入学生 ID' : '请输入学生姓名'}
-              value={searchType === 'id' ? studentId : studentName}
+              placeholder={
+                searchType === "id" ? "请输入学生 ID" : "请输入学生姓名"
+              }
+              value={searchType === "id" ? studentId : studentName}
               onChange={(e) => {
-                if (searchType === 'id') {
+                if (searchType === "id") {
                   setStudentId(e.target.value);
                 } else {
                   setStudentName(e.target.value);
@@ -793,12 +897,20 @@ const ScoreLookup: React.FC = () => {
           </div>
 
           {/* 学校 ID 输入框 - 对于有 GLOBAL 权限的用户或使用姓名查询时显示 */}
-          {(hasPermission(user, PermissionType.VIEW_EXAM_DATA, PermissionLevel.GLOBAL) || searchType === 'name') && (
+          {(hasPermission(
+            user,
+            PermissionType.VIEW_EXAM_DATA,
+            PermissionLevel.GLOBAL,
+          ) ||
+            searchType === "name") && (
             <div className="space-y-2">
               <label htmlFor="school-id" className="text-sm font-medium">
-                学校 ID {searchType === 'name' && !user?.zhixue_info?.school_id && !user?.manual_school_id && (
-                  <span className="text-destructive">*</span>
-                )}
+                学校 ID{" "}
+                {searchType === "name" &&
+                  !user?.zhixue_info?.school_id &&
+                  !user?.manual_school_id && (
+                    <span className="text-destructive">*</span>
+                  )}
               </label>
               <Input
                 id="school-id"
@@ -807,10 +919,11 @@ const ScoreLookup: React.FC = () => {
                 onChange={(e) => setSchoolId(e.target.value)}
                 className="font-mono"
               />
-              {searchType === 'name' && (
+              {searchType === "name" && (
                 <p className="text-xs text-muted-foreground">
                   使用学生姓名查询时必须指定学校 ID
-                  {(user?.zhixue_info?.school_id || user?.manual_school_id) && '（留空则使用您的默认学校）'}
+                  {(user?.zhixue_info?.school_id || user?.manual_school_id) &&
+                    "（留空则使用您的默认学校）"}
                 </p>
               )}
             </div>
@@ -818,7 +931,11 @@ const ScoreLookup: React.FC = () => {
 
           <Button
             type="submit"
-            disabled={loading || !examId.trim() || (!studentId.trim() && !studentName.trim())}
+            disabled={
+              loading ||
+              !examId.trim() ||
+              (!studentId.trim() && !studentName.trim())
+            }
             className="w-full"
           >
             {loading ? (
@@ -826,14 +943,12 @@ const ScoreLookup: React.FC = () => {
             ) : (
               <Trophy className="h-4 w-4 mr-2" />
             )}
-            {loading ? '查询中...' : '查询成绩'}
+            {loading ? "查询中..." : "查询成绩"}
           </Button>
         </form>
 
         {/* 错误信息 */}
-        {error && (
-          <StatusAlert variant="error" message={error} />
-        )}
+        {error && <StatusAlert variant="error" message={error} />}
 
         {/* 成绩详情 */}
         {scoreData && (
@@ -845,7 +960,9 @@ const ScoreLookup: React.FC = () => {
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{formatTimestampToLocalDate(scoreData.created_at)}</span>
+                    <span>
+                      {formatTimestampToLocalDate(scoreData.created_at)}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Users className="h-4 w-4" />
@@ -881,11 +998,15 @@ const ScoreLookup: React.FC = () => {
                         <TableBody>
                           {scoreData.scores.map((score: any) => (
                             <TableRow key={score.subject_id}>
-                              <TableCell className="font-medium">{score.subject_name}</TableCell>
-                              <TableCell>{score.score || '-'}</TableCell>
-                              <TableCell>{score.standard_score || '-'}</TableCell>
-                              <TableCell>{score.class_rank || '-'}</TableCell>
-                              <TableCell>{score.school_rank || '-'}</TableCell>
+                              <TableCell className="font-medium">
+                                {score.subject_name}
+                              </TableCell>
+                              <TableCell>{score.score || "-"}</TableCell>
+                              <TableCell>
+                                {score.standard_score || "-"}
+                              </TableCell>
+                              <TableCell>{score.class_rank || "-"}</TableCell>
+                              <TableCell>{score.school_rank || "-"}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -897,23 +1018,41 @@ const ScoreLookup: React.FC = () => {
                       {scoreData.scores.map((score: any) => (
                         <Card key={score.subject_id} className="bg-muted/20">
                           <CardContent className="p-4">
-                            <div className="font-medium text-lg mb-3">{score.subject_name}</div>
+                            <div className="font-medium text-lg mb-3">
+                              {score.subject_name}
+                            </div>
                             <div className="grid grid-cols-2 gap-3 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">得分:</span>
-                                <span className="font-medium">{score.score || '-'}</span>
+                                <span className="text-muted-foreground">
+                                  得分:
+                                </span>
+                                <span className="font-medium">
+                                  {score.score || "-"}
+                                </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">满分:</span>
-                                <span className="font-medium">{score.standard_score || '-'}</span>
+                                <span className="text-muted-foreground">
+                                  满分:
+                                </span>
+                                <span className="font-medium">
+                                  {score.standard_score || "-"}
+                                </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">班级排名:</span>
-                                <span className="font-medium">{score.class_rank || '-'}</span>
+                                <span className="text-muted-foreground">
+                                  班级排名:
+                                </span>
+                                <span className="font-medium">
+                                  {score.class_rank || "-"}
+                                </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">学校排名:</span>
-                                <span className="font-medium">{score.school_rank || '-'}</span>
+                                <span className="text-muted-foreground">
+                                  学校排名:
+                                </span>
+                                <span className="font-medium">
+                                  {score.school_rank || "-"}
+                                </span>
                               </div>
                             </div>
                           </CardContent>
@@ -935,8 +1074,10 @@ const ScoreLookup: React.FC = () => {
               <AnswerSheetViewer
                 examId={examId.trim()}
                 scores={scoreData.scores}
-                studentId={searchType === 'id' ? studentId.trim() : undefined}
-                studentName={searchType === 'name' ? studentName.trim() : undefined}
+                studentId={searchType === "id" ? studentId.trim() : undefined}
+                studentName={
+                  searchType === "name" ? studentName.trim() : undefined
+                }
                 schoolId={finalSchoolId}
               />
             )}

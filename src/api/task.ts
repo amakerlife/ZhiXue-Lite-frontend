@@ -1,5 +1,5 @@
-import api from './client';
-import type { ApiResponse, BackgroundTask, PaginationInfo } from '@/types/api';
+import api from "./client";
+import type { ApiResponse, BackgroundTask, PaginationInfo } from "@/types/api";
 
 export interface TaskListParams {
   page?: number;
@@ -10,10 +10,12 @@ export interface TaskListParams {
 export const taskAPI = {
   getTaskStatus: (taskUuid: string) =>
     api.get<ApiResponse & { task: BackgroundTask }>(`/task/status/${taskUuid}`),
-  
+
   getUserTasks: (params: TaskListParams = {}) =>
-    api.get<ApiResponse & { tasks: BackgroundTask[]; pagination: PaginationInfo }>('/task/list', { params }),
-  
+    api.get<
+      ApiResponse & { tasks: BackgroundTask[]; pagination: PaginationInfo }
+    >("/task/list", { params }),
+
   cancelTask: (taskUuid: string) =>
     api.post<ApiResponse>(`/task/cancel/${taskUuid}`),
 };

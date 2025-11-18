@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Home, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Home, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const NotFoundPage: React.FC = () => {
   useEffect(() => {
-    document.title = '404 - 页面未找到 - ZhiXue Lite';
+    document.title = "404 - 页面未找到 - ZhiXue Lite";
     return () => {
-      document.title = 'ZhiXue Lite';
+      document.title = "ZhiXue Lite";
     };
   }, []);
 

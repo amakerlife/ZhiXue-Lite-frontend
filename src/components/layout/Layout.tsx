@@ -1,13 +1,13 @@
-import React from 'react';
-import type { ReactNode } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { AlertCircle, X, ShieldAlert, LogOut, Mail } from 'lucide-react';
-import Sidebar from './Sidebar';
-import Footer from './Footer';
-import { useSidebar } from '@/contexts/SidebarContext';
-import { usePageTracking } from '@/hooks/usePageTracking';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import type { ReactNode } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { AlertCircle, X, ShieldAlert, LogOut, Mail } from "lucide-react";
+import Sidebar from "./Sidebar";
+import Footer from "./Footer";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { usePageTracking } from "@/hooks/usePageTracking";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
   children: ReactNode;
@@ -25,14 +25,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   usePageTracking();
 
   // 不显示侧边栏的页面
-  const noSidebarPages = ['/login', '/signup'];
+  const noSidebarPages = ["/login", "/signup"];
   const showSidebar = !noSidebarPages.includes(location.pathname);
 
   // 检查是否需要显示未绑定账号提醒
-  const shouldShowBanner = showSidebar && user && !user.zhixue_info?.username && !user.is_manual_school && showBanner && !isSuMode;
+  const shouldShowBanner =
+    showSidebar &&
+    user &&
+    !user.zhixue_info?.username &&
+    !user.is_manual_school &&
+    showBanner &&
+    !isSuMode;
 
   // 检查是否需要显示邮箱未验证提醒
-  const shouldShowEmailBanner = showSidebar && user && !user.email_verified && showEmailBanner && !isSuMode;
+  const shouldShowEmailBanner =
+    showSidebar && user && !user.email_verified && showEmailBanner && !isSuMode;
 
   // 处理退出 su 模式
   const handleExitSu = async () => {
@@ -40,15 +47,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     try {
       await exitSu();
     } catch (error) {
-      console.error('Exit su failed:', error);
-      alert(error instanceof Error ? error.message : '退出 su 模式失败');
+      console.error("Exit su failed:", error);
+      alert(error instanceof Error ? error.message : "退出 su 模式失败");
     } finally {
       setExitingSu(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-16"> {/* 为固定Header留出空间 */}
+    <div className="min-h-screen flex flex-col bg-background pt-16">
+      {" "}
+      {/* 为固定Header留出空间 */}
       <div className="relative flex flex-1">
         {showSidebar && <Sidebar />}
 
@@ -57,15 +66,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div
             className="fixed inset-0 z-30 bg-black/50 md:hidden"
             onClick={close}
-            style={{ top: '4rem' }} // Header高度
+            style={{ top: "4rem" }} // Header高度
           />
         )}
 
-        <main className={`flex-1 transition-all duration-200 ${
-          showSidebar && isOpen && !isMobile
-            ? 'ml-64'
-            : ''
-        }`}>
+        <main
+          className={`flex-1 transition-all duration-200 ${
+            showSidebar && isOpen && !isMobile ? "ml-64" : ""
+          }`}
+        >
           {/* Su 模式提示横幅 */}
           {isSuMode && user && (
             <div className="bg-orange-50 border-b border-orange-200">
@@ -77,11 +86,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <p className="text-sm font-medium text-orange-900">
                         {user.su_info?.original_user_username ? (
                           <>
-                            您（管理员 <span className="font-bold">{user.su_info.original_user_username}</span>）正在以 <span className="font-bold">{user.username}</span> 的身份浏览
+                            您（管理员{" "}
+                            <span className="font-bold">
+                              {user.su_info.original_user_username}
+                            </span>
+                            ）正在以{" "}
+                            <span className="font-bold">{user.username}</span>{" "}
+                            的身份浏览
                           </>
                         ) : (
                           <>
-                            您正在以 <span className="font-bold">{user.username}</span> 的身份浏览
+                            您正在以{" "}
+                            <span className="font-bold">{user.username}</span>{" "}
+                            的身份浏览
                           </>
                         )}
                       </p>
@@ -98,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     className="text-orange-900 border-orange-300 hover:bg-orange-100 flex items-center space-x-1"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span>{exitingSu ? '退出中...' : '退出 su 模式'}</span>
+                    <span>{exitingSu ? "退出中..." : "退出 su 模式"}</span>
                   </Button>
                 </div>
               </div>
@@ -123,7 +140,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Link to="/profile">
-                      <Button size="sm" variant="outline" className="text-blue-900 border-blue-300 hover:bg-blue-100">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-blue-900 border-blue-300 hover:bg-blue-100"
+                      >
                         前往验证
                       </Button>
                     </Link>
@@ -159,7 +180,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Link to="/profile#zhixue-binding">
-                      <Button size="sm" variant="outline" className="text-amber-900 border-amber-300 hover:bg-amber-100">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-amber-900 border-amber-300 hover:bg-amber-100"
+                      >
                         立即绑定
                       </Button>
                     </Link>
@@ -177,14 +202,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           )}
 
-          <div
-            className="container mx-auto p-4 md:p-6 max-w-7xl flex flex-col min-h-[calc(100vh-8rem)]"
-          >
+          <div className="container mx-auto p-4 md:p-6 max-w-7xl flex flex-col min-h-[calc(100vh-8rem)]">
             {children}
           </div>
         </main>
       </div>
-
       <Footer />
     </div>
   );

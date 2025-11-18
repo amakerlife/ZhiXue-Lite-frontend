@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useAnalyticsContext } from "@/contexts/AnalyticsContext";
 
 export const usePageTracking = () => {
   const location = useLocation();

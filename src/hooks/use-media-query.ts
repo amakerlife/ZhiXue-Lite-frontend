@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(false);
@@ -17,10 +17,10 @@ export function useMediaQuery(query: string) {
     };
 
     // 添加监听器
-    media.addEventListener('change', listener);
+    media.addEventListener("change", listener);
 
     // 清理监听器
-    return () => media.removeEventListener('change', listener);
+    return () => media.removeEventListener("change", listener);
   }, [matches, query]);
 
   return matches;
