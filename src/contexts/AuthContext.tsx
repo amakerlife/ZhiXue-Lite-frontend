@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { authAPI } from "@/api/auth";
 import { adminAPI } from "@/api/admin";
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isBanned, setIsBanned] = useState(false);
   const [isSuMode, setIsSuMode] = useState(false);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const response = await authAPI.getCurrentUser();
       if (response.data.success) {
@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsSuMode(false);
     }
-  };
+  }, []);
 
   const login = async (
     username: string,
@@ -221,7 +221,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuth();
-  }, []);
+  }, [refreshUser]);
 
   // 监听连接恢复事件，重连成功后刷新用户状态
   useEffect(() => {

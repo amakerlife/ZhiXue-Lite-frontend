@@ -133,6 +133,7 @@ const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(
       theme,
       size,
       key,
+      widgetId,
     ]);
 
     // 清理

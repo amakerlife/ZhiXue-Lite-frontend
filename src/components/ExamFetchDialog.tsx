@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ResponsiveDialog } from "@/components/ResponsiveDialog";
 import { DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RefreshCw } from "lucide-react";
 import { examAPI, type ExamSelections } from "@/api/exam";
+import { type AxiosError } from "axios";
 import type { User } from "@/types/api";
 
 interface ExamFetchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onFetch: (params: any) => void;
+  onFetch: (params: { query_type?: string; school_id?: string; params?: Record<string, unknown> }) => void;
   user: User | null;
 }
 
@@ -106,7 +107,7 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
     return true;
   };
 
-  const loadSelections = async (targetSchoolId?: string) => {
+  const loadSelections = useCallback(async (targetSchoolId?: string) => {
     // 对于 GLOBAL 权限用户，需要验证学校 ID
     if (
       hasGlobalPermission &&
@@ -127,16 +128,17 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
       } else {
         setError(response.data.message || "加载配置参数失败");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
       setError(
-        error.response?.data?.message ||
+        axiosError.response?.data?.message ||
           "加载配置参数失败，请检查学校 ID 是否正确",
       );
       setSelections(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [hasGlobalPermission]);
 
   // 当选择 school 模式时自动加载参数
   useEffect(() => {
@@ -149,7 +151,7 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
         loadSelections(schoolId);
       }
     }
-  }, [open, fetchMode, hasSchoolOnlyPermission, hasGlobalPermission, schoolId]);
+  }, [open, fetchMode, hasSchoolOnlyPermission, hasGlobalPermission, schoolId, loadSelections]);
 
   const handleSchoolIdChange = (value: string) => {
     setSchoolId(value);
@@ -168,7 +170,7 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
       }
 
       // 构建查询参数
-      const queryParams: Record<string, any> = {
+      const queryParams: Record<string, unknown> = {
         queryType: params.queryType,
       };
 

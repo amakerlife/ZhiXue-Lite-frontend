@@ -556,7 +556,7 @@ const UserManagement: React.FC = () => {
   // 新增：加载学校列表
   useEffect(() => {
     loadSchools();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Card>

@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import type { ReactNode } from "react";
+import { type AxiosError } from "axios";
 import api from "@/api/client";
 
 interface ConnectionContextType {
@@ -19,6 +20,7 @@ const ConnectionContext = createContext<ConnectionContextType | undefined>(
   undefined,
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useConnection = () => {
   const context = useContext(ConnectionContext);
   if (context === undefined) {
@@ -32,7 +34,7 @@ interface ConnectionProviderProps {
 }
 
 const getConnectionErrorMessage = (error: unknown): string => {
-  const axiosError = error as any;
+  const axiosError = error as AxiosError;
 
   // 只处理网络连接错误，不处理HTTP状态码错误
   if (!axiosError.response) {
@@ -89,8 +91,8 @@ export const ConnectionProvider: React.FC<ConnectionProviderProps> = ({
 
   // 监听来自API拦截器的连接异常和恢复事件
   useEffect(() => {
-    const handleConnectionError = (event: any) => {
-      const error = event.detail;
+    const handleConnectionError = (event: Event) => {
+      const error = (event as CustomEvent<unknown>).detail;
       setIsConnectionError(true);
       setConnectionError(getConnectionErrorMessage(error));
       setLastErrorTime(new Date());

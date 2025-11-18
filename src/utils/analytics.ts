@@ -19,7 +19,7 @@ const config: AnalyticsConfig = {
 
 export const trackAnalyticsEvent = (
   eventName: string,
-  properties?: Record<string, any>,
+  properties?: Record<string, string | number | boolean | null | undefined>,
 ) => {
   try {
     // Track with Google Analytics GA4

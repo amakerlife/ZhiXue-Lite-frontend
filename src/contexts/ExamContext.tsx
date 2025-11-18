@@ -49,6 +49,7 @@ interface ExamContextType {
 
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useExam = () => {
   const context = useContext(ExamContext);
   if (context === undefined) {

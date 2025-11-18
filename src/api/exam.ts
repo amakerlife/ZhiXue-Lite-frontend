@@ -14,7 +14,7 @@ export interface ExamListParams {
 export interface FetchListParams {
   query_type?: "self" | "school_id";
   school_id?: string;
-  params?: Record<string, any>; // 拉取参数对象
+  params?: Record<string, unknown>; // 拉取参数对象
 }
 
 export interface ExamSelections {
@@ -57,7 +57,7 @@ export const examAPI = {
     ),
 
   fetchExamList: (params?: FetchListParams) => {
-    const config: any = {};
+    const config: { params?: { query_type?: string; school_id?: string } } = {};
 
     if (params?.query_type || params?.school_id) {
       config.params = {
@@ -164,7 +164,7 @@ export const examAPI = {
 
   // 权限检查辅助方法
   hasPermission: (
-    user: any,
+    user: { role?: string; permissions?: string } | null | undefined,
     permissionType: number,
     requiredLevel: number,
   ): boolean => {

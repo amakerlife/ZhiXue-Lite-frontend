@@ -52,7 +52,7 @@ export const isAdmin = (user: User | null): boolean => {
 };
 
 // 已废弃的函数，保留以防旧代码仍在使用
-export const isDataViewer = (_user: User | null): boolean => {
+export const isDataViewer = (): boolean => {
   // data_viewer 角色已被移除，现在通过权限系统控制
   return false;
 };

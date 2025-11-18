@@ -1,6 +1,6 @@
 export interface AnalyticsEvent {
   name: string;
-  properties?: Record<string, any>;
+  properties?: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface AnalyticsPageView {
@@ -32,16 +32,19 @@ export interface AnalyticsConfig {
 
 declare global {
   interface Window {
-    dataLayer?: any[];
+    dataLayer?: unknown[];
     clarity?: {
-      (action: string, ...args: any[]): void;
-      q?: any[];
-      v?: any;
+      (action: string, ...args: unknown[]): void;
+      q?: unknown[];
+      v?: unknown;
       t?: boolean;
     };
-    gtag?: (command: string, ...args: any[]) => void;
+    gtag?: (command: string, ...args: unknown[]) => void;
     umami?: {
-      track: (eventName: string, eventData?: Record<string, any>) => void;
+      track: (
+        eventName: string,
+        eventData?: Record<string, string | number | boolean | null | undefined>,
+      ) => void;
     };
   }
 }

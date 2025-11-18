@@ -47,6 +47,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Label } from "@/components/ui/label";
 import AnswerSheetViewer from "@/components/AnswerSheetViewer";
 import { useAuth } from "@/contexts/AuthContext";
+import type { Exam, Score } from "@/types/api";
 import { examAPI } from "@/api/exam";
 import { taskAPI } from "@/api/task";
 import { formatTimestampToLocalDate } from "@/utils/dateUtils";
@@ -387,7 +388,7 @@ const ExamLookup: React.FC = () => {
   const [examId, setExamId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [examDetail, setExamDetail] = useState<any | null>(null);
+  const [examDetail, setExamDetail] = useState<Exam | null>(null);
   const [generatingScoresheet, setGeneratingScoresheet] = useState(false);
 
   // 下载成绩单对话框状态
@@ -399,12 +400,12 @@ const ExamLookup: React.FC = () => {
   const [downloadIsMultiSchool, setDownloadIsMultiSchool] = useState(false);
 
   // 检查考试是否已保存（至少有一个学校保存了数据）
-  const isExamSaved = (examData: any): boolean => {
+  const isExamSaved = (examData: Exam | null): boolean => {
     if (!examData || !examData.schools || examData.schools.length === 0) {
       return false;
     }
     // 至少有一个学校已保存就算已保存
-    return examData.schools.some((school: any) => school.is_saved);
+    return examData.schools.some((school) => school.is_saved);
   };
 
   const handleExamLookup = async (e: React.FormEvent) => {
@@ -594,7 +595,7 @@ const ExamLookup: React.FC = () => {
                   </label>
                   {examDetail.schools && examDetail.schools.length > 0 ? (
                     <div className="mt-2 space-y-2">
-                      {examDetail.schools.map((school: any) => (
+                      {examDetail.schools.map((school) => (
                         <div
                           key={school.school_id}
                           className="flex items-center justify-between p-2 bg-background rounded border"
@@ -683,7 +684,7 @@ const ExamLookup: React.FC = () => {
                         <SelectValue placeholder="请选择要下载的学校" />
                       </SelectTrigger>
                       <SelectContent>
-                        {examDetail?.schools?.map((school: any) => (
+                        {examDetail?.schools?.map((school) => (
                           <SelectItem
                             key={school.school_id}
                             value={school.school_id}
@@ -766,7 +767,18 @@ const ScoreLookup: React.FC = () => {
   const [searchType, setSearchType] = useState<"id" | "name">("id");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [scoreData, setScoreData] = useState<any | null>(null);
+  const [scoreData, setScoreData] = useState<{
+    id: string;
+    name: string;
+    created_at?: number;
+    student_id?: string;
+    scores?: Score[];
+    schools?: Array<{
+      school_id: string;
+      school_name?: string;
+      is_saved: boolean;
+    }>;
+  } | null>(null);
 
   const handleScoreLookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -958,16 +970,20 @@ const ScoreLookup: React.FC = () => {
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">{scoreData.name}</CardTitle>
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      {formatTimestampToLocalDate(scoreData.created_at)}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4" />
-                    <span>学生 ID: {scoreData.student_id}</span>
-                  </div>
+                  {scoreData.created_at && (
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {formatTimestampToLocalDate(scoreData.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  {scoreData.student_id && (
+                    <div className="flex items-center space-x-1">
+                      <Users className="h-4 w-4" />
+                      <span>学生 ID: {scoreData.student_id}</span>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
             </Card>
@@ -996,7 +1012,7 @@ const ScoreLookup: React.FC = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {scoreData.scores.map((score: any) => (
+                          {scoreData.scores?.map((score) => (
                             <TableRow key={score.subject_id}>
                               <TableCell className="font-medium">
                                 {score.subject_name}
@@ -1015,7 +1031,7 @@ const ScoreLookup: React.FC = () => {
 
                     {/* 移动端卡片视图 */}
                     <div className="md:hidden space-y-3">
-                      {scoreData.scores.map((score: any) => (
+                      {scoreData.scores?.map((score) => (
                         <Card key={score.subject_id} className="bg-muted/20">
                           <CardContent className="p-4">
                             <div className="font-medium text-lg mb-3">

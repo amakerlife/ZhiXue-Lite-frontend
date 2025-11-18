@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronRight,
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
   const noSidebarPages = ["/login", "/signup"];
   const showMenuButton = !noSidebarPages.includes(location.pathname);
 
-  const generateBreadcrumbs = async (
+  const generateBreadcrumbs = useCallback(async (
     pathname: string,
   ): Promise<BreadcrumbItem[]> => {
     const paths = pathname.split("/").filter(Boolean);
@@ -127,7 +127,7 @@ const Header: React.FC = () => {
     }
 
     return breadcrumbs;
-  };
+  }, [getExamData]);
 
   useEffect(() => {
     const loadBreadcrumbs = async () => {
@@ -136,7 +136,7 @@ const Header: React.FC = () => {
     };
 
     loadBreadcrumbs();
-  }, [location.pathname]);
+  }, [location.pathname, generateBreadcrumbs]);
 
   const handleLogout = async () => {
     try {

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosError } from "axios";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
@@ -15,7 +15,7 @@ export const api = axios.create({
 const isConnectionError = (error: unknown): boolean => {
   if (!error) return false;
 
-  const axiosError = error as any;
+  const axiosError = error as AxiosError;
 
   // 网络错误或无响应 - 这是真正的连接问题
   if (!axiosError.response) {

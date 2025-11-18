@@ -2,7 +2,10 @@ import React, { createContext, useContext, type ReactNode } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface AnalyticsContextType {
-  trackEvent: (eventName: string, properties?: Record<string, any>) => void;
+  trackEvent: (
+    eventName: string,
+    properties?: Record<string, string | number | boolean | null | undefined>,
+  ) => void;
   trackPageView: (path: string, title?: string) => void;
 }
 
@@ -10,6 +13,7 @@ const AnalyticsContext = createContext<AnalyticsContextType | undefined>(
   undefined,
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAnalyticsContext = () => {
   const context = useContext(AnalyticsContext);
   if (!context) {

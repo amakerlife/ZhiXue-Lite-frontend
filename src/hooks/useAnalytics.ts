@@ -41,20 +41,6 @@ export const useAnalytics = () => {
       try {
         // Initialize Microsoft Clarity
         if (config.clarity.enabled && config.clarity.projectId) {
-          // 初始化 window.clarity 对象以避免 undefined 错误
-          if (!window.clarity) {
-            window.clarity = function (action: string, ...args: any[]) {
-              // 创建一个队列来存储在实际脚本加载前的调用
-              if (window.clarity) {
-                window.clarity.q = window.clarity.q || [];
-                window.clarity.q.push([action, ...args]);
-              }
-            } as any;
-            if (window.clarity) {
-              window.clarity.q = [];
-            }
-          }
-
           // 使用同步方式加载 Clarity 脚本以确保正确的执行顺序
           const script = document.createElement("script");
           script.id = "clarity-script";
@@ -72,7 +58,7 @@ export const useAnalytics = () => {
             );
 
             window.dataLayer = window.dataLayer || [];
-            window.gtag = function gtag(...args: any[]) {
+            window.gtag = function gtag(...args: unknown[]) {
               window.dataLayer!.push(args);
             };
             window.gtag("js", new Date());
@@ -103,7 +89,10 @@ export const useAnalytics = () => {
     initializeAnalytics();
   }, []);
 
-  const trackEvent = (eventName: string, properties?: Record<string, any>) => {
+  const trackEvent = (
+    eventName: string,
+    properties?: Record<string, string | number | boolean | null | undefined>,
+  ) => {
     try {
       // Track with Google Analytics
       if (config.ga.enabled && window.gtag) {

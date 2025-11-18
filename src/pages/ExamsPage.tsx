@@ -34,6 +34,7 @@ import { taskAPI } from "@/api/task";
 import { formatTimestampToLocalDate } from "@/utils/dateUtils";
 import { trackAnalyticsEvent } from "@/utils/analytics";
 import { StatusAlert } from "@/components/StatusAlert";
+import type { ExamListParams } from "@/api/exam";
 import type { Exam, BackgroundTask } from "@/types/api";
 
 const ExamsPage: React.FC = () => {
@@ -89,7 +90,7 @@ const ExamsPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const params: any = {
+      const params: ExamListParams = {
         page: pageNum,
         per_page: 10,
         scope: scopeParam,
@@ -219,7 +220,11 @@ const ExamsPage: React.FC = () => {
     }
   };
 
-  const handleAdvancedFetch = async (params: any) => {
+  const handleAdvancedFetch = async (params: {
+    query_type?: string;
+    school_id?: string;
+    params?: Record<string, unknown>;
+  }) => {
     try {
       setError(null);
 
@@ -237,16 +242,20 @@ const ExamsPage: React.FC = () => {
         progress_message: undefined,
       });
 
-      const response = await examAPI.fetchExamList(params);
+      const response = await examAPI.fetchExamList({
+        query_type: params.query_type as "self" | "school_id" | undefined,
+        school_id: params.school_id,
+        params: params.params,
+      });
       if (response.data.success) {
         const taskId = response.data.task_id;
 
         trackAnalyticsEvent("exam_list_fetch_started", {
-          username: user?.username,
+          username: user?.username || "",
           task_id: taskId,
-          fetch_type: params.query_type,
-          school_id: params.school_id || null,
-          fetch_params: params.params || null,
+          fetch_type: params.query_type || "",
+          school_id: params.school_id || "",
+          fetch_params: JSON.stringify(params.params || {}),
         });
 
         pollTaskStatus(taskId);
