@@ -336,7 +336,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
                   <img
                     src={imageUrl}
                     alt="答题卡"
-                    className="max-w-full h-auto border rounded-lg shadow-sm transition-opacity hover:opacity-75"
+                    className="max-w-full h-auto border rounded-lg shadow-xs transition-opacity hover:opacity-75"
                   />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-lg">
                     <div className="bg-white/90 rounded-full p-2">

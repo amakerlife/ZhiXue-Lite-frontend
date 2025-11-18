@@ -56,7 +56,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             return (
               <Button
                 key={pageNum}
-                variant={pageNum === currentPage ? "default" : "outline"}
+                variant={pageNum === currentPage ? "default" : "outline-solid"}
                 size="sm"
                 onClick={() => onPageChange(pageNum)}
                 className="w-7"

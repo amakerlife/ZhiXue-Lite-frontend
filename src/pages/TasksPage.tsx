@@ -151,7 +151,7 @@ const TasksPage: React.FC = () => {
       case "processing":
         return "secondary";
       case "pending":
-        return "outline";
+        return "outline-solid";
       default:
         return "secondary";
     }
@@ -322,7 +322,7 @@ const TasksPage: React.FC = () => {
                   className={task.error_message ? "pt-0 pb-3" : "pt-0"}
                 >
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                    <p className="text-sm text-blue-800 break-words">
+                    <p className="text-sm text-blue-800 wrap-break-word">
                       <strong>进度详情:</strong> {task.progress_message}
                     </p>
                   </div>
@@ -334,7 +334,7 @@ const TasksPage: React.FC = () => {
                   className={task.progress_message ? "pt-0" : "pt-0"}
                 >
                   <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                    <p className="text-sm text-red-800 break-words">
+                    <p className="text-sm text-red-800 wrap-break-word">
                       <strong>错误信息:</strong> {task.error_message}
                     </p>
                   </div>

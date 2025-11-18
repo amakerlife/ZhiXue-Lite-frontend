@@ -1030,7 +1030,7 @@ const UserManagement: React.FC = () => {
                               return (
                                 <Button
                                   key={level}
-                                  variant={isSelected ? "default" : "outline"}
+                                  variant={isSelected ? "default" : "outline-solid"}
                                   size="sm"
                                   onClick={() =>
                                     updatePermission(permissionType, level)
@@ -1983,7 +1983,7 @@ const ExamManagement: React.FC = () => {
     exam: AdminExam | Exam,
   ): {
     status: "all" | "partial" | "none";
-    variant: "default" | "secondary" | "outline";
+    variant: "default" | "secondary" | "outline-solid";
     label: string;
     title?: string;
   } => {
@@ -2005,7 +2005,7 @@ const ExamManagement: React.FC = () => {
         .join("、");
       return {
         status: "partial",
-        variant: "outline",
+        variant: "outline-solid",
         label: `部分保存 (${savedCount}/${totalCount})`,
         title: `已保存：${savedNames}`,
       };

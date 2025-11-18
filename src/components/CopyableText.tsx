@@ -31,7 +31,7 @@ export const CopyableText: React.FC<{
       <Button
         variant="ghost"
         size="sm"
-        className="h-6 w-6 p-0 flex-shrink-0"
+        className="h-6 w-6 p-0 shrink-0"
         onClick={handleCopy}
         title={copied ? "已复制" : "复制"}
       >

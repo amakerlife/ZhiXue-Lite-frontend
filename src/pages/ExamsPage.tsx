@@ -153,7 +153,7 @@ const ExamsPage: React.FC = () => {
     exam: Exam,
   ): {
     status: "all" | "partial" | "none";
-    variant: "default" | "secondary" | "outline";
+    variant: "default" | "secondary" | "outline-solid";
     label: string;
     title?: string;
   } => {
@@ -175,7 +175,7 @@ const ExamsPage: React.FC = () => {
         .join("、");
       return {
         status: "partial",
-        variant: "outline",
+        variant: "outline-solid",
         label: `部分保存 (${savedCount}/${totalCount})`,
         title: `已保存：${savedNames}`,
       };
