@@ -153,7 +153,7 @@ const ExamsPage: React.FC = () => {
     exam: Exam,
   ): {
     status: "all" | "partial" | "none";
-    variant: "default" | "secondary" | "outline";
+    variant: "default" | "secondary" | "outline-solid";
     label: string;
     title?: string;
   } => {

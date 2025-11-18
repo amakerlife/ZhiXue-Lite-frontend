@@ -375,7 +375,7 @@ const ExamDetailPage: React.FC = () => {
           </Link>
 
           <div className="sm:ml-4">
-            <h1 className="text-2xl sm:text-3xl font-bold break-words">
+            <h1 className="text-2xl sm:text-3xl font-bold wrap-break-word">
               {examDetail.name}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm sm:text-base">
@@ -607,7 +607,7 @@ const ExamDetailPage: React.FC = () => {
                 <label className="text-sm font-medium text-muted-foreground">
                   总分
                 </label>
-                <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
+                <div className="bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
                   {examDetail.totalScores.map((totalScore) => (
                     <div
                       key={totalScore.subject_id}

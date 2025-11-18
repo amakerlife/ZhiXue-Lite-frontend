@@ -443,7 +443,7 @@ const ProfilePage: React.FC = () => {
             <div className="bg-orange-50 border border-orange-200 rounded-md p-4 mb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <ShieldAlert className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                  <ShieldAlert className="h-5 w-5 text-orange-600 shrink-0" />
                   <div>
                     <p className="font-medium text-orange-900">
                       您正处于 su 模式
@@ -566,7 +566,7 @@ const ProfilePage: React.FC = () => {
                           size="sm"
                           onClick={handleResendVerificationEmail}
                           disabled={resendingEmail}
-                          className="flex-shrink-0"
+                          className="shrink-0"
                         >
                           {resendingEmail ? (
                             <>

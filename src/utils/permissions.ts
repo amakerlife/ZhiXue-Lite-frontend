@@ -168,13 +168,13 @@ export const getUserRoleLabel = (role: string): string => {
 
 export const getRoleVariant = (
   role: string,
-): "default" | "secondary" | "destructive" | "outline" => {
+): "default" | "secondary" | "destructive" | "outline-solid" => {
   switch (role) {
     case "admin":
       return "destructive";
     case "user":
       return "secondary";
     default:
-      return "outline";
+      return "outline-solid";
   }
 };

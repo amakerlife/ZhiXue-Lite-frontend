@@ -81,7 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="container mx-auto p-3 max-w-7xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <ShieldAlert className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                    <ShieldAlert className="h-5 w-5 text-orange-600 shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-orange-900">
                         {user.su_info?.original_user_username ? (
@@ -128,7 +128,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="container mx-auto p-3 max-w-7xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Mail className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <Mail className="h-5 w-5 text-blue-600 shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-blue-900">
                         您的邮箱尚未验证
@@ -168,7 +168,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="container mx-auto p-3 max-w-7xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                    <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-amber-900">
                         您还未绑定智学网账号

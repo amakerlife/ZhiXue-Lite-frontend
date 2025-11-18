@@ -197,7 +197,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
       <div className="w-full flex h-16 items-center justify-between px-4">
         {/* Left: Menu Button (mobile) + Logo */}
         <div className="flex items-center space-x-3">
@@ -232,7 +232,7 @@ const Header: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 mr-2 flex-shrink-0"
+                  className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 mr-2 shrink-0"
                 >
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
@@ -243,12 +243,12 @@ const Header: React.FC = () => {
               <DropdownMenuContent align="center" className="w-64">
                 <div className="p-3">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-red-800">
                         网络连接异常
                       </p>
-                      <p className="text-xs text-red-700 mt-1 break-words">
+                      <p className="text-xs text-red-700 mt-1 wrap-break-word">
                         {connectionError || "无法连接到后端服务器"}
                       </p>
                     </div>
@@ -295,7 +295,7 @@ const Header: React.FC = () => {
               return (
                 <React.Fragment key={item.path || item.name}>
                   {index > 0 && (
-                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground/60" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60" />
                   )}
                   {item.path && !isLast ? (
                     <Link
@@ -304,9 +304,9 @@ const Header: React.FC = () => {
                         "hover:text-foreground transition-colors truncate",
                         // 首页和倒数第二项保持固定，不收缩
                         isFirst || isSecondToLast
-                          ? "flex-shrink-0"
+                          ? "shrink-0"
                           : // 中间项可以收缩，但保持最小可读宽度
-                            "flex-shrink-1 min-w-[2.5rem]",
+                            "shrink min-w-10",
                       )}
                       title={item.name}
                     >
@@ -314,7 +314,7 @@ const Header: React.FC = () => {
                     </Link>
                   ) : (
                     <span
-                      className="text-foreground font-medium truncate flex-shrink-0 min-w-0"
+                      className="text-foreground font-medium truncate shrink-0 min-w-0"
                       title={item.name}
                     >
                       {item.name}
