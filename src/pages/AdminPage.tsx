@@ -1030,7 +1030,9 @@ const UserManagement: React.FC = () => {
                               return (
                                 <Button
                                   key={level}
-                                  variant={isSelected ? "default" : "outline-solid"}
+                                  variant={
+                                    isSelected ? "default" : "outline-solid"
+                                  }
                                   size="sm"
                                   onClick={() =>
                                     updatePermission(permissionType, level)

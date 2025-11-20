@@ -19,7 +19,11 @@ import type { User } from "@/types/api";
 interface ExamFetchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onFetch: (params: { query_type?: string; school_id?: string; params?: Record<string, unknown> }) => void;
+  onFetch: (params: {
+    query_type?: string;
+    school_id?: string;
+    params?: Record<string, unknown>;
+  }) => void;
   user: User | null;
 }
 
@@ -107,38 +111,41 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
     return true;
   };
 
-  const loadSelections = useCallback(async (targetSchoolId?: string) => {
-    // 对于 GLOBAL 权限用户，需要验证学校 ID
-    if (
-      hasGlobalPermission &&
-      targetSchoolId &&
-      !validateSchoolId(targetSchoolId)
-    ) {
-      setError("学校 ID 格式不正确，必须是 19 位数字");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      // 对于 SCHOOL 权限用户，不传递学校 ID，让后端自动使用用户的学校 ID
-      const response = await examAPI.getFetchListParams(targetSchoolId || "");
-      if (response.data.success) {
-        setSelections(response.data.params);
-      } else {
-        setError(response.data.message || "加载配置参数失败");
+  const loadSelections = useCallback(
+    async (targetSchoolId?: string) => {
+      // 对于 GLOBAL 权限用户，需要验证学校 ID
+      if (
+        hasGlobalPermission &&
+        targetSchoolId &&
+        !validateSchoolId(targetSchoolId)
+      ) {
+        setError("学校 ID 格式不正确，必须是 19 位数字");
+        return;
       }
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      setError(
-        axiosError.response?.data?.message ||
-          "加载配置参数失败，请检查学校 ID 是否正确",
-      );
-      setSelections(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [hasGlobalPermission]);
+
+      try {
+        setLoading(true);
+        setError(null);
+        // 对于 SCHOOL 权限用户，不传递学校 ID，让后端自动使用用户的学校 ID
+        const response = await examAPI.getFetchListParams(targetSchoolId || "");
+        if (response.data.success) {
+          setSelections(response.data.params);
+        } else {
+          setError(response.data.message || "加载配置参数失败");
+        }
+      } catch (error: unknown) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        setError(
+          axiosError.response?.data?.message ||
+            "加载配置参数失败，请检查学校 ID 是否正确",
+        );
+        setSelections(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [hasGlobalPermission],
+  );
 
   // 当选择 school 模式时自动加载参数
   useEffect(() => {
@@ -151,7 +158,14 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
         loadSelections(schoolId);
       }
     }
-  }, [open, fetchMode, hasSchoolOnlyPermission, hasGlobalPermission, schoolId, loadSelections]);
+  }, [
+    open,
+    fetchMode,
+    hasSchoolOnlyPermission,
+    hasGlobalPermission,
+    schoolId,
+    loadSelections,
+  ]);
 
   const handleSchoolIdChange = (value: string) => {
     setSchoolId(value);

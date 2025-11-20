@@ -19,54 +19,9 @@ const config: AnalyticsConfig = {
 
 export const useAnalytics = () => {
   useEffect(() => {
-    const loadScript = (src: string, id: string): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        if (document.getElementById(id)) {
-          resolve();
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.id = id;
-        script.src = src;
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () =>
-          reject(new Error(`Failed to load script: ${src}`));
-        document.head.appendChild(script);
-      });
-    };
-
     const initializeAnalytics = async () => {
       try {
-        // Initialize Microsoft Clarity
-        if (config.clarity.enabled && config.clarity.projectId) {
-          // 使用同步方式加载 Clarity 脚本以确保正确的执行顺序
-          const script = document.createElement("script");
-          script.id = "clarity-script";
-          script.src = `https://www.clarity.ms/tag/${config.clarity.projectId}`;
-          script.async = false; // 使用同步加载而不是异步
-          document.head.appendChild(script);
-        }
-
-        // Initialize Google Analytics
-        if (config.ga.enabled && config.ga.trackingId) {
-          try {
-            await loadScript(
-              `https://www.googletagmanager.com/gtag/js?id=${config.ga.trackingId}`,
-              "ga-script",
-            );
-
-            window.dataLayer = window.dataLayer || [];
-            window.gtag = function gtag(...args: unknown[]) {
-              window.dataLayer!.push(args);
-            };
-            window.gtag("js", new Date());
-            window.gtag("config", config.ga.trackingId);
-          } catch {
-            // Silently fail if Google Analytics initialization fails
-          }
-        }
+        // Clarity 和 Google Analytics 已通过 vite-plugin-radar 在 index.html 中注入
 
         // Initialize Umami
         if (

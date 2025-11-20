@@ -43,7 +43,10 @@ declare global {
     umami?: {
       track: (
         eventName: string,
-        eventData?: Record<string, string | number | boolean | null | undefined>,
+        eventData?: Record<
+          string,
+          string | number | boolean | null | undefined
+        >,
       ) => void;
     };
   }

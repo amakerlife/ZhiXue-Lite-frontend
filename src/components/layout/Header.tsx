@@ -79,55 +79,56 @@ const Header: React.FC = () => {
   const noSidebarPages = ["/login", "/signup"];
   const showMenuButton = !noSidebarPages.includes(location.pathname);
 
-  const generateBreadcrumbs = useCallback(async (
-    pathname: string,
-  ): Promise<BreadcrumbItem[]> => {
-    const paths = pathname.split("/").filter(Boolean);
-    const breadcrumbs: BreadcrumbItem[] = [{ name: "首页", path: "/" }];
+  const generateBreadcrumbs = useCallback(
+    async (pathname: string): Promise<BreadcrumbItem[]> => {
+      const paths = pathname.split("/").filter(Boolean);
+      const breadcrumbs: BreadcrumbItem[] = [{ name: "首页", path: "/" }];
 
-    let currentPath = "";
-    for (const path of paths) {
-      currentPath += `/${path}`;
-      let name = routeNameMap[currentPath] || path;
+      let currentPath = "";
+      for (const path of paths) {
+        currentPath += `/${path}`;
+        let name = routeNameMap[currentPath] || path;
 
-      // 处理考试详情页面的动态路由
-      if (
-        currentPath.startsWith("/exams/") &&
-        currentPath !== "/exams" &&
-        path !== "exams"
-      ) {
-        try {
-          const examId = path;
-          // 暂时使用 examId 作为显示名称
-          name = examId;
+        // 处理考试详情页面的动态路由
+        if (
+          currentPath.startsWith("/exams/") &&
+          currentPath !== "/exams" &&
+          path !== "exams"
+        ) {
+          try {
+            const examId = path;
+            // 暂时使用 examId 作为显示名称
+            name = examId;
 
-          // 异步获取考试数据并更新面包屑（不递归调用 generateBreadcrumbs）
-          getExamData(examId)
-            .then((data) => {
-              if (data) {
-                // 直接更新当前面包屑中的考试名称
-                setBreadcrumbs((prevBreadcrumbs) =>
-                  prevBreadcrumbs.map((item) =>
-                    item.path === currentPath
-                      ? { ...item, name: data.name }
-                      : item,
-                  ),
-                );
-              }
-            })
-            .catch(() => {
-              // Silently fail if exam name cannot be fetched
-            });
-        } catch {
-          // Silently fail if exam name cannot be fetched
+            // 异步获取考试数据并更新面包屑（不递归调用 generateBreadcrumbs）
+            getExamData(examId)
+              .then((data) => {
+                if (data) {
+                  // 直接更新当前面包屑中的考试名称
+                  setBreadcrumbs((prevBreadcrumbs) =>
+                    prevBreadcrumbs.map((item) =>
+                      item.path === currentPath
+                        ? { ...item, name: data.name }
+                        : item,
+                    ),
+                  );
+                }
+              })
+              .catch(() => {
+                // Silently fail if exam name cannot be fetched
+              });
+          } catch {
+            // Silently fail if exam name cannot be fetched
+          }
         }
+
+        breadcrumbs.push({ name, path: currentPath });
       }
 
-      breadcrumbs.push({ name, path: currentPath });
-    }
-
-    return breadcrumbs;
-  }, [getExamData]);
+      return breadcrumbs;
+    },
+    [getExamData],
+  );
 
   useEffect(() => {
     const loadBreadcrumbs = async () => {
