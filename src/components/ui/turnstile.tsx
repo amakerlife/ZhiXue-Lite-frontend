@@ -4,6 +4,7 @@ import {
   useState,
   forwardRef,
   useImperativeHandle,
+  useCallback,
 } from "react";
 
 declare global {
@@ -63,21 +64,34 @@ const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(
     ref,
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [widgetId, setWidgetId] = useState<string>("");
+    const widgetIdRef = useRef<string>("");
     const [isLoaded, setIsLoaded] = useState(false);
-    const [key, setKey] = useState(0); // 用于强制重新渲染
 
-    // 如果未启用，直接调用 onVerify 并返回
+    // 如果未启用，直接调用 onVerify
     useEffect(() => {
       if (!enabled) {
         onVerify("disabled");
-        return;
       }
     }, [enabled, onVerify]);
 
     // 加载 Turnstile 脚本
     useEffect(() => {
       if (!enabled) return;
+
+      // 检查脚本是否已存在且 API 可用
+      const existingScript = document.querySelector(
+        'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]',
+      );
+
+      if (existingScript && window.turnstile) {
+        setIsLoaded(true);
+        return;
+      }
+
+      // 如果脚本存在但 API 不可用，可能之前加载失败了，需要重新加载
+      if (existingScript && !window.turnstile) {
+        existingScript.remove();
+      }
 
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
@@ -88,6 +102,13 @@ const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(
         setIsLoaded(true);
       };
 
+      script.onerror = () => {
+        console.error("Failed to load Turnstile script");
+        if (onError) {
+          onError();
+        }
+      };
+
       document.head.appendChild(script);
 
       return () => {
@@ -95,86 +116,94 @@ const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(
           document.head.removeChild(script);
         }
       };
-    }, [enabled]);
+    }, [enabled, onError]);
+
+    // 清理 widget 的辅助函数
+    const removeWidget = useCallback(() => {
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch (error) {
+          console.warn("Failed to remove Turnstile widget:", error);
+        }
+        widgetIdRef.current = "";
+      }
+    }, []);
 
     // 渲染 Turnstile 组件
     useEffect(() => {
       if (!enabled || !isLoaded || !window.turnstile || !containerRef.current)
         return;
 
-      // 如果已有 widget，先清除
-      if (widgetId) {
-        window.turnstile.remove(widgetId);
-        setWidgetId("");
+      // 清除旧的 widget
+      removeWidget();
+
+      // 渲染新的 widget
+      try {
+        const id = window.turnstile.render(containerRef.current, {
+          sitekey: siteKey,
+          callback: onVerify,
+          "error-callback": onError,
+          "expired-callback": () => {
+            if (onExpire) onExpire();
+            // 自动重置
+            if (widgetIdRef.current && window.turnstile) {
+              window.turnstile.reset(widgetIdRef.current);
+            }
+          },
+          theme,
+          size,
+        });
+        widgetIdRef.current = id;
+      } catch (error) {
+        console.error("Failed to render Turnstile widget:", error);
+        if (onError) onError();
       }
 
-      const id = window.turnstile.render(containerRef.current, {
-        sitekey: siteKey,
-        callback: onVerify,
-        "error-callback": onError,
-        "expired-callback": () => {
-          if (onExpire) onExpire();
-          // 自动重置
-          if (id) {
-            window.turnstile?.reset(id);
-          }
-        },
-        theme,
-        size,
-      });
-      setWidgetId(id);
-    }, [
-      enabled,
-      isLoaded,
-      siteKey,
-      onVerify,
-      onError,
-      onExpire,
-      theme,
-      size,
-      key,
-      widgetId,
-    ]);
-
-    // 清理
-    useEffect(() => {
+      // 清理函数
       return () => {
-        if (widgetId && window.turnstile) {
-          window.turnstile.remove(widgetId);
-        }
+        removeWidget();
       };
-    }, [widgetId]);
+    }, [enabled, isLoaded, siteKey, onVerify, onError, onExpire, theme, size, removeWidget]);
 
-    // 重置方法 - 通过重新渲染实现完全重置
-    const reset = () => {
-      if (enabled) {
-        if (widgetId && window.turnstile) {
-          window.turnstile.reset(widgetId);
+    // 重置方法
+    const reset = useCallback(() => {
+      if (enabled && widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.reset(widgetIdRef.current);
+        } catch (error) {
+          console.warn("Failed to reset Turnstile widget:", error);
         }
-        // 强制重新渲染
-        setKey((prev) => prev + 1);
       }
-    };
+    }, [enabled]);
 
     // 获取响应
-    const getResponse = (): string => {
-      if (widgetId && window.turnstile) {
-        return window.turnstile.getResponse(widgetId);
+    const getResponse = useCallback((): string => {
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          return window.turnstile.getResponse(widgetIdRef.current);
+        } catch (error) {
+          console.warn("Failed to get Turnstile response:", error);
+          return "";
+        }
       }
       return "";
-    };
+    }, []);
 
     // 将方法暴露给父组件
-    useImperativeHandle(ref, () => ({
-      reset,
-      getResponse,
-    }));
+    useImperativeHandle(
+      ref,
+      () => ({
+        reset,
+        getResponse,
+      }),
+      [reset, getResponse],
+    );
 
     return (
       <>
         {enabled ? (
           <div
-            key={key}
             ref={containerRef}
             className={`turnstile-container ${className}`}
             style={{ minHeight: size === "compact" ? "65px" : "65px" }}
