@@ -21,7 +21,7 @@ const AboutPage: React.FC = () => {
         </p>
 
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          <strong>请注意</strong>：ZhiXue-Lite
+          <strong>请注意</strong>：ZhiXue Lite
           是一个独立的第三方项目，与"智学网"官方没有任何关联。本项目仅供学习和交流使用。
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">

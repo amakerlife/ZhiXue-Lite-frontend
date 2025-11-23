@@ -119,3 +119,10 @@ export interface PaginatedResponse<T> {
   items: T[];
   pagination: PaginationInfo;
 }
+
+export interface Statistics {
+  total_users: number;
+  total_schools: number;
+  total_exams: number;
+  saved_exams: number;
+}

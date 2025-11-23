@@ -81,3 +81,5 @@ src/
 - 确保后端 API 服务已启动并可访问
 - 开发环境将默认连接 `http://localhost:5000`
 - 生产环境需配置正确的 `VITE_API_BASE_URL`
+
+Developed by Makerlife and Claude Code.

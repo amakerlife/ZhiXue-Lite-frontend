@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -6,14 +6,43 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BookOpen, Users, School, TrendingUp } from "lucide-react";
+import { BookOpen, Users, School, Database, TrendingUp } from "lucide-react";
+import { statisticsAPI } from "@/api/statistics";
+import type { Statistics } from "@/types/api";
+import { useCountUp } from "@/hooks/useCountUp";
 
 const HomePage: React.FC = () => {
+  const [statistics, setStatistics] = useState<Statistics | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // 数字动画
+  const animatedExams = useCountUp(statistics?.total_exams ?? 0);
+  const animatedUsers = useCountUp(statistics?.total_users ?? 0);
+  const animatedSchools = useCountUp(statistics?.total_schools ?? 0);
+  const animatedSaved = useCountUp(statistics?.saved_exams ?? 0);
+
   useEffect(() => {
     document.title = "首页 - ZhiXue Lite";
     return () => {
       document.title = "ZhiXue Lite";
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const response = await statisticsAPI.getStatistics();
+        if (response.success && response.statistics) {
+          setStatistics(response.statistics);
+        }
+      } catch (error) {
+        console.error("获取统计数据失败:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatistics();
   }, []);
   return (
     <div className="space-y-8">
@@ -37,8 +66,16 @@ const HomePage: React.FC = () => {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
+              <div className="text-2xl font-bold">
+                {loading ? "--" : statistics ? animatedExams : "--"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {loading
+                  ? "加载中..."
+                  : statistics
+                    ? "系统中的考试总数"
+                    : "统计数据加载失败"}
+              </p>
             </CardContent>
           </Card>
 
@@ -48,8 +85,16 @@ const HomePage: React.FC = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
+              <div className="text-2xl font-bold">
+                {loading ? "--" : statistics ? animatedUsers : "--"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {loading
+                  ? "加载中..."
+                  : statistics
+                    ? "系统中的用户总数"
+                    : "统计数据加载失败"}
+              </p>
             </CardContent>
           </Card>
 
@@ -59,19 +104,35 @@ const HomePage: React.FC = () => {
               <School className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
+              <div className="text-2xl font-bold">
+                {loading ? "--" : statistics ? animatedSchools : "--"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {loading
+                  ? "加载中..."
+                  : statistics
+                    ? "系统中的学校总数"
+                    : "统计数据加载失败"}
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">今日活跃</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">已保存考试</CardTitle>
+              <Database className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
-              <p className="text-xs text-muted-foreground">统计数据暂未实现</p>
+              <div className="text-2xl font-bold">
+                {loading ? "--" : statistics ? animatedSaved : "--"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {loading
+                  ? "加载中..."
+                  : statistics
+                    ? "已拉取详情的考试数"
+                    : "统计数据加载失败"}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -90,7 +151,7 @@ const HomePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                查看和管理考试信息，支持从智学网拉取最新的考试数据和成绩信息。
+                查看和管理考试成绩，与智学网密切集成。
               </CardDescription>
             </CardContent>
           </Card>
@@ -104,7 +165,7 @@ const HomePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                详细的成绩分析功能，包括各科成绩、排名信息和标准分计算。
+                详细的成绩分析功能，包括各科成绩、排名信息等。
               </CardDescription>
             </CardContent>
           </Card>
@@ -113,12 +174,12 @@ const HomePage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5 text-primary" />
-                <span>用户管理</span>
+                <span>账号管理</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                管理用户账号，支持智学网账号绑定，确保数据安全和访问控制。
+                支持智学网账号绑定，确保数据安全和访问控制。
               </CardDescription>
             </CardContent>
           </Card>
