@@ -128,4 +128,11 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  /* 修复 Radix UI Select 组件打开时滚动条消失导致的布局抖动问题 */
+  /* 参考：https://github.com/shadcn-ui/ui/issues/4227 */
+  html body[data-scroll-locked] {
+    overflow: visible !important;
+    margin-right: 0 !important;
+  }
 }
