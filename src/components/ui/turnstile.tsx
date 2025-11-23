@@ -164,7 +164,17 @@ const Turnstile = forwardRef<TurnstileRef, TurnstileProps>(
       return () => {
         removeWidget();
       };
-    }, [enabled, isLoaded, siteKey, onVerify, onError, onExpire, theme, size, removeWidget]);
+    }, [
+      enabled,
+      isLoaded,
+      siteKey,
+      onVerify,
+      onError,
+      onExpire,
+      theme,
+      size,
+      removeWidget,
+    ]);
 
     // 重置方法
     const reset = useCallback(() => {
