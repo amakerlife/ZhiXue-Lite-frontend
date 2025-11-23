@@ -25,7 +25,7 @@ npm run dev
 
 ## 技术栈
 
-React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui
+React 19 + TypeScript + Vite + Tailwind CSS + shadcn/ui
 
 ## 环境变量
 
