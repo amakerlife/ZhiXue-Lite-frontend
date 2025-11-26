@@ -254,7 +254,20 @@ const Header: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex justify-end mt-3">
+                  <div className="flex items-center justify-between gap-3 mt-3">
+                    <a
+                      href="https://status.243004.xyz/status/zxl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:opacity-80 transition-opacity"
+                      title="查看服务状态"
+                    >
+                      <img
+                        src="https://status.243004.xyz/api/badge/19/status?style=flat-square"
+                        alt="服务状态"
+                        className="h-5"
+                      />
+                    </a>
                     <Button
                       size="sm"
                       variant="outline"
