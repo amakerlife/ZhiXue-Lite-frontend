@@ -2016,6 +2016,9 @@ const ExamManagement: React.FC = () => {
 
   // 辅助函数：检查是否有任何学校已保存数据
   const hasAnySavedData = (exam: AdminExam): boolean => {
+    if (!exam.schools || exam.schools.length === 0) {
+      return false;
+    }
     return exam.schools.some((s) => s.is_saved);
   };
 
