@@ -242,11 +242,21 @@ const ExamDetailPage: React.FC = () => {
       setDownloadingScoresheet(true);
       setDownloadDialogOpen(false);
 
-      // 联考场景：传递 scope 和 school_id
+      // 确定最终的 school_id 和 scope
+      // 联考场景：使用用户选择的 school_id 和 scope
+      // 单校场景：也需要传递 school_id（防止下载非本校考试时 400 错误）
+      const finalSchoolId =
+        downloadSchoolId ||
+        selectedSchoolId ||
+        (availableSchools.length > 0
+          ? availableSchools[0].school_id
+          : undefined);
+      const finalScope = downloadIsMultiSchool ? downloadScope : undefined;
+
       const response = await examAPI.generateScoresheet(
         examId,
-        downloadIsMultiSchool ? downloadScope : undefined,
-        downloadIsMultiSchool ? downloadSchoolId : undefined,
+        finalScope,
+        finalSchoolId,
       );
 
       // 创建下载链接
