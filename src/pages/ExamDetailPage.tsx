@@ -618,37 +618,59 @@ const ExamDetailPage: React.FC = () => {
                   总分
                 </label>
                 <div className="bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
-                  {examDetail.totalScores.map((totalScore) => (
-                    <div
-                      key={totalScore.subject_id}
-                      className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0"
-                    >
-                      <div className="flex items-baseline space-x-2 justify-center sm:justify-start">
-                        <span className="text-2xl sm:text-3xl font-bold text-primary">
-                          {totalScore.score || "-"}
-                        </span>
-                        <span className="text-lg sm:text-xl text-muted-foreground">
-                          / {totalScore.standard_score || "-"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
-                        {totalScore.class_rank && (
-                          <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg text-center">
-                            <span className="text-sm font-medium text-blue-700">
-                              班级第 {totalScore.class_rank} 名
+                  {examDetail.totalScores.map((totalScore) => {
+                    // 检测是否缺失满分数据（后端返回 "-1"）
+                    const isStandardScoreMissing =
+                      totalScore.standard_score === "-1";
+
+                    // 如果缺失，尝试通过各科满分累加计算
+                    const calculatedStandardScore = isStandardScoreMissing
+                      ? examDetail.scores.reduce((acc, curr) => {
+                          const score = parseFloat(curr.standard_score);
+                          return acc + (isNaN(score) ? 0 : score);
+                        }, 0)
+                      : null;
+
+                    const displayStandardScore = isStandardScoreMissing
+                      ? calculatedStandardScore
+                      : totalScore.standard_score;
+
+                    return (
+                      <React.Fragment key={totalScore.subject_id}>
+                        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                          <div className="flex items-baseline space-x-2 justify-center sm:justify-start">
+                            <span className="text-2xl sm:text-3xl font-bold text-primary">
+                              {totalScore.score || "-"}
+                            </span>
+                            <span className="text-lg sm:text-xl text-muted-foreground">
+                              / {displayStandardScore || "-"}
                             </span>
                           </div>
-                        )}
-                        {totalScore.school_rank && (
-                          <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg text-center">
-                            <span className="text-sm font-medium text-green-700">
-                              学校第 {totalScore.school_rank} 名
-                            </span>
+                          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
+                            {totalScore.class_rank && (
+                              <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg text-center">
+                                <span className="text-sm font-medium text-blue-700">
+                                  班级第 {totalScore.class_rank} 名
+                                </span>
+                              </div>
+                            )}
+                            {totalScore.school_rank && (
+                              <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg text-center">
+                                <span className="text-sm font-medium text-green-700">
+                                  学校第 {totalScore.school_rank} 名
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {isStandardScoreMissing && (
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            本次考试可能为新高考六选三等模式，智学网未提供满分数据。当前满分仅供参考。
                           </div>
                         )}
-                      </div>
-                    </div>
-                  ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </div>
               </div>
             )}
