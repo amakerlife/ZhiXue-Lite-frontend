@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Users,
   School,
@@ -18,6 +18,7 @@ import {
   Trash,
   HardDriveIcon,
   Lock,
+  EllipsisVertical,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -27,6 +28,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -52,6 +60,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Pagination } from "@/components/Pagination";
 import { useAuth } from "@/contexts/AuthContext";
 import { adminAPI } from "@/api/admin";
@@ -110,9 +120,10 @@ const AdminPage: React.FC = () => {
   const [clearingCache, setClearingCache] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [clearCacheConfirmOpen, setClearCacheConfirmOpen] = useState(false);
 
   // 清除缓存函数
-  const handleClearCache = async () => {
+  const confirmClearCache = async () => {
     setClearingCache(true);
     setError(null);
     setSuccess(null);
@@ -162,7 +173,7 @@ const AdminPage: React.FC = () => {
           <p className="text-muted-foreground mt-1">系统管理和数据维护</p>
         </div>
         <Button
-          onClick={handleClearCache}
+          onClick={() => setClearCacheConfirmOpen(true)}
           disabled={clearingCache}
           variant="outline"
           className="flex items-center space-x-2"
@@ -248,6 +259,17 @@ const AdminPage: React.FC = () => {
           <ExamManagement />
         </TabsContent>
       </Tabs>
+
+      <ConfirmDialog
+        open={clearCacheConfirmOpen}
+        onOpenChange={setClearCacheConfirmOpen}
+        title="确认清除缓存"
+        description="清除缓存可能会导致系统响应变慢，因为需要重新从数据库或外部服务获取数据。确定要继续吗？"
+        confirmText="清除"
+        cancelText="取消"
+        variant="destructive"
+        onConfirm={confirmClearCache}
+      />
     </div>
   );
 };
@@ -256,27 +278,19 @@ const AdminPage: React.FC = () => {
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const lastRequestIdRef = useRef(0);
 
   // 新增：学校列表
   const [schools, setSchools] = useState<SchoolType[]>([]);
-  const [loadingSchools, setLoadingSchools] = useState(false);
 
-  // 新增：编辑状态管理
-  const [editingUser, setEditingUser] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<{
-    email: string;
-    role: "admin" | "user" | "";
-    is_active: boolean;
-    manual_school_id: string | null; // 新增：手动分配学校
-  }>({
-    email: "",
-    role: "",
-    is_active: true,
-    manual_school_id: null,
-  });
+  // 编辑对话框状态
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<AdminUser | null>(null);
+
   const [editLoading, setEditLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -308,29 +322,45 @@ const UserManagement: React.FC = () => {
     new Set(),
   );
 
-  const loadUsers = async () => {
+  const loadUsers = async (pageNum = page, query = activeSearchQuery) => {
+    const currentRequestId = ++lastRequestIdRef.current;
     try {
       setLoading(true);
       const response = await adminAPI.listUsers({
-        page,
+        page: pageNum,
         per_page: 10,
-        query: search,
+        query: query,
       });
+      if (currentRequestId !== lastRequestIdRef.current) return;
+
       if (response.data.success) {
         setUsers(response.data.users);
         setTotalPages(response.data.pagination.pages);
       }
     } catch {
+      if (currentRequestId !== lastRequestIdRef.current) return;
       // Error handling is done by API interceptor
     } finally {
-      setLoading(false);
+      if (currentRequestId === lastRequestIdRef.current) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchInput);
+    setPage(1);
+    loadUsers(1, searchInput);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadUsers(newPage, activeSearchQuery);
   };
 
   // 新增：加载学校列表
   const loadSchools = async () => {
     try {
-      setLoadingSchools(true);
       const response = await adminAPI.listSchools({ per_page: 1000 }); // 加载所有学校
       if (response.data.success) {
         setSchools(response.data.schools);
@@ -338,42 +368,19 @@ const UserManagement: React.FC = () => {
     } catch {
       // Error handling is done by API interceptor
     } finally {
-      setLoadingSchools(false);
+      // no-op
     }
   };
 
-  // 新增：开始编辑用户
-  const startEditUser = (user: AdminUser) => {
+  // 开启编辑对话框
+  const openEditDialog = (user: AdminUser) => {
     setError(null);
     setSuccess(null);
-    setEditingUser(user.id);
-
-    // 推导 manual_school_id：如果有手动分配的学校，从 zhixue_info.school_id 获取
-    const manualSchoolId =
-      user.is_manual_school && !user.zhixue_info?.username
-        ? user.zhixue_info?.school_id || null
-        : null;
-
-    setEditForm({
-      email: user.email,
-      role: user.role as "admin" | "user",
-      is_active: user.is_active,
-      manual_school_id: manualSchoolId,
-    });
+    setUserToEdit(user);
+    setIsEditDialogOpen(true);
   };
 
-  // 新增：取消编辑
-  const cancelEditUser = () => {
-    setEditingUser(null);
-    setEditForm({
-      email: "",
-      role: "",
-      is_active: true,
-      manual_school_id: null,
-    });
-  };
-
-  // 新增：权限编辑相关函数
+  // 权限编辑相关函数
   const openPermissionDialog = (user: AdminUser) => {
     setEditingPermissionsUser(user);
     setPermissionDialogOpen(true);
@@ -422,7 +429,7 @@ const UserManagement: React.FC = () => {
       if (response.data.success) {
         setSuccess("权限已更新");
         closePermissionDialog();
-        await loadUsers(); // 重新加载用户列表
+        await loadUsers(page, activeSearchQuery); // 重新加载用户列表
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -441,12 +448,20 @@ const UserManagement: React.FC = () => {
     }));
   };
 
-  // 新增：保存用户修改
-  const saveUserEdit = async (userId: number) => {
+  // 保存用户修改（从编辑对话框调用）
+  const saveUserEdit = async (
+    userId: number,
+    formData: {
+      email: string;
+      role: "admin" | "user" | "";
+      is_active: boolean;
+      manual_school_id: string | null;
+    },
+  ) => {
     const targetUser = users.find((u) => u.id === userId);
 
     // 验证：已绑定智学网账号的用户不能手动分配学校
-    if (targetUser?.zhixue_info?.username && editForm.manual_school_id) {
+    if (targetUser?.zhixue_info?.username && formData.manual_school_id) {
       setError("该用户已绑定智学网账号，无法手动分配学校");
       return;
     }
@@ -462,20 +477,21 @@ const UserManagement: React.FC = () => {
         is_active: boolean;
         manual_school_id?: string | null;
       } = {
-        email: editForm.email,
-        is_active: editForm.is_active,
-        manual_school_id: editForm.manual_school_id,
+        email: formData.email,
+        is_active: formData.is_active,
+        manual_school_id: formData.manual_school_id,
       };
 
-      if (editForm.role !== "") {
-        updateData.role = editForm.role;
+      if (formData.role !== "") {
+        updateData.role = formData.role;
       }
 
       const response = await adminAPI.updateUser(userId, updateData);
       if (response.data.success) {
         setSuccess("用户信息已更新");
-        setEditingUser(null);
-        await loadUsers(); // 重新加载用户列表
+        setIsEditDialogOpen(false);
+        setUserToEdit(null);
+        await loadUsers(page, activeSearchQuery); // 重新加载用户列表
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -487,7 +503,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // 新增：重置密码相关函数
+  // 重置密码相关函数
   const openResetPasswordDialog = (user: AdminUser) => {
     setResetPasswordDialog({ open: true, user });
     setNewPassword("");
@@ -538,7 +554,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // 新增：切换智学网信息展开状态
+  // 切换智学网信息展开状态
   const toggleZhixueInfo = (userId: number) => {
     const newExpanded = new Set(expandedZhixueInfo);
     if (newExpanded.has(userId)) {
@@ -550,35 +566,201 @@ const UserManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    loadUsers();
-  }, [page, search]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadUsers(1, "");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 新增：加载学校列表
+  // 加载学校列表
   useEffect(() => {
     loadSchools();
   }, []);
 
+  // 新增：用户编辑对话框组件
+  const UserEditDialog: React.FC<{
+    user: AdminUser;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSave: (
+      userId: number,
+      formData: {
+        email: string;
+        role: "admin" | "user" | "";
+        is_active: boolean;
+        manual_school_id: string | null;
+      },
+    ) => Promise<void>;
+    schools: SchoolType[];
+    editLoading: boolean;
+    error: string | null;
+  }> = ({ user, open, onOpenChange, onSave, schools, editLoading, error }) => {
+    const [email, setEmail] = useState(user.email);
+    const [role, setRole] = useState<"admin" | "user" | "">(
+      user.role === "admin" || user.role === "user" ? user.role : "",
+    );
+    const [isActive, setIsActive] = useState(user.is_active);
+    const [manualSchoolId, setManualSchoolId] = useState<string | null>(
+      user.is_manual_school && !user.zhixue_info?.username
+        ? user.zhixue_info?.school_id || null
+        : null,
+    );
+
+    useEffect(() => {
+      if (open) {
+        setEmail(user.email);
+        setRole(user.role === "admin" || user.role === "user" ? user.role : "");
+        setIsActive(user.is_active);
+        setManualSchoolId(
+          user.is_manual_school && !user.zhixue_info?.username
+            ? user.zhixue_info?.school_id || null
+            : null,
+        );
+      }
+    }, [open, user]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      await onSave(user.id, {
+        email,
+        role,
+        is_active: isActive,
+        manual_school_id: manualSchoolId,
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>编辑用户: {user.username}</DialogTitle>
+            <DialogDescription>修改用户基本信息和分配学校</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <StatusAlert variant="error" message={error} />}
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">邮箱</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">角色</Label>
+              <Select
+                value={role}
+                onValueChange={(value: "admin" | "user" | "") => setRole(value)}
+              >
+                <SelectTrigger id="edit-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">普通用户</SelectItem>
+                  <SelectItem value="admin">管理员</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-is-active">状态</Label>
+              <Select
+                value={isActive.toString()}
+                onValueChange={(value) => setIsActive(value === "true")}
+              >
+                <SelectTrigger id="edit-is-active">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">可用</SelectItem>
+                  <SelectItem value="false">禁用</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-manual-school">手动分配学校</Label>
+              <Select
+                value={manualSchoolId || "none"}
+                onValueChange={(value) =>
+                  setManualSchoolId(value === "none" ? null : value)
+                }
+                disabled={!!user.zhixue_info?.username}
+              >
+                <SelectTrigger id="edit-manual-school">
+                  <SelectValue placeholder="选择学校" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">不分配</SelectItem>
+                  {schools.map((school) => (
+                    <SelectItem key={school.id} value={school.id}>
+                      {school.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {user.zhixue_info?.username && (
+                <p className="text-xs text-orange-600">
+                  已绑定智学网账号的用户无法手动分配学校
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2 pt-4">
+              <Button type="submit" disabled={editLoading}>
+                {editLoading ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {editLoading ? "保存中..." : "保存修改"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                取消
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>用户管理</CardTitle>
-        <CardDescription>管理系统用户账号和权限</CardDescription>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>用户管理</CardTitle>
+            <CardDescription>管理系统用户账号和权限</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => loadUsers(page, activeSearchQuery)}
+            title="刷新"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="搜索用户名..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="pl-10"
             />
           </div>
-          <Button onClick={loadUsers} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            刷新
+          <Button onClick={handleSearch}>
+            <Search className="h-4 w-4 mr-2" />
+            搜索
           </Button>
         </div>
       </CardHeader>
@@ -629,78 +811,23 @@ const UserManagement: React.FC = () => {
                         {user.username}
                       </TableCell>
 
-                      {/* 邮箱 - 可编辑 */}
+                      {/* 邮箱 */}
+                      <TableCell>{user.email}</TableCell>
+
+                      {/* 角色 */}
                       <TableCell>
-                        {editingUser === user.id ? (
-                          <Input
-                            value={editForm.email}
-                            onChange={(e) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                email: e.target.value,
-                              }))
-                            }
-                            className="w-full"
-                          />
-                        ) : (
-                          user.email
-                        )}
+                        <Badge variant={getRoleVariant(user.role)}>
+                          {getUserRoleLabel(user.role)}
+                        </Badge>
                       </TableCell>
 
-                      {/* 角色 - 可编辑 */}
+                      {/* 状态 */}
                       <TableCell>
-                        {editingUser === user.id ? (
-                          <Select
-                            value={editForm.role}
-                            onValueChange={(value) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                role: value as "admin" | "user" | "",
-                              }))
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user">普通用户</SelectItem>
-                              <SelectItem value="admin">管理员</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Badge variant={getRoleVariant(user.role)}>
-                            {getUserRoleLabel(user.role)}
-                          </Badge>
-                        )}
-                      </TableCell>
-
-                      {/* 状态 - 可编辑 */}
-                      <TableCell>
-                        {editingUser === user.id ? (
-                          <Select
-                            value={editForm.is_active.toString()}
-                            onValueChange={(value) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                is_active: value === "true",
-                              }))
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="true">可用</SelectItem>
-                              <SelectItem value="false">禁用</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Badge
-                            variant={user.is_active ? "default" : "destructive"}
-                          >
-                            {user.is_active ? "可用" : "禁用"}
-                          </Badge>
-                        )}
+                        <Badge
+                          variant={user.is_active ? "default" : "destructive"}
+                        >
+                          {user.is_active ? "可用" : "禁用"}
+                        </Badge>
                       </TableCell>
 
                       {/* 智学网信息 - 可折叠 */}
@@ -743,57 +870,19 @@ const UserManagement: React.FC = () => {
                         )}
                       </TableCell>
 
-                      {/* 手动分配学校 - 可编辑 */}
+                      {/* 手动分配学校 */}
                       <TableCell>
-                        {editingUser === user.id ? (
-                          <Select
-                            value={editForm.manual_school_id || "none"}
-                            onValueChange={(value) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                manual_school_id:
-                                  value === "none" ? null : value,
-                              }))
-                            }
-                            disabled={
-                              !!user.zhixue_info?.username || loadingSchools
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue
-                                placeholder={
-                                  loadingSchools ? "加载中..." : "选择学校"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">不分配</SelectItem>
-                              {schools.map((school) => (
-                                <SelectItem key={school.id} value={school.id}>
-                                  {school.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="space-y-1">
-                            {user.is_manual_school ? (
-                              <Badge variant="secondary" className="text-xs">
-                                {user.zhixue_info?.school_name || "未知学校"}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">
-                                未分配
-                              </span>
-                            )}
-                            {user.zhixue_info?.username &&
-                              user.is_manual_school && (
-                                <p className="text-xs text-orange-600">
-                                  已绑定智学网，无法修改
-                                </p>
-                              )}
-                          </div>
-                        )}
+                        <div className="space-y-1">
+                          {user.is_manual_school ? (
+                            <Badge variant="secondary" className="text-xs">
+                              {user.zhixue_info?.school_name || "未知学校"}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              未分配
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
 
                       <TableCell>
@@ -814,58 +903,41 @@ const UserManagement: React.FC = () => {
                         </span>
                       </TableCell>
 
-                      {/* 操作按钮 */}
+                      {/* 操作按钮 - 使用DropdownMenu */}
                       <TableCell>
-                        {editingUser === user.id ? (
-                          <div className="flex items-center space-x-1">
-                            <Button
-                              size="sm"
-                              onClick={() => saveUserEdit(user.id)}
-                              disabled={editLoading}
-                            >
-                              <Save className="h-3 w-3 mr-1" />
-                              {editLoading ? "保存中..." : "保存"}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">打开菜单</span>
+                              <EllipsisVertical className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={cancelEditUser}
-                              disabled={editLoading}
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>操作</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => openEditDialog(user)}
                             >
-                              <X className="h-3 w-3 mr-1" />
-                              取消
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => startEditUser(user)}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
+                              <Edit className="h-4 w-4 mr-2" />
                               编辑
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
                               onClick={() => openPermissionDialog(user)}
-                              className="text-blue-600 hover:text-blue-700"
                             >
-                              <Lock className="h-3 w-3 mr-1" />
+                              <Lock className="h-4 w-4 mr-2" />
                               权限
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
                               onClick={() => openResetPasswordDialog(user)}
-                              className="text-orange-600 hover:text-orange-700"
                             >
-                              <RotateCcw className="h-3 w-3 mr-1" />
+                              <RotateCcw className="h-4 w-4 mr-2" />
                               重置密码
-                            </Button>
-                          </div>
-                        )}
+                            </DropdownMenuItem>
+                            {/* <DropdownMenuItem className="text-destructive">
+                              <Trash className="h-4 w-4 mr-2" />
+                              删除
+                            </DropdownMenuItem> */}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -877,7 +949,7 @@ const UserManagement: React.FC = () => {
             <Pagination
               currentPage={page}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
               showPageNumbers={false}
             />
           </div>
@@ -1076,6 +1148,19 @@ const UserManagement: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 用户编辑对话框 */}
+      {userToEdit && (
+        <UserEditDialog
+          user={userToEdit}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSave={saveUserEdit}
+          schools={schools}
+          editLoading={editLoading}
+          error={error}
+        />
+      )}
     </Card>
   );
 };
@@ -1084,54 +1169,83 @@ const UserManagement: React.FC = () => {
 const SchoolManagement: React.FC = () => {
   const [schools, setSchools] = useState<SchoolType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const lastRequestIdRef = useRef(0);
 
-  const loadSchools = async () => {
+  const loadSchools = async (pageNum = page, query = activeSearchQuery) => {
+    const currentRequestId = ++lastRequestIdRef.current;
     try {
       setLoading(true);
       const response = await adminAPI.listSchools({
-        page,
+        page: pageNum,
         per_page: 10,
-        query: search,
+        query: query,
       });
+      if (currentRequestId !== lastRequestIdRef.current) return;
+
       if (response.data.success) {
         setSchools(response.data.schools);
         setTotalPages(response.data.pagination.pages);
       }
     } catch {
+      if (currentRequestId !== lastRequestIdRef.current) return;
       // Error handling is done by API interceptor
     } finally {
-      setLoading(false);
+      if (currentRequestId === lastRequestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
+  const handleSearch = () => {
+    setActiveSearchQuery(searchInput);
+    setPage(1);
+    loadSchools(1, searchInput);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadSchools(newPage, activeSearchQuery);
+  };
+
   useEffect(() => {
-    loadSchools();
-  }, [page, search]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadSchools(1, "");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>学校管理</CardTitle>
-        <CardDescription>管理系统中的学校信息</CardDescription>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>学校管理</CardTitle>
+            <CardDescription>管理系统中的学校信息</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => loadSchools(page, activeSearchQuery)}
+            title="刷新"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="搜索学校名称或 ID..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="pl-10"
             />
           </div>
-          <Button onClick={loadSchools} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            刷新
+          <Button onClick={handleSearch}>
+            <Search className="h-4 w-4 mr-2" />
+            搜索
           </Button>
         </div>
       </CardHeader>
@@ -1166,7 +1280,7 @@ const SchoolManagement: React.FC = () => {
             <Pagination
               currentPage={page}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
               showPageNumbers={false}
             />
           </div>
@@ -1180,9 +1294,11 @@ const SchoolManagement: React.FC = () => {
 const TeacherManagement: React.FC = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const lastRequestIdRef = useRef(0);
 
   // 添加教师状态
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -1217,23 +1333,40 @@ const TeacherManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const loadTeachers = async () => {
+  const loadTeachers = async (pageNum = page, query = activeSearchQuery) => {
+    const currentRequestId = ++lastRequestIdRef.current;
     try {
       setLoading(true);
       const response = await adminAPI.listTeachers({
-        page,
+        page: pageNum,
         per_page: 10,
-        query: search,
+        query: query,
       });
+      if (currentRequestId !== lastRequestIdRef.current) return;
+
       if (response.data.success) {
         setTeachers(response.data.teachers);
         setTotalPages(response.data.pagination.pages);
       }
     } catch {
+      if (currentRequestId !== lastRequestIdRef.current) return;
       setError("加载教师列表失败");
     } finally {
-      setLoading(false);
+      if (currentRequestId === lastRequestIdRef.current) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchInput);
+    setPage(1);
+    loadTeachers(1, searchInput);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadTeachers(newPage, activeSearchQuery);
   };
 
   // 添加教师
@@ -1249,7 +1382,7 @@ const TeacherManagement: React.FC = () => {
         setSuccess("教师账号添加成功");
         setAddDialogOpen(false);
         setAddForm({ username: "", password: "", login_method: "changyan" });
-        await loadTeachers();
+        await loadTeachers(page, activeSearchQuery);
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -1301,7 +1434,7 @@ const TeacherManagement: React.FC = () => {
       if (response.data.success) {
         setSuccess("教师信息已更新");
         setEditingTeacher(null);
-        await loadTeachers();
+        await loadTeachers(page, activeSearchQuery);
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -1338,7 +1471,7 @@ const TeacherManagement: React.FC = () => {
       if (response.data.success) {
         setSuccess(`教师 ${deleteDialogOpen.teacher.username} 已删除`);
         closeDeleteDialog();
-        await loadTeachers();
+        await loadTeachers(page, activeSearchQuery);
       }
     } catch (err: unknown) {
       const errorMessage =
@@ -1351,41 +1484,51 @@ const TeacherManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    loadTeachers();
-  }, [page, search]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadTeachers(1, "");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>教师管理</CardTitle>
-        <CardDescription>管理智学网教师账号</CardDescription>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>教师管理</CardTitle>
+            <CardDescription>管理智学网教师账号</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => loadTeachers(page, activeSearchQuery)}
+            title="刷新"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="搜索教师用户名或学校..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="pl-10"
             />
           </div>
+          <Button onClick={handleSearch}>
+            <Search className="h-4 w-4 mr-2" />
+            搜索
+          </Button>
           <Button
             onClick={() => {
               setError(null);
               setSuccess(null);
               setAddDialogOpen(true);
             }}
-            size="sm"
+            variant="outline"
           >
             <GraduationCap className="h-4 w-4 mr-2" />
             添加教师
-          </Button>
-          <Button onClick={loadTeachers} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            刷新
           </Button>
         </div>
       </CardHeader>
@@ -1553,7 +1696,7 @@ const TeacherManagement: React.FC = () => {
             <Pagination
               currentPage={page}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
               showPageNumbers={false}
             />
           </div>
@@ -1681,9 +1824,11 @@ const StudentManagement: React.FC = () => {
   const { user } = useAuth(); // 添加当前用户信息
   const [students, setStudents] = useState<ZhiXueAccount[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const lastRequestIdRef = useRef(0);
 
   // 新增：绑定用户管理相关状态
   const [selectedStudent, setSelectedStudent] = useState<ZhiXueAccount | null>(
@@ -1696,23 +1841,40 @@ const StudentManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const loadStudents = async () => {
+  const loadStudents = async (pageNum = page, query = activeSearchQuery) => {
+    const currentRequestId = ++lastRequestIdRef.current;
     try {
       setLoading(true);
       const response = await adminAPI.listZhiXueAccounts({
-        page,
+        page: pageNum,
         per_page: 10,
-        query: search,
+        query: query,
       });
+      if (currentRequestId !== lastRequestIdRef.current) return;
+
       if (response.data.success) {
         setStudents(response.data.zhixue_accounts);
         setTotalPages(response.data.pagination.pages);
       }
     } catch {
+      if (currentRequestId !== lastRequestIdRef.current) return;
       // Error handling is done by API interceptor
     } finally {
-      setLoading(false);
+      if (currentRequestId === lastRequestIdRef.current) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchInput);
+    setPage(1);
+    loadStudents(1, searchInput);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadStudents(newPage, activeSearchQuery);
   };
 
   // 新增：查看智学网账号绑定的用户
@@ -1782,30 +1944,40 @@ const StudentManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    loadStudents();
-  }, [page, search]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadStudents(1, "");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>学生管理</CardTitle>
-        <CardDescription>管理智学网学生账号</CardDescription>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>学生管理</CardTitle>
+            <CardDescription>管理智学网学生账号</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => loadStudents(page, activeSearchQuery)}
+            title="刷新"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="搜索学生用户名..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="pl-10"
             />
           </div>
-          <Button onClick={loadStudents} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            刷新
+          <Button onClick={handleSearch}>
+            <Search className="h-4 w-4 mr-2" />
+            搜索
           </Button>
         </div>
       </CardHeader>
@@ -1863,7 +2035,7 @@ const StudentManagement: React.FC = () => {
             <Pagination
               currentPage={page}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
               showPageNumbers={false}
             />
           </div>
@@ -1956,9 +2128,11 @@ const StudentManagement: React.FC = () => {
 const ExamManagement: React.FC = () => {
   const [exams, setExams] = useState<AdminExam[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const lastRequestIdRef = useRef(0);
 
   // 成绩单生成状态
   const [generatingScoresheet, setGeneratingScoresheet] = useState<
@@ -2022,24 +2196,41 @@ const ExamManagement: React.FC = () => {
     return exam.schools.some((s) => s.is_saved);
   };
 
-  const loadExams = async () => {
+  const loadExams = async (pageNum = page, query = activeSearchQuery) => {
+    const currentRequestId = ++lastRequestIdRef.current;
     try {
       setLoading(true);
       // 使用管理员专用的考试列表API
       const response = await adminAPI.listExams({
-        page,
+        page: pageNum,
         per_page: 10,
-        query: search,
+        query: query,
       });
+      if (currentRequestId !== lastRequestIdRef.current) return;
+
       if (response.data.success) {
         setExams(response.data.exams);
         setTotalPages(response.data.pagination.pages);
       }
     } catch {
+      if (currentRequestId !== lastRequestIdRef.current) return;
       setError("加载考试列表失败");
     } finally {
-      setLoading(false);
+      if (currentRequestId === lastRequestIdRef.current) {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchInput);
+    setPage(1);
+    loadExams(1, searchInput);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    loadExams(newPage, activeSearchQuery);
   };
 
   // 查看考试详情
@@ -2103,37 +2294,41 @@ const ExamManagement: React.FC = () => {
     setExamDetail(null);
   };
 
-  // 分页处理函数
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    loadExams();
-  };
-
   useEffect(() => {
-    loadExams();
-  }, [page, search]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadExams(1, "");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>考试管理</CardTitle>
-        <CardDescription>管理系统中的考试数据和成绩单生成</CardDescription>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>考试管理</CardTitle>
+            <CardDescription>管理系统中的考试数据和成绩单生成</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => loadExams(page, activeSearchQuery)}
+            title="刷新"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="搜索考试名称或 ID..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="pl-10"
             />
           </div>
-          <Button onClick={loadExams} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            刷新
+          <Button onClick={handleSearch}>
+            <Search className="h-4 w-4 mr-2" />
+            搜索
           </Button>
         </div>
       </CardHeader>

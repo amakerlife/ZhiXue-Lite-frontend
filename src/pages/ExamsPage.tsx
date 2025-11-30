@@ -9,7 +9,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Link2,
-  Filter,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -439,8 +438,6 @@ const ExamsPage: React.FC = () => {
               onClick={handleFetchExams}
               disabled={!!fetchingTask}
               variant="outline"
-              size="sm"
-              className="text-xs sm:text-sm"
             >
               <RefreshCw
                 className={`h-4 w-4 mr-2 ${fetchingTask ? "animate-spin" : ""}`}
@@ -480,7 +477,7 @@ const ExamsPage: React.FC = () => {
                 />
               </div>
               <Button type="submit">
-                <Filter className="h-4 w-4 mr-2" />
+                <Search className="h-4 w-4 mr-2" />
                 搜索
               </Button>
             </div>

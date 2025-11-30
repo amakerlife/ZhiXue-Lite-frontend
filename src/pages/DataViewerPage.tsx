@@ -962,7 +962,7 @@ const ScoreLookup: React.FC = () => {
             {loading ? (
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <Trophy className="h-4 w-4 mr-2" />
+              <Search className="h-4 w-4 mr-2" />
             )}
             {loading ? "查询中..." : "查询成绩"}
           </Button>
