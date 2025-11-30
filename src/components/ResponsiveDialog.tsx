@@ -198,7 +198,7 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
                 <AlertDialogDescription>{description}</AlertDialogDescription>
               )}
             </AlertDialogHeader>
-            {children}
+            <div className="max-h-[70vh] overflow-y-auto">{children}</div>
             <AlertDialogFooter>
               {mode === "alert" ? (
                 <AlertDialogAction
@@ -242,7 +242,7 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
               <DialogDescription>{description}</DialogDescription>
             )}
           </DialogHeader>
-          {children}
+          <div className="max-h-[70vh] overflow-y-auto">{children}</div>
           {(footer || showDefaultFooter || mode !== "default") && (
             <DialogFooter>{renderFooter(true)}</DialogFooter>
           )}

@@ -1042,14 +1042,18 @@ const UserManagement: React.FC = () => {
                         {expandedZhixueInfo.has(user.id) && (
                           <div className="ml-6 space-y-1 text-xs text-muted-foreground">
                             <div>姓名: {user.zhixue_info.realname || "-"}</div>
-                            <div>学校: {user.zhixue_info.school_name || "-"}</div>
+                            <div>
+                              学校: {user.zhixue_info.school_name || "-"}
+                            </div>
                           </div>
                         )}
                       </div>
                     ) : (
                       <div className="grid grid-cols-[60px_1fr] gap-2">
                         <span className="text-muted-foreground">智学网:</span>
-                        <span className="text-muted-foreground text-xs">未绑定</span>
+                        <span className="text-muted-foreground text-xs">
+                          未绑定
+                        </span>
                       </div>
                     )}
 
@@ -1214,11 +1218,7 @@ const UserManagement: React.FC = () => {
             />
           )}
           {error && (
-            <StatusAlert
-              variant="error"
-              message={error}
-              className="text-sm"
-            />
+            <StatusAlert variant="error" message={error} className="text-sm" />
           )}
 
           <div className="space-y-4">
@@ -1249,10 +1249,7 @@ const UserManagement: React.FC = () => {
                   const currentLevel = permissionForm[permissionType] || 0;
 
                   return (
-                    <div
-                      key={permissionType}
-                      className="p-4 border rounded-md"
-                    >
+                    <div key={permissionType} className="p-4 border rounded-md">
                       <div className="flex items-center justify-between mb-3">
                         <span className="font-medium text-sm md:text-base">
                           {description.action} {description.object}
@@ -2036,7 +2033,9 @@ const TeacherManagement: React.FC = () => {
                   取消
                 </Button>
                 <Button
-                  onClick={() => editingTeacher && saveTeacherEdit(editingTeacher)}
+                  onClick={() =>
+                    editingTeacher && saveTeacherEdit(editingTeacher)
+                  }
                   disabled={editLoading}
                 >
                   {editLoading ? (
@@ -2050,7 +2049,9 @@ const TeacherManagement: React.FC = () => {
             ) : (
               <>
                 <Button
-                  onClick={() => editingTeacher && saveTeacherEdit(editingTeacher)}
+                  onClick={() =>
+                    editingTeacher && saveTeacherEdit(editingTeacher)
+                  }
                   disabled={editLoading}
                 >
                   {editLoading ? (
@@ -2072,7 +2073,10 @@ const TeacherManagement: React.FC = () => {
       >
         <div className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="edit-teacher-password" className="text-sm font-medium">
+            <label
+              htmlFor="edit-teacher-password"
+              className="text-sm font-medium"
+            >
               新密码
             </label>
             <Input
@@ -2090,7 +2094,10 @@ const TeacherManagement: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="edit-teacher-login-method" className="text-sm font-medium">
+            <label
+              htmlFor="edit-teacher-login-method"
+              className="text-sm font-medium"
+            >
               登录方式
             </label>
             <Select
@@ -2398,11 +2405,7 @@ const StudentManagement: React.FC = () => {
             />
           )}
           {error && (
-            <StatusAlert
-              variant="error"
-              message={error}
-              className="text-sm"
-            />
+            <StatusAlert variant="error" message={error} className="text-sm" />
           )}
 
           {loadingBindings ? (
@@ -2438,9 +2441,7 @@ const StudentManagement: React.FC = () => {
                         ) : (
                           <Unlink className="h-3 w-3 mr-1" />
                         )}
-                        {unbindingUser === user.username
-                          ? "解绑中..."
-                          : "解绑"}
+                        {unbindingUser === user.username ? "解绑中..." : "解绑"}
                       </Button>
                     </div>
                   ))}
