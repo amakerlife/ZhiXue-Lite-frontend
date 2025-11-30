@@ -53,15 +53,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ResponsiveDialog } from "@/components/ResponsiveDialog";
+import { DrawerClose } from "@/components/ui/drawer";
 import { Pagination } from "@/components/Pagination";
 import { useAuth } from "@/contexts/AuthContext";
 import { adminAPI } from "@/api/admin";
@@ -627,106 +622,126 @@ const UserManagement: React.FC = () => {
     };
 
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>编辑用户: {user.username}</DialogTitle>
-            <DialogDescription>修改用户基本信息和分配学校</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <StatusAlert variant="error" message={error} />}
+      <ResponsiveDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title={`编辑用户: ${user.username}`}
+        description="修改用户基本信息和分配学校"
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  取消
+                </Button>
+                <Button onClick={handleSubmit} disabled={editLoading}>
+                  {editLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {editLoading ? "保存中..." : "保存修改"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={handleSubmit} disabled={editLoading}>
+                  {editLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {editLoading ? "保存中..." : "保存修改"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button type="button" variant="outline">
+                    取消
+                  </Button>
+                </DrawerClose>
+              </>
+            )}
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          {error && <StatusAlert variant="error" message={error} />}
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">邮箱</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-email">邮箱</Label>
+            <Input
+              id="edit-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-role">角色</Label>
-              <Select
-                value={role}
-                onValueChange={(value: "admin" | "user" | "") => setRole(value)}
-              >
-                <SelectTrigger id="edit-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">普通用户</SelectItem>
-                  <SelectItem value="admin">管理员</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-role">角色</Label>
+            <Select
+              value={role}
+              onValueChange={(value: "admin" | "user" | "") => setRole(value)}
+            >
+              <SelectTrigger id="edit-role">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">普通用户</SelectItem>
+                <SelectItem value="admin">管理员</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-is-active">状态</Label>
-              <Select
-                value={isActive.toString()}
-                onValueChange={(value) => setIsActive(value === "true")}
-              >
-                <SelectTrigger id="edit-is-active">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">可用</SelectItem>
-                  <SelectItem value="false">禁用</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-is-active">状态</Label>
+            <Select
+              value={isActive.toString()}
+              onValueChange={(value) => setIsActive(value === "true")}
+            >
+              <SelectTrigger id="edit-is-active">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">可用</SelectItem>
+                <SelectItem value="false">禁用</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-manual-school">手动分配学校</Label>
-              <Select
-                value={manualSchoolId || "none"}
-                onValueChange={(value) =>
-                  setManualSchoolId(value === "none" ? null : value)
-                }
-                disabled={!!user.zhixue_info?.username}
-              >
-                <SelectTrigger id="edit-manual-school">
-                  <SelectValue placeholder="选择学校" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">不分配</SelectItem>
-                  {schools.map((school) => (
-                    <SelectItem key={school.id} value={school.id}>
-                      {school.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {user.zhixue_info?.username && (
-                <p className="text-xs text-orange-600">
-                  已绑定智学网账号的用户无法手动分配学校
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-2 pt-4">
-              <Button type="submit" disabled={editLoading}>
-                {editLoading ? (
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                {editLoading ? "保存中..." : "保存修改"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                取消
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <div className="space-y-2">
+            <Label htmlFor="edit-manual-school">手动分配学校</Label>
+            <Select
+              value={manualSchoolId || "none"}
+              onValueChange={(value) =>
+                setManualSchoolId(value === "none" ? null : value)
+              }
+              disabled={!!user.zhixue_info?.username}
+            >
+              <SelectTrigger id="edit-manual-school">
+                <SelectValue placeholder="选择学校" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">不分配</SelectItem>
+                {schools.map((school) => (
+                  <SelectItem key={school.id} value={school.id}>
+                    {school.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {user.zhixue_info?.username && (
+              <p className="text-xs text-orange-600">
+                已绑定智学网账号的用户无法手动分配学校
+              </p>
+            )}
+          </div>
+        </div>
+      </ResponsiveDialog>
     );
   };
 
@@ -788,7 +803,8 @@ const UserManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="overflow-x-auto">
+            {/* 桌面端表格视图 */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -945,6 +961,112 @@ const UserManagement: React.FC = () => {
               </Table>
             </div>
 
+            {/* 移动端卡片视图 */}
+            <div className="md:hidden space-y-4">
+              {users.map((user) => (
+                <Card key={user.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base">
+                          {user.username}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={getRoleVariant(user.role)}>
+                            {getUserRoleLabel(user.role)}
+                          </Badge>
+                          <Badge
+                            variant={user.is_active ? "default" : "destructive"}
+                          >
+                            {user.is_active ? "可用" : "禁用"}
+                          </Badge>
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <EllipsisVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>操作</DropdownMenuLabel>
+                          <DropdownMenuItem
+                            onClick={() => openEditDialog(user)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            编辑
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openPermissionDialog(user)}
+                          >
+                            <Lock className="h-4 w-4 mr-2" />
+                            权限
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openResetPasswordDialog(user)}
+                          >
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            重置密码
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="text-sm space-y-2">
+                    <div className="grid grid-cols-[60px_1fr] gap-2">
+                      <span className="text-muted-foreground">邮箱:</span>
+                      <span className="break-all">{user.email}</span>
+                    </div>
+
+                    {/* 智学网绑定信息 */}
+                    {user.zhixue_info?.username ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-1"
+                            onClick={() => toggleZhixueInfo(user.id)}
+                          >
+                            {expandedZhixueInfo.has(user.id) ? (
+                              <ChevronDown className="h-3 w-3" />
+                            ) : (
+                              <ChevronRight className="h-3 w-3" />
+                            )}
+                          </Button>
+                          <span className="text-muted-foreground">智学网:</span>
+                          <Badge variant="outline" className="text-xs">
+                            {user.zhixue_info.username}
+                          </Badge>
+                        </div>
+                        {expandedZhixueInfo.has(user.id) && (
+                          <div className="ml-6 space-y-1 text-xs text-muted-foreground">
+                            <div>姓名: {user.zhixue_info.realname || "-"}</div>
+                            <div>学校: {user.zhixue_info.school_name || "-"}</div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-[60px_1fr] gap-2">
+                        <span className="text-muted-foreground">智学网:</span>
+                        <span className="text-muted-foreground text-xs">未绑定</span>
+                      </div>
+                    )}
+
+                    {/* 手动分配学校 */}
+                    {user.is_manual_school && (
+                      <div className="grid grid-cols-[60px_1fr] gap-2">
+                        <span className="text-muted-foreground">学校:</span>
+                        <Badge variant="secondary" className="text-xs w-fit">
+                          {user.zhixue_info?.school_name || "未知学校"}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
             {/* 分页 */}
             <Pagination
               currentPage={page}
@@ -957,197 +1079,233 @@ const UserManagement: React.FC = () => {
       </CardContent>
 
       {/* 新增：重置密码对话框 */}
-      <Dialog
+      <ResponsiveDialog
         open={resetPasswordDialog.open}
         onOpenChange={closeResetPasswordDialog}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>重置用户密码</DialogTitle>
-            <DialogDescription>
-              为用户 "{resetPasswordDialog.user?.username}" 设置新密码
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="new-password" className="text-sm font-medium">
-                新密码
-              </label>
-              <div className="flex space-x-2">
-                <Input
-                  id="new-password"
-                  type="text"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="输入新密码"
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  onClick={generateRandomPassword}
-                  type="button"
-                >
-                  生成随机密码
+        title="重置用户密码"
+        description={`为用户 "${resetPasswordDialog.user?.username}" 设置新密码`}
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button variant="outline" onClick={closeResetPasswordDialog}>
+                  取消
                 </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                建议使用生成的随机密码以确保安全性
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-2 pt-4">
+                <Button
+                  onClick={resetUserPassword}
+                  disabled={
+                    !newPassword ||
+                    resettingPassword === resetPasswordDialog.user?.id
+                  }
+                >
+                  {resettingPassword === resetPasswordDialog.user?.id ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                  )}
+                  {resettingPassword === resetPasswordDialog.user?.id
+                    ? "重置中..."
+                    : "重置密码"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={resetUserPassword}
+                  disabled={
+                    !newPassword ||
+                    resettingPassword === resetPasswordDialog.user?.id
+                  }
+                >
+                  {resettingPassword === resetPasswordDialog.user?.id ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                  )}
+                  {resettingPassword === resetPasswordDialog.user?.id
+                    ? "重置中..."
+                    : "重置密码"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button variant="outline">取消</Button>
+                </DrawerClose>
+              </>
+            )}
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="new-password" className="text-sm font-medium">
+              新密码
+            </label>
+            <div className="flex space-x-2">
+              <Input
+                id="new-password"
+                type="text"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="输入新密码"
+                className="flex-1"
+              />
               <Button
-                onClick={resetUserPassword}
-                disabled={
-                  !newPassword ||
-                  resettingPassword === resetPasswordDialog.user?.id
-                }
+                variant="outline"
+                onClick={generateRandomPassword}
+                type="button"
               >
-                {resettingPassword === resetPasswordDialog.user?.id ? (
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                )}
-                {resettingPassword === resetPasswordDialog.user?.id
-                  ? "重置中..."
-                  : "重置密码"}
-              </Button>
-              <Button variant="outline" onClick={closeResetPasswordDialog}>
-                取消
+                生成随机密码
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              建议使用生成的随机密码以确保安全性
+            </p>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </ResponsiveDialog>
 
       {/* 权限编辑对话框 */}
-      <Dialog open={permissionDialogOpen} onOpenChange={closePermissionDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>编辑用户权限</DialogTitle>
-            <DialogDescription>
-              为用户 "{editingPermissionsUser?.username}" 设置权限
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
-            {/* Success/Error Messages */}
-            {success && (
-              <StatusAlert
-                variant="success"
-                message={success}
-                className="text-sm"
-              />
+      <ResponsiveDialog
+        open={permissionDialogOpen}
+        onOpenChange={closePermissionDialog}
+        title="编辑用户权限"
+        description={`为用户 "${editingPermissionsUser?.username}" 设置权限`}
+        className="max-w-2xl"
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button variant="outline" onClick={closePermissionDialog}>
+                  取消
+                </Button>
+                <Button onClick={savePermissions} disabled={permissionLoading}>
+                  {permissionLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {permissionLoading ? "保存中..." : "保存权限"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={savePermissions} disabled={permissionLoading}>
+                  {permissionLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {permissionLoading ? "保存中..." : "保存权限"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button variant="outline">取消</Button>
+                </DrawerClose>
+              </>
             )}
-            {error && (
-              <StatusAlert
-                variant="error"
-                message={error}
-                className="text-sm"
-              />
-            )}
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          {/* Success/Error Messages */}
+          {success && (
+            <StatusAlert
+              variant="success"
+              message={success}
+              className="text-sm"
+            />
+          )}
+          {error && (
+            <StatusAlert
+              variant="error"
+              message={error}
+              className="text-sm"
+            />
+          )}
 
-            <div className="space-y-4">
-              <div className="text-sm text-muted-foreground mb-4 p-3 bg-muted/50 rounded-md">
-                <p>
-                  <strong>权限级别说明：</strong>
-                </p>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>
-                    <strong>禁止 (0):</strong> 完全禁止访问
-                  </li>
-                  <li>
-                    <strong>个人 (1):</strong> 只能访问自己的数据
-                  </li>
-                  <li>
-                    <strong>校内 (2):</strong> 可访问同校数据
-                  </li>
-                  <li>
-                    <strong>全局 (3):</strong> 可访问所有数据
-                  </li>
-                </ul>
-              </div>
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground mb-4 p-3 bg-muted/50 rounded-md">
+              <p>
+                <strong>权限级别说明：</strong>
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>
+                  <strong>禁止 (0):</strong> 完全禁止访问
+                </li>
+                <li>
+                  <strong>个人 (1):</strong> 只能访问自己的数据
+                </li>
+                <li>
+                  <strong>校内 (2):</strong> 可访问同校数据
+                </li>
+                <li>
+                  <strong>全局 (3):</strong> 可访问所有数据
+                </li>
+              </ul>
+            </div>
 
-              <div className="space-y-3">
-                {Object.entries(PERMISSION_DESCRIPTIONS).map(
-                  ([typeStr, description]) => {
-                    const permissionType = parseInt(typeStr, 10);
-                    const currentLevel = permissionForm[permissionType] || 0;
+            <div className="space-y-3">
+              {Object.entries(PERMISSION_DESCRIPTIONS).map(
+                ([typeStr, description]) => {
+                  const permissionType = parseInt(typeStr, 10);
+                  const currentLevel = permissionForm[permissionType] || 0;
 
-                    return (
-                      <div
-                        key={permissionType}
-                        className="p-4 border rounded-md"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="font-medium text-sm md:text-base">
-                            {description.action} {description.object}
-                          </span>
-                          <Badge variant="outline" className="text-xs">
-                            {
-                              PERMISSION_LEVEL_DESCRIPTIONS[
-                                currentLevel as PermissionLevel
-                              ]
-                            }
-                          </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          {Object.entries(PERMISSION_LEVEL_DESCRIPTIONS).map(
-                            ([levelStr, levelDescription]) => {
-                              const level = parseInt(levelStr, 10);
-                              const isSelected = currentLevel === level;
-
-                              return (
-                                <Button
-                                  key={level}
-                                  variant={
-                                    isSelected ? "default" : "outline-solid"
-                                  }
-                                  size="sm"
-                                  onClick={() =>
-                                    updatePermission(permissionType, level)
-                                  }
-                                  className={`text-xs ${
-                                    level === 0
-                                      ? "hover:bg-red-100 hover:text-red-800"
-                                      : level === 1
-                                        ? "hover:bg-blue-100 hover:text-blue-800"
-                                        : level === 2
-                                          ? "hover:bg-yellow-100 hover:text-yellow-800"
-                                          : "hover:bg-green-100 hover:text-green-800"
-                                  }`}
-                                >
-                                  {levelDescription}
-                                </Button>
-                              );
-                            },
-                          )}
-                        </div>
+                  return (
+                    <div
+                      key={permissionType}
+                      className="p-4 border rounded-md"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-sm md:text-base">
+                          {description.action} {description.object}
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {
+                            PERMISSION_LEVEL_DESCRIPTIONS[
+                              currentLevel as PermissionLevel
+                            ]
+                          }
+                        </Badge>
                       </div>
-                    );
-                  },
-                )}
-              </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {Object.entries(PERMISSION_LEVEL_DESCRIPTIONS).map(
+                          ([levelStr, levelDescription]) => {
+                            const level = parseInt(levelStr, 10);
+                            const isSelected = currentLevel === level;
+
+                            return (
+                              <Button
+                                key={level}
+                                variant={
+                                  isSelected ? "default" : "outline-solid"
+                                }
+                                size="sm"
+                                onClick={() =>
+                                  updatePermission(permissionType, level)
+                                }
+                                className={`text-xs ${
+                                  level === 0
+                                    ? "hover:bg-red-100 hover:text-red-800"
+                                    : level === 1
+                                      ? "hover:bg-blue-100 hover:text-blue-800"
+                                      : level === 2
+                                        ? "hover:bg-yellow-100 hover:text-yellow-800"
+                                        : "hover:bg-green-100 hover:text-green-800"
+                                }`}
+                              >
+                                {levelDescription}
+                              </Button>
+                            );
+                          },
+                        )}
+                      </div>
+                    </div>
+                  );
+                },
+              )}
             </div>
           </div>
-
-          <div className="flex items-center space-x-2 pt-4 border-t mt-4">
-            <Button onClick={savePermissions} disabled={permissionLoading}>
-              {permissionLoading ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              {permissionLoading ? "保存中..." : "保存权限"}
-            </Button>
-            <Button variant="outline" onClick={closePermissionDialog}>
-              取消
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </ResponsiveDialog>
 
       {/* 用户编辑对话框 */}
       {userToEdit && (
@@ -1257,24 +1415,48 @@ const SchoolManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>学校 ID</TableHead>
-                  <TableHead>学校名称</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {schools.map((school) => (
-                  <TableRow key={school.id}>
-                    <TableCell className="font-mono text-sm">
-                      <CopyableText text={school.id} />
-                    </TableCell>
-                    <TableCell className="font-medium">{school.name}</TableCell>
+            {/* 桌面端视图 */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>学校 ID</TableHead>
+                    <TableHead>学校名称</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {schools.map((school) => (
+                    <TableRow key={school.id}>
+                      <TableCell className="font-mono text-sm">
+                        <CopyableText text={school.id} />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {school.name}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* 移动端视图 */}
+            <div className="md:hidden space-y-4">
+              {schools.map((school) => (
+                <Card key={school.id}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">{school.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">学校 ID:</span>
+                      <span className="font-mono">
+                        <CopyableText text={school.id} />
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
             {/* 分页 */}
             <Pagination
@@ -1556,7 +1738,8 @@ const TeacherManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="overflow-x-auto">
+            {/* 桌面端视图 */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1589,47 +1772,25 @@ const TeacherManagement: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {editingTeacher === teacher.username ? (
-                          <div className="flex items-center space-x-1">
-                            <Button
-                              size="sm"
-                              onClick={() => saveTeacherEdit(teacher.username)}
-                              disabled={editLoading}
-                            >
-                              <Save className="h-3 w-3 mr-1" />
-                              {editLoading ? "保存中..." : "保存"}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={cancelEditTeacher}
-                              disabled={editLoading}
-                            >
-                              <X className="h-3 w-3 mr-1" />
-                              取消
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => startEditTeacher(teacher)}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              编辑
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openDeleteDialog(teacher)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash className="h-3 w-3 mr-1" />
-                              删除
-                            </Button>
-                          </div>
-                        )}
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => startEditTeacher(teacher)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            编辑
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openDeleteDialog(teacher)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash className="h-3 w-3 mr-1" />
+                            删除
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1637,60 +1798,62 @@ const TeacherManagement: React.FC = () => {
               </Table>
             </div>
 
-            {/* 编辑表单 */}
-            {editingTeacher && (
-              <div className="bg-muted/50 p-4 rounded-md">
-                <h4 className="font-medium mb-3">编辑教师: {editingTeacher}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="edit-password"
-                      className="text-sm font-medium"
-                    >
-                      新密码（留空则不修改）
-                    </label>
-                    <Input
-                      id="edit-password"
-                      type="password"
-                      value={editForm.password}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          password: e.target.value,
-                        }))
-                      }
-                      placeholder="输入新密码"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="edit-login-method"
-                      className="text-sm font-medium"
-                    >
-                      登录方式
-                    </label>
-                    <Select
-                      value={editForm.login_method}
-                      onValueChange={(value) =>
-                        setEditForm((prev) => ({
-                          ...prev,
-                          login_method: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="changyan">畅言</SelectItem>
-                        <SelectItem value="zhixue">智学</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* 移动端视图 */}
+            <div className="md:hidden space-y-4">
+              {teachers.map((teacher) => (
+                <Card key={teacher.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base">
+                          {teacher.username}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>{teacher.realname}</span>
+                          <span>•</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {teacher.login_method === "changyan"
+                              ? "畅言"
+                              : teacher.login_method === "zhixue"
+                                ? "智学"
+                                : teacher.login_method}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => startEditTeacher(teacher)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openDeleteDialog(teacher)}
+                          className="text-destructive"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="text-sm space-y-2">
+                    <div className="grid grid-cols-[70px_1fr] gap-2">
+                      <span className="text-muted-foreground">教师 ID:</span>
+                      <span className="font-mono break-all">
+                        <CopyableText text={teacher.id} />
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-[70px_1fr] gap-2">
+                      <span className="text-muted-foreground">学校:</span>
+                      <span>{teacher.school_name}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
             {/* 分页 */}
             <Pagination
@@ -1704,117 +1867,249 @@ const TeacherManagement: React.FC = () => {
       </CardContent>
 
       {/* 添加教师对话框 */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>添加教师账号</DialogTitle>
-            <DialogDescription>添加智学网教师账号到系统中</DialogDescription>
-          </DialogHeader>
+      <ResponsiveDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        title="添加教师账号"
+        description="添加智学网教师账号到系统中"
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setAddDialogOpen(false)}
+                >
+                  取消
+                </Button>
+                <Button onClick={handleAddTeacher} disabled={addLoading}>
+                  {addLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <GraduationCap className="h-4 w-4 mr-2" />
+                  )}
+                  {addLoading ? "添加中..." : "添加教师"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={handleAddTeacher} disabled={addLoading}>
+                  {addLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <GraduationCap className="h-4 w-4 mr-2" />
+                  )}
+                  {addLoading ? "添加中..." : "添加教师"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button type="button" variant="outline">
+                    取消
+                  </Button>
+                </DrawerClose>
+              </>
+            )}
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="add-username" className="text-sm font-medium">
+              智学网用户名
+            </label>
+            <Input
+              id="add-username"
+              type="text"
+              value={addForm.username}
+              onChange={(e) =>
+                setAddForm((prev) => ({ ...prev, username: e.target.value }))
+              }
+              placeholder="请输入智学网用户名"
+              required
+            />
+          </div>
 
-          <form onSubmit={handleAddTeacher} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="add-username" className="text-sm font-medium">
-                智学网用户名
-              </label>
-              <Input
-                id="add-username"
-                type="text"
-                value={addForm.username}
-                onChange={(e) =>
-                  setAddForm((prev) => ({ ...prev, username: e.target.value }))
-                }
-                placeholder="请输入智学网用户名"
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="add-password" className="text-sm font-medium">
+              智学网密码
+            </label>
+            <Input
+              id="add-password"
+              type="password"
+              value={addForm.password}
+              onChange={(e) =>
+                setAddForm((prev) => ({ ...prev, password: e.target.value }))
+              }
+              placeholder="请输入智学网密码"
+              required
+            />
+          </div>
 
-            <div className="space-y-2">
-              <label htmlFor="add-password" className="text-sm font-medium">
-                智学网密码
-              </label>
-              <Input
-                id="add-password"
-                type="password"
-                value={addForm.password}
-                onChange={(e) =>
-                  setAddForm((prev) => ({ ...prev, password: e.target.value }))
-                }
-                placeholder="请输入智学网密码"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="add-login-method" className="text-sm font-medium">
-                登录方式
-              </label>
-              <Select
-                value={addForm.login_method}
-                onValueChange={(value) =>
-                  setAddForm((prev) => ({ ...prev, login_method: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="changyan">畅言</SelectItem>
-                  <SelectItem value="zhixue">智学</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center space-x-2 pt-4">
-              <Button type="submit" disabled={addLoading}>
-                {addLoading ? (
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <GraduationCap className="h-4 w-4 mr-2" />
-                )}
-                {addLoading ? "添加中..." : "添加教师"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setAddDialogOpen(false)}
-              >
-                取消
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <div className="space-y-2">
+            <label htmlFor="add-login-method" className="text-sm font-medium">
+              登录方式
+            </label>
+            <Select
+              value={addForm.login_method}
+              onValueChange={(value) =>
+                setAddForm((prev) => ({ ...prev, login_method: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="changyan">畅言</SelectItem>
+                <SelectItem value="zhixue">智学</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </ResponsiveDialog>
 
       {/* 删除确认对话框 */}
-      <Dialog open={deleteDialogOpen.open} onOpenChange={closeDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认删除教师</DialogTitle>
-            <DialogDescription>
-              确定要删除教师 "{deleteDialogOpen.teacher?.username}"
-              吗？此操作不可撤销。
-            </DialogDescription>
-          </DialogHeader>
+      <ResponsiveDialog
+        open={deleteDialogOpen.open}
+        onOpenChange={closeDeleteDialog}
+        title="确认删除教师"
+        description={`确定要删除教师 "${deleteDialogOpen.teacher?.username}" 吗？此操作不可撤销。`}
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button variant="outline" onClick={closeDeleteDialog}>
+                  取消
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteTeacher}
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <X className="h-4 w-4 mr-2" />
+                  )}
+                  {deleteLoading ? "删除中..." : "确认删除"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteTeacher}
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <X className="h-4 w-4 mr-2" />
+                  )}
+                  {deleteLoading ? "删除中..." : "确认删除"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button variant="outline">取消</Button>
+                </DrawerClose>
+              </>
+            )}
+          </>
+        )}
+      />
 
-          <div className="flex items-center space-x-2 pt-4">
-            <Button
-              variant="destructive"
-              onClick={handleDeleteTeacher}
-              disabled={deleteLoading}
-            >
-              {deleteLoading ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <X className="h-4 w-4 mr-2" />
-              )}
-              {deleteLoading ? "删除中..." : "确认删除"}
-            </Button>
-            <Button variant="outline" onClick={closeDeleteDialog}>
-              取消
-            </Button>
+      {/* 编辑教师对话框 */}
+      <ResponsiveDialog
+        open={editingTeacher !== null}
+        onOpenChange={(open) => {
+          if (!open) cancelEditTeacher();
+        }}
+        title="编辑教师信息"
+        description={`修改教师 "${editingTeacher}" 的密码和登录方式`}
+        footer={(isDesktop) => (
+          <>
+            {isDesktop ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={cancelEditTeacher}
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={() => editingTeacher && saveTeacherEdit(editingTeacher)}
+                  disabled={editLoading}
+                >
+                  {editLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {editLoading ? "保存中..." : "保存修改"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => editingTeacher && saveTeacherEdit(editingTeacher)}
+                  disabled={editLoading}
+                >
+                  {editLoading ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {editLoading ? "保存中..." : "保存修改"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button type="button" variant="outline">
+                    取消
+                  </Button>
+                </DrawerClose>
+              </>
+            )}
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="edit-teacher-password" className="text-sm font-medium">
+              新密码
+            </label>
+            <Input
+              id="edit-teacher-password"
+              type="password"
+              value={editForm.password}
+              onChange={(e) =>
+                setEditForm((prev) => ({ ...prev, password: e.target.value }))
+              }
+              placeholder="留空表示不修改密码"
+            />
+            <p className="text-xs text-muted-foreground">
+              如果不需要修改密码，请留空
+            </p>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <div className="space-y-2">
+            <label htmlFor="edit-teacher-login-method" className="text-sm font-medium">
+              登录方式
+            </label>
+            <Select
+              value={editForm.login_method}
+              onValueChange={(value) =>
+                setEditForm((prev) => ({ ...prev, login_method: value }))
+              }
+            >
+              <SelectTrigger id="edit-teacher-login-method">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="changyan">畅言</SelectItem>
+                <SelectItem value="zhixue">智学</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </ResponsiveDialog>
     </Card>
   );
 };
@@ -1989,7 +2284,8 @@ const StudentManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="overflow-x-auto">
+            {/* 桌面端视图 */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -2031,6 +2327,47 @@ const StudentManagement: React.FC = () => {
               </Table>
             </div>
 
+            {/* 移动端视图 */}
+            <div className="md:hidden space-y-4">
+              {students.map((student) => (
+                <Card key={student.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base">
+                          {student.username}
+                        </CardTitle>
+                        <div className="text-sm text-muted-foreground">
+                          {student.realname} • {student.school_name || "未知"}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => viewBindingUsers(student)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="text-sm space-y-2">
+                    <div className="grid grid-cols-[70px_1fr] gap-2">
+                      <span className="text-muted-foreground">学生 ID:</span>
+                      <span className="font-mono break-all">
+                        <CopyableText text={student.id} />
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-[70px_1fr] gap-2">
+                      <span className="text-muted-foreground">学校 ID:</span>
+                      <span className="font-mono break-all">
+                        <CopyableText text={student.school_id} />
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
             {/* 分页 */}
             <Pagination
               currentPage={page}
@@ -2043,83 +2380,81 @@ const StudentManagement: React.FC = () => {
       </CardContent>
 
       {/* 新增：绑定用户管理对话框 */}
-      <Dialog open={bindingDialogOpen} onOpenChange={setBindingDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>智学网账号绑定管理</DialogTitle>
-            <DialogDescription>
-              账号: {selectedStudent?.username} ({selectedStudent?.realname})
-            </DialogDescription>
-          </DialogHeader>
+      <ResponsiveDialog
+        open={bindingDialogOpen}
+        onOpenChange={setBindingDialogOpen}
+        title="智学网账号绑定管理"
+        description={`账号: ${selectedStudent?.username} (${selectedStudent?.realname})`}
+        className="max-w-2xl"
+        showDefaultFooter={true}
+      >
+        <div className="space-y-4">
+          {/* Success/Error Messages */}
+          {success && (
+            <StatusAlert
+              variant="success"
+              message={success}
+              className="text-sm"
+            />
+          )}
+          {error && (
+            <StatusAlert
+              variant="error"
+              message={error}
+              className="text-sm"
+            />
+          )}
 
-          <div className="space-y-4">
-            {/* Success/Error Messages */}
-            {success && (
-              <StatusAlert
-                variant="success"
-                message={success}
-                className="text-sm"
-              />
-            )}
-            {error && (
-              <StatusAlert
-                variant="error"
-                message={error}
-                className="text-sm"
-              />
-            )}
-
-            {loadingBindings ? (
-              <div className="text-center py-8">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">加载绑定用户中...</p>
+          {loadingBindings ? (
+            <div className="text-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">加载绑定用户中...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">绑定用户列表</h4>
+                <Badge variant="outline">{bindingUsers.length} 个用户</Badge>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">绑定用户列表</h4>
-                  <Badge variant="outline">{bindingUsers.length} 个用户</Badge>
-                </div>
 
-                {bindingUsers.length > 0 ? (
-                  <div className="space-y-2">
-                    {bindingUsers.map((user) => (
-                      <div
-                        key={user.username}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="secondary">{user.username}</Badge>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleUnbindUser(user.username)}
-                          disabled={unbindingUser === user.username}
-                        >
-                          {unbindingUser === user.username ? (
-                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                          ) : (
-                            <Unlink className="h-3 w-3 mr-1" />
-                          )}
-                          {unbindingUser === user.username
-                            ? "解绑中..."
-                            : "解绑"}
-                        </Button>
+              {bindingUsers.length > 0 ? (
+                <div className="space-y-2">
+                  {bindingUsers.map((user) => (
+                    <div
+                      key={user.username}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="secondary">{user.username}</Badge>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <UserCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>暂无用户绑定此智学网账号</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleUnbindUser(user.username)}
+                        disabled={unbindingUser === user.username}
+                      >
+                        {unbindingUser === user.username ? (
+                          <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                        ) : (
+                          <Unlink className="h-3 w-3 mr-1" />
+                        )}
+                        {unbindingUser === user.username
+                          ? "解绑中..."
+                          : "解绑"}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <UserCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>暂无用户绑定此智学网账号</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </ResponsiveDialog>
     </Card>
   );
 };
@@ -2168,6 +2503,7 @@ const ExamManagement: React.FC = () => {
     }
 
     const savedSchools = exam.schools.filter((s) => s.is_saved);
+    const unsavedSchools = exam.schools.filter((s) => !s.is_saved);
     const savedCount = savedSchools.length;
     const totalCount = exam.schools.length;
 
@@ -2176,14 +2512,26 @@ const ExamManagement: React.FC = () => {
     } else if (savedCount === totalCount) {
       return { status: "all", variant: "default", label: "已保存" };
     } else {
+      // 部分保存：生成详细的 title 信息
       const savedNames = savedSchools
         .map((s) => s.school_name || "未知")
-        .join("、");
+        .join("\n");
+      const unsavedNames = unsavedSchools
+        .map((s) => s.school_name || "未知")
+        .join("\n");
+
+      const titleContent = [
+        savedNames ? `已保存:\n${savedNames}` : "",
+        unsavedNames ? `未保存:\n${unsavedNames}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
       return {
         status: "partial",
         variant: "outline-solid",
-        label: `部分保存 (${savedCount}/${totalCount})`,
-        title: `已保存：${savedNames}`,
+        label: `已保存 ${savedCount}/${totalCount} 校`,
+        title: titleContent,
       };
     }
   };
@@ -2362,7 +2710,8 @@ const ExamManagement: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="overflow-x-auto">
+            {/* 桌面端视图 */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -2429,6 +2778,67 @@ const ExamManagement: React.FC = () => {
               </Table>
             </div>
 
+            {/* 移动端视图 */}
+            <div className="md:hidden space-y-4">
+              {exams.map((exam) => (
+                <Card key={exam.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base">{exam.name}</CardTitle>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2">
+                          <span>
+                            {formatTimestampToLocalDate(exam.created_at)}
+                          </span>
+                          <Badge
+                            variant={getExamSaveStatus(exam).variant}
+                            className="text-xs"
+                          >
+                            {getExamSaveStatus(exam).label}
+                          </Badge>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => viewExamDetail(exam)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start justify-between text-sm mb-3">
+                      <span className="text-muted-foreground shrink-0 mr-2">
+                        学校:
+                      </span>
+                      <div className="text-right">
+                        <SchoolsDisplay schools={exam.schools} />
+                      </div>
+                    </div>
+                    {hasAnySavedData(exam) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => generateScoresheet(exam.id, exam.name)}
+                        disabled={generatingScoresheet === exam.id}
+                      >
+                        {generatingScoresheet === exam.id ? (
+                          <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                        ) : (
+                          <FileText className="h-3 w-3 mr-2" />
+                        )}
+                        {generatingScoresheet === exam.id
+                          ? "生成成绩单中..."
+                          : "下载成绩单"}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
             {/* 分页 */}
             <Pagination
               currentPage={page}
@@ -2440,115 +2850,113 @@ const ExamManagement: React.FC = () => {
       </CardContent>
 
       {/* 考试详情对话框 */}
-      <Dialog open={examDetailDialog.open} onOpenChange={closeExamDetailDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>考试详情</DialogTitle>
-            <DialogDescription>
-              考试: {examDetailDialog.exam?.name}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            {loadingExamDetail ? (
-              <div className="text-center py-8">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">加载考试详情中...</p>
-              </div>
-            ) : examDetail ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      考试 ID
-                    </label>
-                    <p className="font-mono text-sm">
-                      <CopyableText text={examDetail.id} />
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      考试名称
-                    </label>
-                    <p className="font-medium">{examDetail.name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      参与学校
-                    </label>
-                    <p className="font-medium">
-                      {examDetail.schools && examDetail.schools.length > 0 ? (
-                        <SchoolsDisplay schools={examDetail.schools} />
-                      ) : (
-                        <span className="text-muted-foreground">未知</span>
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      考试类型
-                    </label>
-                    <Badge
-                      variant={
-                        examDetail.is_multi_school ? "default" : "secondary"
-                      }
-                    >
-                      {examDetail.is_multi_school ? "联考" : "单校考试"}
-                    </Badge>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      学校 ID
-                    </label>
-                    <p className="font-mono text-sm break-all">
-                      {examDetail.schools && examDetail.schools.length > 0 ? (
-                        <CopyableText
-                          text={examDetail.schools
-                            .map((s) => s.school_id)
-                            .join("、")}
-                        />
-                      ) : (
-                        "未知"
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      数据状态
-                    </label>
-                    <Badge
-                      variant={
-                        examDetail.schools &&
-                        getExamSaveStatus(examDetail).variant
-                      }
-                      title={
-                        examDetail.schools
-                          ? getExamSaveStatus(examDetail).title
-                          : undefined
-                      }
-                    >
-                      {examDetail.schools
-                        ? getExamSaveStatus(examDetail).label
-                        : "未知"}
-                    </Badge>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      考试时间
-                    </label>
-                    <p>{formatTimestampToLocalDate(examDetail.created_at)}</p>
-                  </div>
+      <ResponsiveDialog
+        open={examDetailDialog.open}
+        onOpenChange={closeExamDetailDialog}
+        title="考试详情"
+        description={`考试: ${examDetailDialog.exam?.name}`}
+        className="max-w-2xl"
+        showDefaultFooter={true}
+      >
+        <div className="space-y-4">
+          {loadingExamDetail ? (
+            <div className="text-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">加载考试详情中...</p>
+            </div>
+          ) : examDetail ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    考试 ID
+                  </label>
+                  <p className="font-mono text-sm">
+                    <CopyableText text={examDetail.id} />
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    考试名称
+                  </label>
+                  <p className="font-medium">{examDetail.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    参与学校
+                  </label>
+                  <p className="font-medium">
+                    {examDetail.schools && examDetail.schools.length > 0 ? (
+                      <SchoolsDisplay schools={examDetail.schools} />
+                    ) : (
+                      <span className="text-muted-foreground">未知</span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    考试类型
+                  </label>
+                  <Badge
+                    variant={
+                      examDetail.is_multi_school ? "default" : "secondary"
+                    }
+                  >
+                    {examDetail.is_multi_school ? "联考" : "单校考试"}
+                  </Badge>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    学校 ID
+                  </label>
+                  <p className="font-mono text-sm break-all">
+                    {examDetail.schools && examDetail.schools.length > 0 ? (
+                      <CopyableText
+                        text={examDetail.schools
+                          .map((s) => s.school_id)
+                          .join("、")}
+                      />
+                    ) : (
+                      "未知"
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    数据状态
+                  </label>
+                  <Badge
+                    variant={
+                      examDetail.schools &&
+                      getExamSaveStatus(examDetail).variant
+                    }
+                    title={
+                      examDetail.schools
+                        ? getExamSaveStatus(examDetail).title
+                        : undefined
+                    }
+                  >
+                    {examDetail.schools
+                      ? getExamSaveStatus(examDetail).label
+                      : "未知"}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    考试时间
+                  </label>
+                  <p>{formatTimestampToLocalDate(examDetail.created_at)}</p>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>无法获取考试详情</p>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+            </div>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>无法获取考试详情</p>
+            </div>
+          )}
+        </div>
+      </ResponsiveDialog>
     </Card>
   );
 };

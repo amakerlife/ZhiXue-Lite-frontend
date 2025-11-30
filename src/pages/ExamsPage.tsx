@@ -161,6 +161,7 @@ const ExamsPage: React.FC = () => {
     }
 
     const savedSchools = exam.schools.filter((s) => s.is_saved);
+    const unsavedSchools = exam.schools.filter((s) => !s.is_saved);
     const savedCount = savedSchools.length;
     const totalCount = exam.schools.length;
 
@@ -169,14 +170,26 @@ const ExamsPage: React.FC = () => {
     } else if (savedCount === totalCount) {
       return { status: "all", variant: "default", label: "已保存" };
     } else {
+      // 部分保存：生成详细的 title 信息
       const savedNames = savedSchools
         .map((s) => s.school_name || "未知")
-        .join("、");
+        .join("\n");
+      const unsavedNames = unsavedSchools
+        .map((s) => s.school_name || "未知")
+        .join("\n");
+
+      const titleContent = [
+        savedNames ? `已保存:\n${savedNames}` : "",
+        unsavedNames ? `未保存:\n${unsavedNames}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
       return {
         status: "partial",
         variant: "outline-solid",
-        label: `部分保存 (${savedCount}/${totalCount})`,
-        title: `已保存：${savedNames}`,
+        label: `已保存 ${savedCount}/${totalCount} 校`,
+        title: titleContent,
       };
     }
   };
@@ -624,44 +637,18 @@ const ExamsPage: React.FC = () => {
                         </Badge>
                       )}
 
-                      {exam.schools && exam.schools.length > 1 ? (
-                        // 联考：显示每个学校的状态
-                        <div className="flex flex-wrap gap-1">
-                          {exam.schools?.map((school) => (
-                            <Badge
-                              key={school.school_id}
-                              variant={
-                                school.is_saved ? "default" : "secondary"
-                              }
-                              className="text-xs flex items-center space-x-1"
-                            >
-                              <span>
-                                {school.school_name ||
-                                  `学校${school.school_id.slice(0, 6)}`}
-                              </span>
-                              {school.is_saved ? (
-                                <CheckCircle2 className="h-3 w-3" />
-                              ) : (
-                                <Clock className="h-3 w-3" />
-                              )}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        // 普通考试：使用统一的保存状态判断逻辑
-                        <Badge
-                          variant={getExamSaveStatus(exam).variant}
-                          title={getExamSaveStatus(exam).title}
-                          className="text-xs flex items-center space-x-1"
-                        >
-                          {getExamSaveStatus(exam).status === "all" ? (
-                            <CheckCircle2 className="h-3 w-3" />
-                          ) : (
-                            <Clock className="h-3 w-3" />
-                          )}
-                          <span>{getExamSaveStatus(exam).label}</span>
-                        </Badge>
-                      )}
+                      <Badge
+                        variant={getExamSaveStatus(exam).variant}
+                        title={getExamSaveStatus(exam).title}
+                        className="text-xs flex items-center space-x-1"
+                      >
+                        {getExamSaveStatus(exam).status === "all" ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                          <Clock className="h-3 w-3" />
+                        )}
+                        <span>{getExamSaveStatus(exam).label}</span>
+                      </Badge>
                     </div>
                   </div>
                 </CardHeader>
