@@ -626,6 +626,10 @@ const ExamDetailPage: React.FC = () => {
                     // 如果缺失，尝试通过各科满分累加计算
                     const calculatedStandardScore = isStandardScoreMissing
                       ? examDetail.scores.reduce((acc, curr) => {
+                          // 仅计算有有效分数的科目
+                          if (!curr.score || !/^[\d.]+$/.test(curr.score)) {
+                            return acc;
+                          }
                           const score = parseFloat(curr.standard_score);
                           return acc + (isNaN(score) ? 0 : score);
                         }, 0)
@@ -663,9 +667,23 @@ const ExamDetailPage: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        {isStandardScoreMissing && (
+                        {(isStandardScoreMissing ||
+                          totalScore.is_calculated) && (
                           <div className="mt-2 text-xs text-muted-foreground">
-                            本次考试可能为新高考六选三等模式，智学网未提供满分数据。当前满分仅供参考。
+                            {isStandardScoreMissing &&
+                            totalScore.is_calculated ? (
+                              <span>
+                                本次考试可能为新高考六选三等模式，智学网未提供满分和总分数据。当前满分和总分仅供参考。
+                              </span>
+                            ) : isStandardScoreMissing ? (
+                              <span>
+                                本次考试可能为新高考六选三等模式，智学网未提供满分数据。当前满分仅供参考。
+                              </span>
+                            ) : (
+                              <span>
+                                本次考试可能为新高考六选三等模式，智学网未提供总分数据。当前总分仅供参考。
+                              </span>
+                            )}
                           </div>
                         )}
                       </React.Fragment>

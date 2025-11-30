@@ -617,7 +617,7 @@ const ExamsPage: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-2 self-start">
-                      {exam.is_multi_school && (
+                      {exam.schools && exam.schools.length > 1 && (
                         <Badge
                           variant="outline"
                           className="text-xs flex items-center space-x-1 w-fit"
@@ -627,7 +627,7 @@ const ExamsPage: React.FC = () => {
                         </Badge>
                       )}
 
-                      {exam.is_multi_school ? (
+                      {exam.schools && exam.schools.length > 1 ? (
                         // 联考：显示每个学校的状态
                         <div className="flex flex-wrap gap-1">
                           {exam.schools?.map((school) => (

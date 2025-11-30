@@ -123,6 +123,7 @@ export const examAPI = {
           class_rank: string;
           school_rank: string;
           sort: number;
+          is_calculated?: boolean;
         }>;
       }
     >(`/exam/${examId}/score`, {

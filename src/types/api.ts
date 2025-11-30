@@ -66,7 +66,7 @@ export interface Exam {
   id: string;
   name: string;
   created_at: number; // 后端返回的是Unix时间戳（毫秒级）
-  is_saved: boolean; // 注意：联考场景下该字段可能不准确，应使用 is_saved_for_school
+  is_saved?: boolean; // 注意：联考场景下该字段可能不准确，应使用 is_saved_for_school
   school_id?: string; // DEPRECATED: 联考场景下使用 school_ids
   is_multi_school?: boolean; // 新增：是否为联考
   school_ids?: string[]; // 新增：参与学校列表（联考）
@@ -86,6 +86,7 @@ export interface Score {
   class_rank: string; // 排名也是字符串
   school_rank: string; // 排名也是字符串
   sort: number;
+  is_calculated?: boolean; // 总分是否为计算得到
 }
 
 export interface ExamDetail extends Exam {

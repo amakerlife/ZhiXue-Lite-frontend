@@ -22,6 +22,7 @@ export interface ExamData {
     class_rank: string;
     school_rank: string;
     sort: number;
+    is_calculated?: boolean;
   }>;
   totalScores: Array<{
     subject_id: string;
@@ -31,6 +32,7 @@ export interface ExamData {
     class_rank: string;
     school_rank: string;
     sort: number;
+    is_calculated?: boolean;
   }>;
 }
 

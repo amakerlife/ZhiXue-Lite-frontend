@@ -997,102 +997,221 @@ const ScoreLookup: React.FC = () => {
               </CardHeader>
             </Card>
 
-            {/* 成绩表格 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2" />
-                  科目成绩
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {scoreData.scores && scoreData.scores.length > 0 ? (
-                  <>
-                    {/* 桌面端表格视图 */}
-                    <div className="hidden md:block">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>科目</TableHead>
-                            <TableHead>得分</TableHead>
-                            <TableHead>满分</TableHead>
-                            <TableHead>班级排名</TableHead>
-                            <TableHead>学校排名</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {scoreData.scores?.map((score) => (
-                            <TableRow key={score.subject_id}>
-                              <TableCell className="font-medium">
-                                {score.subject_name}
-                              </TableCell>
-                              <TableCell>{score.score || "-"}</TableCell>
-                              <TableCell>
-                                {score.standard_score || "-"}
-                              </TableCell>
-                              <TableCell>{score.class_rank || "-"}</TableCell>
-                              <TableCell>{score.school_rank || "-"}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+            {(() => {
+              // 分离总分和科目分数
+              const allScores = scoreData.scores || [];
+              const totalScores = allScores.filter(
+                (score) =>
+                  score.subject_name.includes("总") ||
+                  score.subject_name.includes("合计"),
+              );
+              const subjectScores = allScores.filter(
+                (score) =>
+                  !score.subject_name.includes("总") &&
+                  !score.subject_name.includes("合计"),
+              );
 
-                    {/* 移动端卡片视图 */}
-                    <div className="md:hidden space-y-3">
-                      {scoreData.scores?.map((score) => (
-                        <Card key={score.subject_id} className="bg-muted/20">
-                          <CardContent className="p-4">
-                            <div className="font-medium text-lg mb-3">
-                              {score.subject_name}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  得分:
-                                </span>
-                                <span className="font-medium">
-                                  {score.score || "-"}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  满分:
-                                </span>
-                                <span className="font-medium">
-                                  {score.standard_score || "-"}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  班级排名:
-                                </span>
-                                <span className="font-medium">
-                                  {score.class_rank || "-"}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  学校排名:
-                                </span>
-                                <span className="font-medium">
-                                  {score.school_rank || "-"}
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>暂无成绩数据</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              return (
+                <>
+                  {/* 总分信息 */}
+                  {totalScores.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center">
+                          <TrendingUp className="h-5 w-5 mr-2" />
+                          总分信息
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
+                          {totalScores.map((totalScore) => {
+                            // 检测是否缺失满分数据（后端返回 "-1"）
+                            const isStandardScoreMissing =
+                              totalScore.standard_score === "-1";
+
+                            // 如果缺失，尝试通过各科满分累加计算
+                            const calculatedStandardScore =
+                              isStandardScoreMissing
+                                ? subjectScores.reduce((acc, curr) => {
+                                    // 仅计算有有效分数的科目
+                                    if (
+                                      !curr.score ||
+                                      !/^[\d.]+$/.test(curr.score)
+                                    ) {
+                                      return acc;
+                                    }
+                                    const score = parseFloat(
+                                      curr.standard_score,
+                                    );
+                                    return acc + (isNaN(score) ? 0 : score);
+                                  }, 0)
+                                : null;
+
+                            const displayStandardScore = isStandardScoreMissing
+                              ? calculatedStandardScore
+                              : totalScore.standard_score;
+
+                            return (
+                              <React.Fragment key={totalScore.subject_id}>
+                                <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                                  <div className="flex items-baseline space-x-2 justify-center sm:justify-start">
+                                    <span className="text-2xl sm:text-3xl font-bold text-primary">
+                                      {totalScore.score || "-"}
+                                    </span>
+                                    <span className="text-lg sm:text-xl text-muted-foreground">
+                                      / {displayStandardScore || "-"}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
+                                    {totalScore.class_rank && (
+                                      <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg text-center">
+                                        <span className="text-sm font-medium text-blue-700">
+                                          班级第 {totalScore.class_rank} 名
+                                        </span>
+                                      </div>
+                                    )}
+                                    {totalScore.school_rank && (
+                                      <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg text-center">
+                                        <span className="text-sm font-medium text-green-700">
+                                          学校第 {totalScore.school_rank} 名
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                {(isStandardScoreMissing ||
+                                  totalScore.is_calculated) && (
+                                  <div className="mt-2 text-xs text-muted-foreground">
+                                    {isStandardScoreMissing &&
+                                    totalScore.is_calculated ? (
+                                      <span>
+                                        本次考试可能为新高考六选三等模式，智学网未提供满分和总分数据。当前满分和总分仅供参考。
+                                      </span>
+                                    ) : isStandardScoreMissing ? (
+                                      <span>
+                                        本次考试可能为新高考六选三等模式，智学网未提供满分数据。当前满分仅供参考。
+                                      </span>
+                                    ) : (
+                                      <span>
+                                        本次考试的总分由各科成绩累加计算得出，非智学网原始数据，仅供参考。
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* 成绩表格 */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <FileText className="h-5 w-5 mr-2" />
+                        科目成绩
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {subjectScores.length > 0 ? (
+                        <>
+                          {/* 桌面端表格视图 */}
+                          <div className="hidden md:block">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>科目</TableHead>
+                                  <TableHead>得分</TableHead>
+                                  <TableHead>满分</TableHead>
+                                  <TableHead>班级排名</TableHead>
+                                  <TableHead>学校排名</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {subjectScores.map((score) => (
+                                  <TableRow key={score.subject_id}>
+                                    <TableCell className="font-medium">
+                                      {score.subject_name}
+                                    </TableCell>
+                                    <TableCell>{score.score || "-"}</TableCell>
+                                    <TableCell>
+                                      {score.standard_score || "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {score.class_rank || "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {score.school_rank || "-"}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+
+                          {/* 移动端卡片视图 */}
+                          <div className="md:hidden space-y-3">
+                            {subjectScores.map((score) => (
+                              <Card
+                                key={score.subject_id}
+                                className="bg-muted/20"
+                              >
+                                <CardContent className="p-4">
+                                  <div className="font-medium text-lg mb-3">
+                                    {score.subject_name}
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">
+                                        得分:
+                                      </span>
+                                      <span className="font-medium">
+                                        {score.score || "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">
+                                        满分:
+                                      </span>
+                                      <span className="font-medium">
+                                        {score.standard_score || "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">
+                                        班级排名:
+                                      </span>
+                                      <span className="font-medium">
+                                        {score.class_rank || "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">
+                                        学校排名:
+                                      </span>
+                                      <span className="font-medium">
+                                        {score.school_rank || "-"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>暂无成绩数据</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
 
             {/* 答题卡查看组件 */}
             {scoreData.scores && scoreData.scores.length > 0 && (
