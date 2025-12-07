@@ -14,6 +14,7 @@ import {
   Send,
   ShieldAlert,
   LogOut,
+  CircleHelp,
 } from "lucide-react";
 import {
   Card,
@@ -26,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ResponsiveDialog } from "@/components/ResponsiveDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { authAPI } from "@/api/auth";
 import { formatUTCIsoToLocal } from "@/utils/dateUtils";
@@ -77,6 +79,10 @@ const ProfilePage: React.FC = () => {
 
   // 新增：su 模式相关状态
   const [exitingSu, setExitingSu] = useState(false);
+
+  // 新增：教师账号说明弹窗状态
+  const [teacherAccountDialogOpen, setTeacherAccountDialogOpen] =
+    useState(false);
 
   useEffect(() => {
     document.title = "个人中心 - ZhiXue Lite";
@@ -755,26 +761,45 @@ const ProfilePage: React.FC = () => {
           {user.zhixue_info?.username ? (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
                     <p className="font-medium text-green-900">
                       已绑定智学网账号
                     </p>
-                    <p className="text-sm text-green-700 mt-1">
+                    {/* 桌面端：一行显示，用竖线分割 */}
+                    <p className="text-sm text-green-700 mt-1 hidden sm:block">
                       用户名: {user.zhixue_info.username} | 姓名:{" "}
                       {user.zhixue_info.realname} | 学校:{" "}
                       {user.zhixue_info.school_name}
                     </p>
+                    {/* 移动端：多行显示，无竖线 */}
+                    <div className="text-sm text-green-700 mt-1 space-y-0.5 sm:hidden">
+                      <p>用户名: {user.zhixue_info.username}</p>
+                      <p>姓名: {user.zhixue_info.realname}</p>
+                      <p>学校: {user.zhixue_info.school_name}</p>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleDisconnectZhixue}
                     disabled={loading}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 hover:text-red-700 shrink-0"
                   >
                     <Unlink className="h-4 w-4 mr-2" />
                     解绑
+                  </Button>
+                </div>
+
+                {/* 教师账号说明按钮 */}
+                <div className="mt-2">
+                  <Button
+                    variant="link"
+                    onClick={() => setTeacherAccountDialogOpen(true)}
+                    className="text-green-700 hover:text-green-900 p-0 h-auto text-xs gap-0.5"
+                  >
+                    <CircleHelp className="h-3 w-3" />
+                    关于教师账号的说明
                   </Button>
                 </div>
               </div>
@@ -1000,6 +1025,26 @@ const ProfilePage: React.FC = () => {
         variant="destructive"
         onConfirm={confirmDisconnectZhixue}
       />
+
+      {/* 教师账号说明弹窗 */}
+      <ResponsiveDialog
+        open={teacherAccountDialogOpen}
+        onOpenChange={setTeacherAccountDialogOpen}
+        title="关于教师账号的说明"
+        mode="alert"
+        confirmText="我知道了"
+        onConfirm={() => setTeacherAccountDialogOpen(false)}
+      >
+        <div className="space-y-3 text-sm">
+          <p>
+            本网站依赖教师账号获取数据，但由于您的学校没有可用的教师账号，因此功能可能将受到限制。
+          </p>
+          <p>
+            目前，您可能只能获取考试列表，若想查看考试详情，则需要提供至少具有查看相应考试校级报告权限的教师账号。
+          </p>
+          <p>您可以通过邮箱 zxl@makerlife.top 联系管理员。</p>
+        </div>
+      </ResponsiveDialog>
     </div>
   );
 };

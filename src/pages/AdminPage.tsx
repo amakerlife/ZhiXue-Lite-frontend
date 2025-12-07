@@ -485,7 +485,7 @@ const UserManagement: React.FC = () => {
       if (response.data.success) {
         setSuccess("用户信息已更新");
         setIsEditDialogOpen(false);
-        setUserToEdit(null);
+        // 不立即清空 userToEdit，让关闭动画播放完成
         await loadUsers(page, activeSearchQuery); // 重新加载用户列表
       }
     } catch (err: unknown) {
@@ -1309,7 +1309,13 @@ const UserManagement: React.FC = () => {
         <UserEditDialog
           user={userToEdit}
           open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            // 当对话框关闭时，延迟清空 userToEdit，让动画完成
+            if (!open) {
+              setTimeout(() => setUserToEdit(null), 300);
+            }
+          }}
           onSave={saveUserEdit}
           schools={schools}
           editLoading={editLoading}
