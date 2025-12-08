@@ -21,6 +21,7 @@ export interface User {
     realname?: string;
     school_name?: string;
     school_id?: string;
+    school_has_teacher?: boolean; // 新增：系统内是否有该用户学校的教师账号
   };
   su_info?: {
     // 新增：su 模式信息（仅管理员返回）

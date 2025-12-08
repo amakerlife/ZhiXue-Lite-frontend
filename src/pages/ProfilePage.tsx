@@ -791,17 +791,19 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* 教师账号说明按钮 */}
-                <div className="mt-2">
-                  <Button
-                    variant="link"
-                    onClick={() => setTeacherAccountDialogOpen(true)}
-                    className="text-green-700 hover:text-green-900 p-0 h-auto text-xs gap-0.5"
-                  >
-                    <CircleHelp className="h-3 w-3" />
-                    关于教师账号的说明
-                  </Button>
-                </div>
+                {/* 教师账号说明按钮 - 仅当学校没有教师账号时显示 */}
+                {user.zhixue_info.school_has_teacher === false && (
+                  <div className="mt-2">
+                    <Button
+                      variant="link"
+                      onClick={() => setTeacherAccountDialogOpen(true)}
+                      className="text-green-700 hover:text-green-900 p-0 h-auto text-xs gap-0.5"
+                    >
+                      <CircleHelp className="h-3 w-3" />
+                      关于教师账号的说明
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* 显示绑定信息 - 根据绑定用户数量调整显示 */}
@@ -1042,7 +1044,9 @@ const ProfilePage: React.FC = () => {
           <p>
             目前，您可能只能获取考试列表，若想查看考试详情，则需要提供至少具有查看相应考试校级报告权限的教师账号。
           </p>
-          <p>您可以通过邮箱 zxl@makerlife.top 联系管理员。</p>
+          <p>
+            您可以通过邮箱 zxl@makerlife.top 联系管理员申请支持或获取详细信息。
+          </p>
         </div>
       </ResponsiveDialog>
     </div>
