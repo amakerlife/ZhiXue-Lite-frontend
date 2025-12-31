@@ -5,6 +5,9 @@ import { GitBranch, Github } from "lucide-react";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const startYear = 2025;
+  const yearRange =
+    currentYear === startYear ? `${startYear}` : `${startYear}-${currentYear}`;
   const location = useLocation();
   const { isOpen, isMobile } = useSidebar();
 
@@ -40,7 +43,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto py-4 px-4 max-w-7xl">
         <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <p>© {currentYear} Makerlife</p>
+            <p>© {yearRange} Makerlife</p>
             <a
               href="https://github.com/amakerlife/ZhiXue-Lite-frontend"
               target="_blank"
