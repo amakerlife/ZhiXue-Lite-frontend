@@ -3,6 +3,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   useNavigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -19,7 +20,14 @@ import ExamsPage from "@/pages/ExamsPage";
 import ExamDetailPage from "@/pages/ExamDetailPage";
 import TasksPage from "@/pages/TasksPage";
 import ProfilePage from "@/pages/ProfilePage";
-import AdminPage from "@/pages/AdminPage";
+import {
+  AdminLayout,
+  AdminUsersPage,
+  AdminSchoolsPage,
+  AdminTeachersPage,
+  AdminStudentsPage,
+  AdminExamsPage,
+} from "@/pages/admin";
 import DataViewerPage from "@/pages/DataViewerPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import AboutPage from "@/pages/AboutPage";
@@ -114,7 +122,20 @@ const App: React.FC = () => {
                     <Route path="/data-viewer" element={<DataViewerPage />} />
                     <Route path="/tasks" element={<TasksPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/admin" element={<AdminPage />} />
+
+                    {/* 管理面板嵌套路由 */}
+                    <Route path="/admin" element={<AdminLayout />}>
+                      <Route
+                        index
+                        element={<Navigate to="/admin/users" replace />}
+                      />
+                      <Route path="users" element={<AdminUsersPage />} />
+                      <Route path="schools" element={<AdminSchoolsPage />} />
+                      <Route path="teachers" element={<AdminTeachersPage />} />
+                      <Route path="students" element={<AdminStudentsPage />} />
+                      <Route path="exams" element={<AdminExamsPage />} />
+                    </Route>
+
                     <Route path="/about" element={<AboutPage />} />
                     <Route
                       path="/privacy-policy"

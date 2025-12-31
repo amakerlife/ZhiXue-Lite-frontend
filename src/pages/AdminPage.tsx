@@ -2968,4 +2968,13 @@ const ExamManagement: React.FC = () => {
   );
 };
 
+// 导出管理组件供子页面使用
+export {
+  UserManagement,
+  SchoolManagement,
+  TeacherManagement,
+  StudentManagement,
+  ExamManagement,
+};
+
 export default AdminPage;
