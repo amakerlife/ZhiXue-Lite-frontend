@@ -41,7 +41,7 @@ const Footer: React.FC = () => {
       }`}
     >
       <div className="container mx-auto py-4 px-4 max-w-7xl">
-        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-2 lg:gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <p>© {yearRange} Makerlife</p>
             <a
@@ -54,31 +54,26 @@ const Footer: React.FC = () => {
               <Github className="w-4 h-4" />
             </a>
           </div>
-          <span>|</span>
-          <Link
-            to="/privacy-policy"
-            className="hover:text-foreground transition-colors"
-          >
-            隐私政策
-          </Link>
-          {/* <span>|</span>
-          <Link
-            to="/data-deletion"
-            className="hover:text-foreground transition-colors"
-          >
-            数据删除请求
-          </Link> */}
-          <span>|</span>
-          <Link
-            to="/disclaimer"
-            className="hover:text-foreground transition-colors"
-          >
-            免责声明
-          </Link>
+          <span className="hidden lg:inline">|</span>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/privacy-policy"
+              className="hover:text-foreground transition-colors"
+            >
+              隐私政策
+            </Link>
+            <span>|</span>
+            <Link
+              to="/disclaimer"
+              className="hover:text-foreground transition-colors"
+            >
+              免责声明
+            </Link>
+          </div>
           {buildTime && (
             <>
-              <span className="hidden md:inline">|</span>
-              <span className="hidden md:inline text-xs flex items-center gap-1">
+              <span className="hidden lg:inline">|</span>
+              <span className="hidden lg:inline text-xs flex items-center gap-1">
                 构建时间: {buildTime}
                 {commitHash && commitHash !== "unknown" && (
                   <>
