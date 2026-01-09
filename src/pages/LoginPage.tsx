@@ -175,6 +175,9 @@ const LoginPage: React.FC = () => {
           </form>
 
           <div className="mt-6 text-center text-sm">
+            <div className="text-muted-foreground">
+              请使用本网站账号而非智学网账号
+            </div>
             <span className="text-muted-foreground">还没有账号？</span>
             <Link to="/signup" className="ml-1 text-primary hover:underline">
               立即注册
