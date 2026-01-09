@@ -48,6 +48,7 @@ export interface AdminUser {
     realname?: string;
     school_name?: string;
     school_id?: string;
+    school_has_teacher?: boolean;
   };
   su_info?: {
     // 新增：su 模式信息（仅管理员返回）
