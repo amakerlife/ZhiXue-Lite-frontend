@@ -1,7 +1,15 @@
 import React from "react";
 import type { ReactNode } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { AlertCircle, X, ShieldAlert, LogOut, Mail } from "lucide-react";
+import {
+  AlertCircle,
+  X,
+  ShieldAlert,
+  LogOut,
+  Mail,
+  AlertTriangle,
+} from "lucide-react";
+import { detectBrowser } from "@/lib/browser";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -19,6 +27,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isSuMode, exitSu } = useAuth();
   const [showBanner, setShowBanner] = React.useState(true);
   const [showEmailBanner, setShowEmailBanner] = React.useState(true);
+  const [showBrowserBanner, setShowBrowserBanner] = React.useState(true);
+  const [browserInfo] = React.useState(() => detectBrowser());
   const [exitingSu, setExitingSu] = React.useState(false);
 
   // 启用页面追踪
@@ -75,6 +85,38 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             showSidebar && isOpen && !isMobile ? "ml-64" : ""
           }`}
         >
+          {/* 浏览器兼容性提示横幅 */}
+          {!browserInfo.isSupported && showBrowserBanner && (
+            <div className="bg-amber-50 border-b border-amber-200">
+              <div className="container mx-auto p-3 max-w-7xl">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-amber-900">
+                        浏览器版本过低
+                      </p>
+                      <p className="text-xs text-amber-700">
+                        {browserInfo.name === "Unknown" ? "" : browserInfo.name}{" "}
+                        {browserInfo.version}{" "}
+                        已不受支持，建议升级到最新版本以获得最佳体验。旧版浏览器可能无法正确显示部分样式。
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowBrowserBanner(false)}
+                    className="text-amber-600 hover:text-amber-900 hover:bg-amber-100 shrink-0"
+                    aria-label="关闭提示"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Su 模式提示横幅 */}
           {isSuMode && user && (
             <div className="bg-orange-50 border-b border-orange-200">
