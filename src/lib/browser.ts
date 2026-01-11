@@ -18,15 +18,27 @@ export function detectBrowser(): BrowserInfo {
   let name = "Unknown";
   let version = 0;
 
-  if (ua.includes("Chrome/")) {
-    name = "Chrome";
-    const match = ua.match(/Chrome\/(\d+)/);
+  // Chromium-based browsers (Chrome, Edge on iOS/Android/Desktop)
+  if (
+    ua.includes("CriOS/") ||
+    ua.includes("EdgiOS/") ||
+    ua.includes("Chrome/")
+  ) {
+    name = "Chromium";
+    const match =
+      ua.match(/CriOS\/(\d+)/) ||
+      ua.match(/EdgiOS\/(\d+)/) ||
+      ua.match(/Chrome\/(\d+)/);
     version = match ? parseInt(match[1], 10) : 0;
-  } else if (ua.includes("Firefox/")) {
+  }
+  // Firefox (iOS/Android/Desktop)
+  else if (ua.includes("FxiOS/") || ua.includes("Firefox/")) {
     name = "Firefox";
-    const match = ua.match(/Firefox\/(\d+)/);
+    const match = ua.match(/FxiOS\/(\d+)/) || ua.match(/Firefox\/(\d+)/);
     version = match ? parseInt(match[1], 10) : 0;
-  } else if (ua.includes("Safari/") && !ua.includes("Chrome")) {
+  }
+  // Safari (Desktop and iOS)
+  else if (ua.includes("Safari/") && !ua.includes("Chrome")) {
     name = "Safari";
     const match = ua.match(/Version\/(\d+)\.(\d+)/);
     version = match ? parseFloat(`${match[1]}.${match[2]}`) : 0;
@@ -39,7 +51,7 @@ export function detectBrowser(): BrowserInfo {
 
 /**
  * 检查浏览器是否支持
- * Chrome 111+, Firefox 113+, Safari 15+
+ * Chromium 111+, Firefox 113+, Safari 15+
  *
  * @param name 浏览器名称
  * @param version 浏览器版本
@@ -47,7 +59,7 @@ export function detectBrowser(): BrowserInfo {
  */
 function checkBrowserSupport(name: string, version: number): boolean {
   const minVersions: Record<string, number> = {
-    Chrome: 111,
+    Chromium: 111,
     Firefox: 113,
     Safari: 15,
   };
