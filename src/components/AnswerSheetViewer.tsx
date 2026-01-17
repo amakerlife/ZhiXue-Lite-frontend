@@ -307,7 +307,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
         {/* 答题卡查看Dialog */}
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
           <DialogContent
-            className="max-w-4xl max-h-[80vh] overflow-auto"
+            className="max-w-4xl"
             showCloseButton
           >
             <DialogHeader>
@@ -371,7 +371,7 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
               </DialogTitle>
             </DialogHeader>
             {imageUrl && (
-              <div className="overflow-auto max-h-[85vh]">
+              <div className="max-h-[80vh] overflow-y-auto">
                 <img
                   src={imageUrl}
                   alt="答题卡放大视图"

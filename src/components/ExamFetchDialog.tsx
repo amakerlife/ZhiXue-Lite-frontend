@@ -510,7 +510,7 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
       open={open}
       onOpenChange={onOpenChange}
       title="拉取考试列表"
-      className="max-w-2xl max-h-[80vh] overflow-y-auto"
+      className="max-w-2xl"
       footer={(isDesktop) => (
         <>
           {isDesktop ? (
