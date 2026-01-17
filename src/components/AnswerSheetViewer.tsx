@@ -306,7 +306,10 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
 
         {/* 答题卡查看Dialog */}
         <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+          <DialogContent
+            className="max-w-4xl max-h-[80vh] overflow-auto"
+            showCloseButton
+          >
             <DialogHeader>
               <DialogTitle>
                 {
@@ -354,7 +357,10 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
           open={enlargedDialogOpen}
           onOpenChange={handleEnlargedDialogClose}
         >
-          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2">
+          <DialogContent
+            className="max-w-[95vw] max-h-[95vh] p-2"
+            showCloseButton
+          >
             <DialogHeader className="pb-2">
               <DialogTitle>
                 {
