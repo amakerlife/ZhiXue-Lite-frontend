@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RefreshCw } from "lucide-react";
 import { examAPI, type ExamSelections } from "@/api/exam";
@@ -48,10 +49,15 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [fetchMode, setFetchMode] = useState<"self" | "school">("self");
   const [schoolId, setSchoolId] = useState("");
+  const [manualSchoolId, setManualSchoolId] = useState("");
+  const [useCurrentSchoolId, setUseCurrentSchoolId] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [params, setParams] = useState<FetchParams>({
     queryType: "academicYear",
   });
+
+  const currentSchoolId = user?.zhixue_info?.school_id || "";
+  const hasBoundSchoolId = Boolean(currentSchoolId);
 
   // 检查用户权限
   // FETCH_DATA = 0，权限级别：1=SELF, 2=SCHOOL, 3=GLOBAL
@@ -167,10 +173,22 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
     loadSelections,
   ]);
 
-  const handleSchoolIdChange = (value: string) => {
+  const handleSchoolIdChange = (value: string, updateManual = true) => {
     setSchoolId(value);
+    if (updateManual) {
+      setManualSchoolId(value);
+    }
     setError(null);
     setSelections(null); // 清除之前的配置
+  };
+
+  const handleUseCurrentSchoolToggle = (checked: boolean) => {
+    setUseCurrentSchoolId(checked);
+    if (checked) {
+      handleSchoolIdChange(currentSchoolId, false);
+    } else {
+      handleSchoolIdChange(manualSchoolId, false);
+    }
   };
 
   const handleFetch = () => {
@@ -286,13 +304,28 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="school-id">学校 ID</Label>
-                <Input
-                  id="school-id"
-                  value={schoolId}
-                  onChange={(e) => handleSchoolIdChange(e.target.value)}
-                  placeholder="请输入 19 位数字学校 ID"
-                  className={error ? "border-red-500" : ""}
-                />
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="school-id"
+                    value={schoolId}
+                    onChange={(e) => handleSchoolIdChange(e.target.value)}
+                    placeholder="请输入 19 位数字学校 ID"
+                    className={`flex-1 ${error ? "border-red-500" : ""}`}
+                    disabled={useCurrentSchoolId}
+                  />
+                  {hasBoundSchoolId && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Checkbox
+                        id="use-current-school"
+                        checked={useCurrentSchoolId}
+                        onCheckedChange={handleUseCurrentSchoolToggle}
+                      />
+                      <Label htmlFor="use-current-school" className="text-xs">
+                        当前学校
+                      </Label>
+                    </div>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   学校 ID 必须是 19 位数字
                 </p>
