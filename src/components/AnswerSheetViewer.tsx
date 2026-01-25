@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ResponsiveDialog } from "@/components/ResponsiveDialog";
 import {
   Select,
   SelectContent,
@@ -304,78 +305,69 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
           </Button>
         </div>
 
-        {/* 答题卡查看Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-          <DialogContent
-            className="max-w-4xl"
-            showCloseButton
-          >
-            <DialogHeader>
-              <DialogTitle>
-                {
-                  validSubjects.find((s) => s.subject_id === selectedSubjectId)
-                    ?.subject_name
-                }{" "}
-                - 答题卡
-              </DialogTitle>
-            </DialogHeader>
-
-            {loading ? (
-              <div className="text-center py-12">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">加载中...</p>
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <AlertCircle className="h-8 w-8 text-red-600 mx-auto mb-4" />
-                <p className="text-red-700">{error}</p>
-              </div>
-            ) : imageUrl ? (
-              <div className="flex justify-center">
-                <div
-                  className="relative group cursor-pointer"
-                  onClick={handleImageClick}
-                >
-                  <img
-                    src={imageUrl}
-                    alt="答题卡"
-                    className="max-w-full h-auto border rounded-lg shadow-xs transition-opacity hover:opacity-75"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-lg">
-                    <div className="bg-white/90 rounded-full p-2">
-                      <ZoomIn className="h-6 w-6 text-gray-700" />
-                    </div>
+        {/* 答题卡查看对话框 */}
+        <ResponsiveDialog
+          open={dialogOpen}
+          onOpenChange={handleDialogClose}
+          title={`${validSubjects.find((s) => s.subject_id === selectedSubjectId)?.subject_name || ""} - 答题卡`}
+          className="max-w-4xl"
+          showCloseButton
+        >
+          {loading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">加载中...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <AlertCircle className="h-8 w-8 text-red-600 mx-auto mb-4" />
+              <p className="text-red-700">{error}</p>
+            </div>
+          ) : imageUrl ? (
+            <div className="flex justify-center">
+              <div
+                className="relative group cursor-pointer h-fit"
+                onClick={handleImageClick}
+              >
+                <img
+                  src={imageUrl}
+                  alt="答题卡"
+                  className="max-w-full h-auto border rounded-lg shadow-xs transition-opacity hover:opacity-75"
+                />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-lg">
+                  <div className="bg-white/90 rounded-full p-2">
+                    <ZoomIn className="h-6 w-6 text-gray-700" />
                   </div>
                 </div>
               </div>
-            ) : null}
-          </DialogContent>
-        </Dialog>
+            </div>
+          ) : null}
+        </ResponsiveDialog>
 
-        {/* 放大图片的Dialog */}
+        {/* 放大图片的Dialog - 全屏视图 */}
         <Dialog
           open={enlargedDialogOpen}
           onOpenChange={handleEnlargedDialogClose}
         >
           <DialogContent
-            className="max-w-[95vw] max-h-[95vh] p-2"
+            className="w-screen h-screen max-w-none max-h-none m-0 p-4 rounded-none flex flex-col"
             showCloseButton
           >
-            <DialogHeader className="pb-2">
+            <DialogHeader className="pb-2 flex-shrink-0">
               <DialogTitle>
                 {
                   validSubjects.find((s) => s.subject_id === selectedSubjectId)
                     ?.subject_name
                 }{" "}
-                - 答题卡（放大视图）
+                - 答题卡（全屏视图）
               </DialogTitle>
             </DialogHeader>
             {imageUrl && (
-              <div className="max-h-[80vh] overflow-y-auto">
+              <div className="flex-1 overflow-y-auto flex justify-center items-start bg-gray-50 rounded-lg">
                 <img
                   src={imageUrl}
                   alt="答题卡放大视图"
-                  className="w-full h-auto border rounded"
+                  className="max-w-full h-auto border rounded shadow-lg"
                 />
               </div>
             )}
