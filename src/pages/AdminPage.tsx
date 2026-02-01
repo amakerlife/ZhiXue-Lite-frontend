@@ -271,6 +271,202 @@ const AdminPage: React.FC = () => {
   );
 };
 
+// 用户编辑对话框组件
+const UserEditDialog: React.FC<{
+  user: AdminUser;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (
+    userId: number,
+    formData: {
+      email: string;
+      email_verified: boolean;
+      role: "admin" | "user" | "";
+      is_active: boolean;
+      manual_school_id: string | null;
+    },
+  ) => Promise<void>;
+  schools: SchoolType[];
+  editLoading: boolean;
+  error: string | null;
+}> = ({ user, open, onOpenChange, onSave, schools, editLoading, error }) => {
+  const [email, setEmail] = useState(user.email);
+  const [emailVerified, setEmailVerified] = useState(user.email_verified);
+  const [role, setRole] = useState<"admin" | "user" | "">(
+    user.role === "admin" || user.role === "user" ? user.role : "",
+  );
+  const [isActive, setIsActive] = useState(user.is_active);
+  const [manualSchoolId, setManualSchoolId] = useState<string | null>(
+    user.is_manual_school && !user.zhixue_info?.username
+      ? user.zhixue_info?.school_id || null
+      : null,
+  );
+
+  useEffect(() => {
+    if (open) {
+      setEmail(user.email);
+      setEmailVerified(user.email_verified);
+      setRole(user.role === "admin" || user.role === "user" ? user.role : "");
+      setIsActive(user.is_active);
+      setManualSchoolId(
+        user.is_manual_school && !user.zhixue_info?.username
+          ? user.zhixue_info?.school_id || null
+          : null,
+      );
+    }
+  }, [open, user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSave(user.id, {
+      email,
+      email_verified: emailVerified,
+      role,
+      is_active: isActive,
+      manual_school_id: manualSchoolId,
+    });
+  };
+
+  return (
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`编辑用户: ${user.username}`}
+      description="修改用户基本信息和分配学校"
+      footer={(isDesktop) => (
+        <>
+          {isDesktop ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                取消
+              </Button>
+              <Button onClick={handleSubmit} disabled={editLoading}>
+                {editLoading ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {editLoading ? "保存中..." : "保存修改"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={handleSubmit} disabled={editLoading}>
+                {editLoading ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {editLoading ? "保存中..." : "保存修改"}
+              </Button>
+              <DrawerClose asChild>
+                <Button type="button" variant="outline">
+                  取消
+                </Button>
+              </DrawerClose>
+            </>
+          )}
+        </>
+      )}
+    >
+      <div className="space-y-4">
+        {error && <StatusAlert variant="error" message={error} />}
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-email">邮箱</Label>
+          <Input
+            id="edit-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-email-verified">邮箱验证状态</Label>
+          <Select
+            value={emailVerified.toString()}
+            onValueChange={(value) => setEmailVerified(value === "true")}
+          >
+            <SelectTrigger id="edit-email-verified">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">已验证</SelectItem>
+              <SelectItem value="false">未验证</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-role">角色</Label>
+          <Select
+            value={role}
+            onValueChange={(value: "admin" | "user" | "") => setRole(value)}
+          >
+            <SelectTrigger id="edit-role">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="user">普通用户</SelectItem>
+              <SelectItem value="admin">管理员</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-is-active">状态</Label>
+          <Select
+            value={isActive.toString()}
+            onValueChange={(value) => setIsActive(value === "true")}
+          >
+            <SelectTrigger id="edit-is-active">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">可用</SelectItem>
+              <SelectItem value="false">禁用</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-manual-school">手动分配学校</Label>
+          <Select
+            value={manualSchoolId || "none"}
+            onValueChange={(value) =>
+              setManualSchoolId(value === "none" ? null : value)
+            }
+            disabled={!!user.zhixue_info?.username}
+          >
+            <SelectTrigger id="edit-manual-school">
+              <SelectValue placeholder="选择学校" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">不分配</SelectItem>
+              {schools.map((school) => (
+                <SelectItem key={school.id} value={school.id}>
+                  {school.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {user.zhixue_info?.username && (
+            <p className="text-xs text-orange-600">
+              已绑定智学网账号的用户无法手动分配学校
+            </p>
+          )}
+        </div>
+      </div>
+    </ResponsiveDialog>
+  );
+};
+
 // 用户管理组件
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -573,202 +769,6 @@ const UserManagement: React.FC = () => {
   useEffect(() => {
     loadSchools();
   }, []);
-
-  // 新增：用户编辑对话框组件
-  const UserEditDialog: React.FC<{
-    user: AdminUser;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSave: (
-      userId: number,
-      formData: {
-        email: string;
-        email_verified: boolean;
-        role: "admin" | "user" | "";
-        is_active: boolean;
-        manual_school_id: string | null;
-      },
-    ) => Promise<void>;
-    schools: SchoolType[];
-    editLoading: boolean;
-    error: string | null;
-  }> = ({ user, open, onOpenChange, onSave, schools, editLoading, error }) => {
-    const [email, setEmail] = useState(user.email);
-    const [emailVerified, setEmailVerified] = useState(user.email_verified);
-    const [role, setRole] = useState<"admin" | "user" | "">(
-      user.role === "admin" || user.role === "user" ? user.role : "",
-    );
-    const [isActive, setIsActive] = useState(user.is_active);
-    const [manualSchoolId, setManualSchoolId] = useState<string | null>(
-      user.is_manual_school && !user.zhixue_info?.username
-        ? user.zhixue_info?.school_id || null
-        : null,
-    );
-
-    useEffect(() => {
-      if (open) {
-        setEmail(user.email);
-        setEmailVerified(user.email_verified);
-        setRole(user.role === "admin" || user.role === "user" ? user.role : "");
-        setIsActive(user.is_active);
-        setManualSchoolId(
-          user.is_manual_school && !user.zhixue_info?.username
-            ? user.zhixue_info?.school_id || null
-            : null,
-        );
-      }
-    }, [open, user]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      await onSave(user.id, {
-        email,
-        email_verified: emailVerified,
-        role,
-        is_active: isActive,
-        manual_school_id: manualSchoolId,
-      });
-    };
-
-    return (
-      <ResponsiveDialog
-        open={open}
-        onOpenChange={onOpenChange}
-        title={`编辑用户: ${user.username}`}
-        description="修改用户基本信息和分配学校"
-        footer={(isDesktop) => (
-          <>
-            {isDesktop ? (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                >
-                  取消
-                </Button>
-                <Button onClick={handleSubmit} disabled={editLoading}>
-                  {editLoading ? (
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  {editLoading ? "保存中..." : "保存修改"}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button onClick={handleSubmit} disabled={editLoading}>
-                  {editLoading ? (
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  {editLoading ? "保存中..." : "保存修改"}
-                </Button>
-                <DrawerClose asChild>
-                  <Button type="button" variant="outline">
-                    取消
-                  </Button>
-                </DrawerClose>
-              </>
-            )}
-          </>
-        )}
-      >
-        <div className="space-y-4">
-          {error && <StatusAlert variant="error" message={error} />}
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-email">邮箱</Label>
-            <Input
-              id="edit-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-email-verified">邮箱验证状态</Label>
-            <Select
-              value={emailVerified.toString()}
-              onValueChange={(value) => setEmailVerified(value === "true")}
-            >
-              <SelectTrigger id="edit-email-verified">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="true">已验证</SelectItem>
-                <SelectItem value="false">未验证</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-role">角色</Label>
-            <Select
-              value={role}
-              onValueChange={(value: "admin" | "user" | "") => setRole(value)}
-            >
-              <SelectTrigger id="edit-role">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">普通用户</SelectItem>
-                <SelectItem value="admin">管理员</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-is-active">状态</Label>
-            <Select
-              value={isActive.toString()}
-              onValueChange={(value) => setIsActive(value === "true")}
-            >
-              <SelectTrigger id="edit-is-active">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="true">可用</SelectItem>
-                <SelectItem value="false">禁用</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-manual-school">手动分配学校</Label>
-            <Select
-              value={manualSchoolId || "none"}
-              onValueChange={(value) =>
-                setManualSchoolId(value === "none" ? null : value)
-              }
-              disabled={!!user.zhixue_info?.username}
-            >
-              <SelectTrigger id="edit-manual-school">
-                <SelectValue placeholder="选择学校" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">不分配</SelectItem>
-                {schools.map((school) => (
-                  <SelectItem key={school.id} value={school.id}>
-                    {school.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {user.zhixue_info?.username && (
-              <p className="text-xs text-orange-600">
-                已绑定智学网账号的用户无法手动分配学校
-              </p>
-            )}
-          </div>
-        </div>
-      </ResponsiveDialog>
-    );
-  };
 
   return (
     <Card>
