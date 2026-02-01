@@ -448,6 +448,7 @@ const UserManagement: React.FC = () => {
     userId: number,
     formData: {
       email: string;
+      email_verified: boolean;
       role: "admin" | "user" | "";
       is_active: boolean;
       manual_school_id: string | null;
@@ -468,11 +469,13 @@ const UserManagement: React.FC = () => {
     try {
       const updateData: {
         email: string;
+        email_verified: boolean;
         role?: "admin" | "user";
         is_active: boolean;
         manual_school_id?: string | null;
       } = {
         email: formData.email,
+        email_verified: formData.email_verified,
         is_active: formData.is_active,
         manual_school_id: formData.manual_school_id,
       };
@@ -578,6 +581,7 @@ const UserManagement: React.FC = () => {
       userId: number,
       formData: {
         email: string;
+        email_verified: boolean;
         role: "admin" | "user" | "";
         is_active: boolean;
         manual_school_id: string | null;
@@ -588,6 +592,7 @@ const UserManagement: React.FC = () => {
     error: string | null;
   }> = ({ user, open, onOpenChange, onSave, schools, editLoading, error }) => {
     const [email, setEmail] = useState(user.email);
+    const [emailVerified, setEmailVerified] = useState(user.email_verified);
     const [role, setRole] = useState<"admin" | "user" | "">(
       user.role === "admin" || user.role === "user" ? user.role : "",
     );
@@ -601,6 +606,7 @@ const UserManagement: React.FC = () => {
     useEffect(() => {
       if (open) {
         setEmail(user.email);
+        setEmailVerified(user.email_verified);
         setRole(user.role === "admin" || user.role === "user" ? user.role : "");
         setIsActive(user.is_active);
         setManualSchoolId(
@@ -615,6 +621,7 @@ const UserManagement: React.FC = () => {
       e.preventDefault();
       await onSave(user.id, {
         email,
+        email_verified: emailVerified,
         role,
         is_active: isActive,
         manual_school_id: manualSchoolId,
@@ -679,6 +686,22 @@ const UserManagement: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-email-verified">邮箱验证状态</Label>
+            <Select
+              value={emailVerified.toString()}
+              onValueChange={(value) => setEmailVerified(value === "true")}
+            >
+              <SelectTrigger id="edit-email-verified">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">已验证</SelectItem>
+                <SelectItem value="false">未验证</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -828,7 +851,16 @@ const UserManagement: React.FC = () => {
                       </TableCell>
 
                       {/* 邮箱 */}
-                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span>{user.email}</span>
+                          <span
+                            className={`text-xs ${user.email_verified ? "text-green-600" : "text-yellow-600"}`}
+                          >
+                            {user.email_verified ? "已验证" : "未验证"}
+                          </span>
+                        </div>
+                      </TableCell>
 
                       {/* 角色 */}
                       <TableCell>

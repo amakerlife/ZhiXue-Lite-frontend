@@ -32,18 +32,17 @@ export interface AdminUser {
   id: number;
   username: string;
   email: string;
-  email_verified: boolean; // 新增：邮箱验证状态
+  email_verified: boolean;
   role: string;
-  permissions?: string; // 新增权限字段
+  permissions?: string;
   is_active: boolean;
   created_at: string;
   last_login?: string;
   registration_ip?: string;
   last_login_ip?: string;
-  is_manual_school?: boolean; // 新增：是否有手动分配的学校（用于显示判断）
-  manual_school_id?: string; // 新增：管理员手动分配的学校 ID（用于编辑）
+  is_manual_school?: boolean; // 是否有手动分配的学校（用于显示判断）
+  manual_school_id?: string;
   zhixue_info?: {
-    // 修改：使用嵌套结构
     username?: string;
     realname?: string;
     school_name?: string;
@@ -51,7 +50,6 @@ export interface AdminUser {
     school_has_teacher?: boolean;
   };
   su_info?: {
-    // 新增：su 模式信息（仅管理员返回）
     is_su_mode: boolean;
     original_user_username?: string;
   };
@@ -148,6 +146,7 @@ export const adminAPI = {
     userId: number,
     data: {
       email?: string;
+      email_verified?: boolean;
       role?: string;
       permissions?: string;
       is_active?: boolean;
