@@ -19,6 +19,8 @@ import {
   HardDriveIcon,
   Lock,
   EllipsisVertical,
+  BadgeCheck,
+  BadgeX,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -835,8 +837,7 @@ const UserManagement: React.FC = () => {
                     <TableHead>邮箱</TableHead>
                     <TableHead>角色</TableHead>
                     <TableHead>状态</TableHead>
-                    <TableHead>智学网信息</TableHead>
-                    <TableHead>分配学校</TableHead>
+                    <TableHead>智学网</TableHead>
                     <TableHead>注册时间</TableHead>
                     <TableHead>最后登录</TableHead>
                     <TableHead>登录IP</TableHead>
@@ -852,13 +853,13 @@ const UserManagement: React.FC = () => {
 
                       {/* 邮箱 */}
                       <TableCell>
-                        <div className="flex flex-col">
+                        <div className="flex items-center space-x-1">
                           <span>{user.email}</span>
-                          <span
-                            className={`text-xs ${user.email_verified ? "text-green-600" : "text-yellow-600"}`}
-                          >
-                            {user.email_verified ? "已验证" : "未验证"}
-                          </span>
+                          {user.email_verified ? (
+                            <BadgeCheck className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <BadgeX className="h-4 w-4 text-red-600" />
+                          )}
                         </div>
                       </TableCell>
 
@@ -878,7 +879,7 @@ const UserManagement: React.FC = () => {
                         </Badge>
                       </TableCell>
 
-                      {/* 智学网信息 - 可折叠 */}
+                      {/* 智学网信息 */}
                       <TableCell>
                         {user.zhixue_info?.username ? (
                           <div className="space-y-2">
@@ -911,26 +912,15 @@ const UserManagement: React.FC = () => {
                               </div>
                             )}
                           </div>
+                        ) : user.is_manual_school ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {user.zhixue_info?.school_name || "未知学校"}
+                          </Badge>
                         ) : (
                           <span className="text-muted-foreground text-xs">
                             未绑定
                           </span>
                         )}
-                      </TableCell>
-
-                      {/* 手动分配学校 */}
-                      <TableCell>
-                        <div className="space-y-1">
-                          {user.is_manual_school ? (
-                            <Badge variant="secondary" className="text-xs">
-                              {user.zhixue_info?.school_name || "未知学校"}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              未分配
-                            </span>
-                          )}
-                        </div>
                       </TableCell>
 
                       <TableCell>
@@ -1047,57 +1037,59 @@ const UserManagement: React.FC = () => {
                   <CardContent className="text-sm space-y-2">
                     <div className="grid grid-cols-[60px_1fr] gap-2">
                       <span className="text-muted-foreground">邮箱:</span>
-                      <span className="break-all">{user.email}</span>
-                    </div>
-
-                    {/* 智学网绑定信息 */}
-                    {user.zhixue_info?.username ? (
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-auto p-1"
-                            onClick={() => toggleZhixueInfo(user.id)}
-                          >
-                            {expandedZhixueInfo.has(user.id) ? (
-                              <ChevronDown className="h-3 w-3" />
-                            ) : (
-                              <ChevronRight className="h-3 w-3" />
-                            )}
-                          </Button>
-                          <span className="text-muted-foreground">智学网:</span>
-                          <Badge variant="outline" className="text-xs">
-                            {user.zhixue_info.username}
-                          </Badge>
-                        </div>
-                        {expandedZhixueInfo.has(user.id) && (
-                          <div className="ml-6 space-y-1 text-xs text-muted-foreground">
-                            <div>姓名: {user.zhixue_info.realname || "-"}</div>
-                            <div>
-                              学校: {user.zhixue_info.school_name || "-"}
-                            </div>
-                          </div>
+                      <div className="flex items-center space-x-1 break-all">
+                        <span>{user.email}</span>
+                        {user.email_verified ? (
+                          <BadgeCheck className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <BadgeX className="h-4 w-4 text-yellow-600" />
                         )}
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-[60px_1fr] gap-2">
-                        <span className="text-muted-foreground">智学网:</span>
-                        <span className="text-muted-foreground text-xs">
-                          未绑定
-                        </span>
-                      </div>
-                    )}
+                    </div>
 
-                    {/* 手动分配学校 */}
-                    {user.is_manual_school && (
-                      <div className="grid grid-cols-[60px_1fr] gap-2">
-                        <span className="text-muted-foreground">学校:</span>
+                    {/* 智学网信息 */}
+                    <div className="grid grid-cols-[60px_1fr] gap-2">
+                      <span className="text-muted-foreground">智学网:</span>
+                      {user.zhixue_info?.username ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-auto p-1"
+                              onClick={() => toggleZhixueInfo(user.id)}
+                            >
+                              {expandedZhixueInfo.has(user.id) ? (
+                                <ChevronDown className="h-3 w-3" />
+                              ) : (
+                                <ChevronRight className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <Badge variant="outline" className="text-xs">
+                              {user.zhixue_info.username}
+                            </Badge>
+                          </div>
+                          {expandedZhixueInfo.has(user.id) && (
+                            <div className="ml-6 space-y-1 text-xs text-muted-foreground">
+                              <div>
+                                姓名: {user.zhixue_info.realname || "-"}
+                              </div>
+                              <div>
+                                学校: {user.zhixue_info.school_name || "-"}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : user.is_manual_school ? (
                         <Badge variant="secondary" className="text-xs w-fit">
                           {user.zhixue_info?.school_name || "未知学校"}
                         </Badge>
-                      </div>
-                    )}
+                      ) : (
+                        <span className="text-muted-foreground text-xs">
+                          未绑定
+                        </span>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
