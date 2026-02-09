@@ -23,6 +23,8 @@ export interface ExamData {
     school_rank: string;
     sort: number;
     is_calculated?: boolean;
+    school_participant_count?: number;
+    class_participant_count?: number;
   }>;
   totalScores: Array<{
     subject_id: string;
@@ -33,6 +35,8 @@ export interface ExamData {
     school_rank: string;
     sort: number;
     is_calculated?: boolean;
+    school_participant_count?: number;
+    class_participant_count?: number;
   }>;
 }
 

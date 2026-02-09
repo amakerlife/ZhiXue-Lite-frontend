@@ -1023,7 +1023,7 @@ const ScoreLookup: React.FC = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
+                        <div className="py-2">
                           {totalScores.map((totalScore) => {
                             // 检测是否缺失满分数据（后端返回 "-1"）
                             const isStandardScoreMissing =
@@ -1053,51 +1053,92 @@ const ScoreLookup: React.FC = () => {
 
                             return (
                               <React.Fragment key={totalScore.subject_id}>
-                                <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-                                  <div className="flex items-baseline space-x-2 justify-center sm:justify-start">
-                                    <span className="text-2xl sm:text-3xl font-bold text-primary">
-                                      {totalScore.score || "-"}
-                                    </span>
-                                    <span className="text-lg sm:text-xl text-muted-foreground">
-                                      / {displayStandardScore || "-"}
-                                    </span>
+                                <div className="flex flex-col space-y-4">
+                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div className="flex items-baseline space-x-2">
+                                      <span className="text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+                                        {totalScore.score || "-"}
+                                      </span>
+                                      <span className="text-xl text-muted-foreground font-medium">
+                                        / {displayStandardScore || "-"}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex gap-6 text-sm">
+                                      {totalScore.class_rank && (
+                                        <div className="flex flex-col">
+                                          <span className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
+                                            班级排名
+                                          </span>
+                                          <div className="flex items-baseline gap-1">
+                                            <span className="font-semibold text-foreground text-lg">
+                                              {totalScore.class_rank}
+                                            </span>
+                                            {totalScore.class_participant_count &&
+                                              totalScore.class_participant_count >
+                                                0 && (
+                                                <span className="text-muted-foreground text-sm">
+                                                  /{" "}
+                                                  {
+                                                    totalScore.class_participant_count
+                                                  }
+                                                </span>
+                                              )}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {totalScore.school_rank && (
+                                        <div className="flex flex-col">
+                                          <span className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
+                                            年级排名
+                                          </span>
+                                          <div className="flex items-baseline gap-1">
+                                            <span className="font-semibold text-foreground text-lg">
+                                              {totalScore.school_rank}
+                                            </span>
+                                            {totalScore.school_participant_count &&
+                                              totalScore.school_participant_count >
+                                                0 && (
+                                                <span className="text-muted-foreground text-sm">
+                                                  /{" "}
+                                                  {
+                                                    totalScore.school_participant_count
+                                                  }
+                                                </span>
+                                              )}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
-                                    {totalScore.class_rank && (
-                                      <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg text-center">
-                                        <span className="text-sm font-medium text-blue-700">
-                                          班级第 {totalScore.class_rank} 名
-                                        </span>
+
+                                  <div className="space-y-1.5 border-t pt-4">
+                                    {(isStandardScoreMissing ||
+                                      totalScore.is_calculated) && (
+                                      <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                        {isStandardScoreMissing &&
+                                        totalScore.is_calculated ? (
+                                          <span>
+                                            本次考试可能为新高考六选三等模式，智学网未提供满分和总分数据。当前满分和总分仅供参考。
+                                          </span>
+                                        ) : isStandardScoreMissing ? (
+                                          <span>
+                                            本次考试可能为新高考六选三等模式，智学网未提供满分数据。当前满分仅供参考。
+                                          </span>
+                                        ) : (
+                                          <span>
+                                            本次考试可能为新高考六选三等模式，智学网未提供总分数据。当前总分仅供参考。
+                                          </span>
+                                        )}
                                       </div>
                                     )}
-                                    {totalScore.school_rank && (
-                                      <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg text-center">
-                                        <span className="text-sm font-medium text-green-700">
-                                          学校第 {totalScore.school_rank} 名
-                                        </span>
-                                      </div>
-                                    )}
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                      <span>
+                                        总参考人数为所有未剔除的人数，可能与实际略有出入。
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
-                                {(isStandardScoreMissing ||
-                                  totalScore.is_calculated) && (
-                                  <div className="mt-2 text-xs text-muted-foreground">
-                                    {isStandardScoreMissing &&
-                                    totalScore.is_calculated ? (
-                                      <span>
-                                        本次考试可能为新高考六选三等模式，智学网未提供满分和总分数据。当前满分和总分仅供参考。
-                                      </span>
-                                    ) : isStandardScoreMissing ? (
-                                      <span>
-                                        本次考试可能为新高考六选三等模式，智学网未提供满分数据。当前满分仅供参考。
-                                      </span>
-                                    ) : (
-                                      <span>
-                                        本次考试的总分由各科成绩累加计算得出，非智学网原始数据，仅供参考。
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
                               </React.Fragment>
                             );
                           })}
@@ -1123,10 +1164,9 @@ const ScoreLookup: React.FC = () => {
                               <TableHeader>
                                 <TableRow>
                                   <TableHead>科目</TableHead>
-                                  <TableHead>得分</TableHead>
-                                  <TableHead>满分</TableHead>
+                                  <TableHead>得分 / 满分</TableHead>
                                   <TableHead>班级排名</TableHead>
-                                  <TableHead>学校排名</TableHead>
+                                  <TableHead>年级排名</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -1135,15 +1175,38 @@ const ScoreLookup: React.FC = () => {
                                     <TableCell className="font-medium">
                                       {score.subject_name}
                                     </TableCell>
-                                    <TableCell>{score.score || "-"}</TableCell>
                                     <TableCell>
-                                      {score.standard_score || "-"}
+                                      <div className="flex items-baseline gap-1">
+                                        <span className="font-bold text-primary">
+                                          {score.score || "-"}
+                                        </span>
+                                        <span className="text-muted-foreground text-sm">
+                                          / {score.standard_score || "-"}
+                                        </span>
+                                      </div>
                                     </TableCell>
                                     <TableCell>
-                                      {score.class_rank || "-"}
+                                      <div className="flex items-baseline gap-1">
+                                        <span>{score.class_rank || "-"}</span>
+                                        {score.class_participant_count &&
+                                          score.class_participant_count > 0 && (
+                                            <span className="text-xs text-muted-foreground">
+                                              / {score.class_participant_count}
+                                            </span>
+                                          )}
+                                      </div>
                                     </TableCell>
                                     <TableCell>
-                                      {score.school_rank || "-"}
+                                      <div className="flex items-baseline gap-1">
+                                        <span>{score.school_rank || "-"}</span>
+                                        {score.school_participant_count &&
+                                          score.school_participant_count >
+                                            0 && (
+                                            <span className="text-xs text-muted-foreground">
+                                              / {score.school_participant_count}
+                                            </span>
+                                          )}
+                                      </div>
                                     </TableCell>
                                   </TableRow>
                                 ))}
@@ -1156,49 +1219,63 @@ const ScoreLookup: React.FC = () => {
                             {subjectScores.map((score) => (
                               <Card
                                 key={score.subject_id}
-                                className="bg-muted/20"
+                                className="bg-muted/20 border-none shadow-none"
                               >
                                 <CardContent className="p-4">
-                                  <div className="font-medium text-lg mb-3">
-                                    {score.subject_name}
+                                  <div className="flex justify-between items-start mb-4">
+                                    <h3 className="font-bold text-lg text-foreground">
+                                      {score.subject_name}
+                                    </h3>
+                                    <div className="text-right">
+                                      <div className="flex items-baseline justify-end space-x-1">
+                                        <span className="text-2xl font-bold text-primary">
+                                          {score.score || "-"}
+                                        </span>
+                                        <span className="text-sm text-muted-foreground">
+                                          / {score.standard_score || "-"}
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
                                   <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">
-                                        得分:
-                                      </span>
-                                      <span className="font-medium">
-                                        {score.score || "-"}
-                                      </span>
+                                    <div className="bg-background rounded-lg p-3">
+                                      <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                                        班级排名
+                                      </div>
+                                      <div className="font-semibold text-foreground flex items-baseline gap-1">
+                                        <span>{score.class_rank || "-"}</span>
+                                        {score.class_participant_count &&
+                                          score.class_participant_count > 0 && (
+                                            <span className="text-xs text-muted-foreground font-normal">
+                                              / {score.class_participant_count}
+                                            </span>
+                                          )}
+                                      </div>
                                     </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">
-                                        满分:
-                                      </span>
-                                      <span className="font-medium">
-                                        {score.standard_score || "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">
-                                        班级排名:
-                                      </span>
-                                      <span className="font-medium">
-                                        {score.class_rank || "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">
-                                        学校排名:
-                                      </span>
-                                      <span className="font-medium">
-                                        {score.school_rank || "-"}
-                                      </span>
+                                    <div className="bg-background rounded-lg p-3">
+                                      <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                                        年级排名
+                                      </div>
+                                      <div className="font-semibold text-foreground flex items-baseline gap-1">
+                                        <span>{score.school_rank || "-"}</span>
+                                        {score.school_participant_count &&
+                                          score.school_participant_count >
+                                            0 && (
+                                            <span className="text-xs text-muted-foreground font-normal">
+                                              / {score.school_participant_count}
+                                            </span>
+                                          )}
+                                      </div>
                                     </div>
                                   </div>
                                 </CardContent>
                               </Card>
                             ))}
+                          </div>
+                          <div className="mt-4 pt-4 border-t flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>
+                              总参考人数为所有未剔除的人数，可能与实际略有出入。
+                            </span>
                           </div>
                         </>
                       ) : (

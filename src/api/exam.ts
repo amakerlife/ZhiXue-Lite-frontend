@@ -124,6 +124,8 @@ export const examAPI = {
           school_rank: string;
           sort: number;
           is_calculated?: boolean;
+          school_participant_count?: number;
+          class_participant_count?: number;
         }>;
       }
     >(`/exam/${examId}/score`, {

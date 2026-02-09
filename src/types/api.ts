@@ -88,6 +88,8 @@ export interface Score {
   school_rank: string; // 排名也是字符串
   sort: number;
   is_calculated?: boolean; // 总分是否为计算得到
+  school_participant_count?: number; // 新增：校排名总人数
+  class_participant_count?: number; // 新增：班排名总人数
 }
 
 export interface ExamDetail extends Exam {
