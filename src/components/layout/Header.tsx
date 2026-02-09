@@ -261,14 +261,14 @@ const Header: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between gap-3 mt-3">
                     <a
-                      href="https://status.243004.xyz/status/zxl"
+                      href="https://zxl-status.makerlife.top/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:opacity-80 transition-opacity"
                       title="查看服务状态"
                     >
                       <img
-                        src="https://status.243004.xyz/api/badge/19/status?style=flat-square"
+                        src="https://uptime.betterstack.com/status-badges/v1/monitor/2esml.svg"
                         alt="服务状态"
                         className="h-5"
                       />
