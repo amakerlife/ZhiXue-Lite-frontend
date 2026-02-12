@@ -8,7 +8,7 @@ interface ConfirmDialogProps {
   description: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
-  variant?: "default" | "destructive";
+  variant?: "default" | "destructive" | "warning";
   onConfirm: () => void;
 }
 

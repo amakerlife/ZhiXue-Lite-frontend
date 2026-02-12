@@ -1002,26 +1002,61 @@ const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <ConfirmDialog
+      <ResponsiveDialog
         open={connectConfirmOpen}
         onOpenChange={setConnectConfirmOpen}
-        title="确认绑定智学网账号"
-        description={
-          user?.manual_school_id
-            ? "绑定智学网账号后，管理员为您手动分配的学校将被自动清除，改为使用智学网账号中的学校信息。确定要继续吗？"
-            : "绑定智学网账号可能需要一些时间，确定要继续吗？"
-        }
+        title="我们重视你的隐私和数据安全"
+        mode="confirm"
+        variant="warning"
         confirmText="确认绑定"
         cancelText="取消"
-        variant="default"
         onConfirm={confirmConnectZhixue}
-      />
+        className="sm:max-w-xl"
+      >
+        <div className="space-y-3 text-sm">
+          {user?.manual_school_id && (
+            <p className="text-orange-800 font-medium">
+              注意：绑定智学网账号后，管理员为您手动分配的学校将被自动清除，改为使用智学网账号中的学校信息。
+            </p>
+          )}
+          <p>
+            为了验证该智学网账号属于你，并获取必要信息，我们需要在数据库中存储你的智学网密码。我们承诺管理员不会以任何方式在任何情况下获取你的智学网明文密码。
+          </p>
+          <p>
+            我们使用世界顶尖云服务商提供的服务器，禁用 root
+            登录，仅允许使用密钥登录，数据库服务仅在容器中暴露且本地数据仅 root
+            身份具有读写权限。理论上，攻击者只能通过获取一个随机生成的 256 位
+            Ed25519
+            密钥来登录服务器，或利用任意代码执行漏洞来窃取你的数据，但我们基于稳定的、经过世界上千万网站测试的一套通用技术架构打造，发生此类问题的可能性微乎其微。
+          </p>
+          <p>我们不对你使用本服务而产生的任何后果负任何责任。</p>
+          <p className="font-medium">
+            点击确认绑定，即表示你理解并同意以上内容。
+          </p>
+        </div>
+      </ResponsiveDialog>
 
       <ConfirmDialog
         open={disconnectConfirmOpen}
         onOpenChange={setDisconnectConfirmOpen}
         title="确认解绑智学网账号"
-        description="确定要解绑智学网账号吗？解绑后将无法查看考试数据。"
+        description={
+          <>
+            确定要解绑智学网账号吗？解绑后将无法查看考试数据。
+            <br />
+            <br />
+            你可以通过填写
+            <a
+              href="https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAZ__gdDJJxUN0dVWVFMTDYySkpCVDFRWUU0WlUzVVpPTy4u"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              支持表单
+            </a>
+            ，要求我们从数据库中删除你的智学网密码。
+          </>
+        }
         confirmText="确认解绑"
         cancelText="取消"
         variant="destructive"

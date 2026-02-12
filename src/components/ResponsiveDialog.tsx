@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 type DialogMode = "default" | "confirm" | "alert";
-type DialogVariant = "default" | "destructive";
+type DialogVariant = "default" | "destructive" | "warning";
 
 interface ResponsiveDialogProps {
   // 基础属性
@@ -118,7 +118,9 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
               className={
                 variant === "destructive"
                   ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                  : undefined
+                  : variant === "warning"
+                    ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
+                    : undefined
               }
             >
               {confirmText}
@@ -133,7 +135,9 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
               className={
                 variant === "destructive"
                   ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                  : undefined
+                  : variant === "warning"
+                    ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
+                    : undefined
               }
             >
               {confirmText}
@@ -154,7 +158,9 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
           className={
             variant === "destructive"
               ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
-              : undefined
+              : variant === "warning"
+                ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
+                : undefined
           }
         >
           {confirmText}
@@ -206,7 +212,9 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
                   className={
                     variant === "destructive"
                       ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                      : undefined
+                      : variant === "warning"
+                        ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
+                        : undefined
                   }
                 >
                   {confirmText}
@@ -219,7 +227,9 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
                     className={
                       variant === "destructive"
                         ? "bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                        : undefined
+                        : variant === "warning"
+                          ? "bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
+                          : undefined
                     }
                   >
                     {confirmText}
