@@ -84,6 +84,7 @@ const ExamDetailPage: React.FC = () => {
   // 拉取详情对话框状态
   const [fetchSchoolId, setFetchSchoolId] = useState("");
   const [forceRefresh, setForceRefresh] = useState(false);
+  const [showHiddenScores, setShowHiddenScores] = useState(false);
 
   // 检查考试是否已保存（从成绩数据或 schools 数组判断）
   const isExamSaved = (examData: ExamData | null): boolean => {
@@ -749,123 +750,154 @@ const ExamDetailPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {/* 桌面端表格视图 */}
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>科目</TableHead>
-                    <TableHead>得分 / 满分</TableHead>
-                    <TableHead>班级排名</TableHead>
-                    <TableHead>年级排名</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {examDetail.scores.map((score) => (
-                    <TableRow key={score.subject_id}>
-                      <TableCell className="font-medium">
-                        {score.subject_name}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-baseline gap-1">
-                          <span className="font-bold text-lg text-primary">
-                            {score.score || "-"}
-                          </span>
-                          <span className="text-muted-foreground text-sm">
-                            / {score.standard_score || "-"}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-baseline gap-1">
-                          <span className="font-medium">
-                            {score.class_rank || "-"}
-                          </span>
-                          {score.class_participant_count &&
-                            score.class_participant_count > 0 && (
-                              <span className="text-xs text-muted-foreground">
-                                / {score.class_participant_count}
-                              </span>
-                            )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-baseline gap-1">
-                          <span className="font-medium">
-                            {score.school_rank || "-"}
-                          </span>
-                          {score.school_participant_count &&
-                            score.school_participant_count > 0 && (
-                              <span className="text-xs text-muted-foreground">
-                                / {score.school_participant_count}
-                              </span>
-                            )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            {(() => {
+              const hiddenScores = examDetail.scores.filter(
+                (s) => s.score && !/\d/.test(s.score),
+              );
+              const displayedScores = showHiddenScores
+                ? examDetail.scores
+                : examDetail.scores.filter(
+                    (s) => s.score && /\d/.test(s.score),
+                  );
 
-            {/* 移动端卡片视图 */}
-            <div className="md:hidden space-y-4">
-              {examDetail.scores.map((score) => (
-                <Card
-                  key={score.subject_id}
-                  className="bg-muted/20 border-none shadow-none"
-                >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="font-bold text-lg text-foreground">
-                        {score.subject_name}
-                      </h3>
-                      <div className="text-right">
-                        <div className="flex items-baseline justify-end space-x-1">
-                          <span className="text-2xl font-bold text-primary">
-                            {score.score || "-"}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            / {score.standard_score || "-"}
-                          </span>
-                        </div>
-                      </div>
+              return (
+                <>
+                  {hiddenScores.length > 0 && !showHiddenScores && (
+                    <div className="mb-4 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>
+                        {hiddenScores.map((s) => s.subject_name).join("、")}
+                        成绩已自动隐藏，
+                        <button
+                          onClick={() => setShowHiddenScores(true)}
+                          className="text-primary hover:underline font-medium focus:outline-none ml-1 cursor-pointer"
+                        >
+                          点击展示
+                        </button>
+                      </span>
                     </div>
+                  )}
 
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="bg-background rounded-lg p-3">
-                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                          班级排名
-                        </div>
-                        <div className="font-semibold text-foreground flex items-baseline gap-1">
-                          <span>{score.class_rank || "-"}</span>
-                          {score.class_participant_count &&
-                            score.class_participant_count > 0 && (
-                              <span className="text-xs text-muted-foreground font-normal">
-                                / {score.class_participant_count}
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                      <div className="bg-background rounded-lg p-3">
-                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                          年级排名
-                        </div>
-                        <div className="font-semibold text-foreground flex items-baseline gap-1">
-                          <span>{score.school_rank || "-"}</span>
-                          {score.school_participant_count &&
-                            score.school_participant_count > 0 && (
-                              <span className="text-xs text-muted-foreground font-normal">
-                                / {score.school_participant_count}
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  {/* 桌面端表格视图 */}
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>科目</TableHead>
+                          <TableHead>得分 / 满分</TableHead>
+                          <TableHead>班级排名</TableHead>
+                          <TableHead>年级排名</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {displayedScores.map((score) => (
+                          <TableRow key={score.subject_id}>
+                            <TableCell className="font-medium">
+                              {score.subject_name}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-baseline gap-1">
+                                <span className="font-bold text-lg text-primary">
+                                  {score.score || "-"}
+                                </span>
+                                <span className="text-muted-foreground text-sm">
+                                  / {score.standard_score || "-"}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-baseline gap-1">
+                                <span className="font-medium">
+                                  {score.class_rank || "-"}
+                                </span>
+                                {score.class_participant_count &&
+                                  score.class_participant_count > 0 && (
+                                    <span className="text-xs text-muted-foreground">
+                                      / {score.class_participant_count}
+                                    </span>
+                                  )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-baseline gap-1">
+                                <span className="font-medium">
+                                  {score.school_rank || "-"}
+                                </span>
+                                {score.school_participant_count &&
+                                  score.school_participant_count > 0 && (
+                                    <span className="text-xs text-muted-foreground">
+                                      / {score.school_participant_count}
+                                    </span>
+                                  )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* 移动端卡片视图 */}
+                  <div className="md:hidden space-y-4">
+                    {displayedScores.map((score) => (
+                      <Card
+                        key={score.subject_id}
+                        className="bg-muted/20 border-none shadow-none"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-4">
+                            <h3 className="font-bold text-lg text-foreground">
+                              {score.subject_name}
+                            </h3>
+                            <div className="text-right">
+                              <div className="flex items-baseline justify-end space-x-1">
+                                <span className="text-2xl font-bold text-primary">
+                                  {score.score || "-"}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  / {score.standard_score || "-"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="bg-background rounded-lg p-3">
+                              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                                班级排名
+                              </div>
+                              <div className="font-semibold text-foreground flex items-baseline gap-1">
+                                <span>{score.class_rank || "-"}</span>
+                                {score.class_participant_count &&
+                                  score.class_participant_count > 0 && (
+                                    <span className="text-xs text-muted-foreground font-normal">
+                                      / {score.class_participant_count}
+                                    </span>
+                                  )}
+                              </div>
+                            </div>
+                            <div className="bg-background rounded-lg p-3">
+                              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                                年级排名
+                              </div>
+                              <div className="font-semibold text-foreground flex items-baseline gap-1">
+                                <span>{score.school_rank || "-"}</span>
+                                {score.school_participant_count &&
+                                  score.school_participant_count > 0 && (
+                                    <span className="text-xs text-muted-foreground font-normal">
+                                      / {score.school_participant_count}
+                                    </span>
+                                  )}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
 
             <div className="mt-4 pt-4 border-t flex items-center gap-2 text-xs text-muted-foreground">
               <span>总参考人数为所有未剔除的人数，可能与实际略有出入。</span>

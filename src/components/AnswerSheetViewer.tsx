@@ -49,7 +49,9 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
       !score.subject_name.includes("总") &&
       !score.subject_name.includes("合计") &&
       score.subject_id &&
-      score.subject_id.trim() !== "",
+      score.subject_id.trim() !== "" &&
+      score.score &&
+      /\d/.test(score.score),
   );
 
   // 清理缓存的URL以避免内存泄漏

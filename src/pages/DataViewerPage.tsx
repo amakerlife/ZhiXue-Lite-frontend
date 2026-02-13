@@ -776,6 +776,7 @@ const ScoreLookup: React.FC = () => {
   const [searchType, setSearchType] = useState<"id" | "name">("id");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showHiddenScores, setShowHiddenScores] = useState(false);
   const [scoreData, setScoreData] = useState<{
     id: string;
     name: string;
@@ -819,6 +820,7 @@ const ScoreLookup: React.FC = () => {
       );
       if (response.data.success) {
         setScoreData(response.data);
+        setShowHiddenScores(false);
 
         trackAnalyticsEvent("data_viewer_score_lookup_success", {
           username: user?.username,
@@ -1011,6 +1013,13 @@ const ScoreLookup: React.FC = () => {
                   !score.subject_name.includes("合计"),
               );
 
+              const hiddenScores = subjectScores.filter(
+                (s) => s.score && !/\d/.test(s.score),
+              );
+              const displayedSubjectScores = showHiddenScores
+                ? subjectScores
+                : subjectScores.filter((s) => s.score && /\d/.test(s.score));
+
               return (
                 <>
                   {/* 总分信息 */}
@@ -1156,7 +1165,23 @@ const ScoreLookup: React.FC = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {subjectScores.length > 0 ? (
+                      {hiddenScores.length > 0 && !showHiddenScores && (
+                        <div className="mb-4 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground flex items-center gap-1">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>
+                            {hiddenScores.map((s) => s.subject_name).join("、")}
+                            成绩已自动隐藏，
+                            <button
+                              onClick={() => setShowHiddenScores(true)}
+                              className="text-primary hover:underline font-medium focus:outline-none ml-1 cursor-pointer"
+                            >
+                              点击展示
+                            </button>
+                          </span>
+                        </div>
+                      )}
+
+                      {displayedSubjectScores.length > 0 ? (
                         <>
                           {/* 桌面端表格视图 */}
                           <div className="hidden md:block">
@@ -1170,7 +1195,7 @@ const ScoreLookup: React.FC = () => {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {subjectScores.map((score) => (
+                                {displayedSubjectScores.map((score) => (
                                   <TableRow key={score.subject_id}>
                                     <TableCell className="font-medium">
                                       {score.subject_name}
@@ -1216,7 +1241,7 @@ const ScoreLookup: React.FC = () => {
 
                           {/* 移动端卡片视图 */}
                           <div className="md:hidden space-y-3">
-                            {subjectScores.map((score) => (
+                            {displayedSubjectScores.map((score) => (
                               <Card
                                 key={score.subject_id}
                                 className="bg-muted/20 border-none shadow-none"
