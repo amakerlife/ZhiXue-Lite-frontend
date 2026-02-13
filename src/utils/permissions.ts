@@ -160,9 +160,9 @@ export const getUserRoleLabel = (role: string): string => {
     case "admin":
       return "管理员";
     case "user":
-      return "普通用户";
+      return "用户";
     default:
-      return "未知角色";
+      return "未知";
   }
 };
 

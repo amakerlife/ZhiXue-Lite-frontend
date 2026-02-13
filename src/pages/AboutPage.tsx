@@ -36,7 +36,7 @@ const AboutPage: React.FC = () => {
             href="https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAZ__gdDJJxUN0dVWVFMTDYySkpCVDFRWUU0WlUzVVpPTy4u"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
+            className="text-primary hover:underline"
           >
             在线反馈表单
           </a>

@@ -1050,7 +1050,7 @@ const ProfilePage: React.FC = () => {
               href="https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAZ__gdDJJxUN0dVWVFMTDYySkpCVDFRWUU0WlUzVVpPTy4u"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-800"
+              className="text-primary hover:underline"
             >
               支持表单
             </a>

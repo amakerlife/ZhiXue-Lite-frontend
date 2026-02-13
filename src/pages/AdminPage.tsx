@@ -413,7 +413,7 @@ const UserEditDialog: React.FC<{
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="user">普通用户</SelectItem>
+              <SelectItem value="user">用户</SelectItem>
               <SelectItem value="admin">管理员</SelectItem>
             </SelectContent>
           </Select>
