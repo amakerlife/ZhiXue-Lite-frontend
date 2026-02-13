@@ -25,10 +25,21 @@ const AboutPage: React.FC = () => {
           是一个独立的第三方项目，与"智学网"官方没有任何关联。本项目仅供学习和交流使用。
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          如有任何问题或建议，请通过以下方式与我们联系：
+          如有任何问题或建议，请通过以下任一方式与我们联系：
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          zxl@makerlife.top
+          发送邮件至 zxl@makerlife.top
+        </p>
+        <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+          或
+          <a
+            href="https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAZ__gdDJJxUN0dVWVFMTDYySkpCVDFRWUU0WlUzVVpPTy4u"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            在线反馈表单
+          </a>
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
           我们将尽快审核所涉问题，并将在验证您的用户身份后的十五个工作日内予以回复。
