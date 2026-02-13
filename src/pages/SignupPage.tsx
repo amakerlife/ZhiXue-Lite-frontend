@@ -233,6 +233,9 @@ const SignupPage: React.FC = () => {
           </form>
 
           <div className="mt-6 text-center text-sm">
+            <div className="font-bold text-foreground">
+              本网站账号独立于智学网，你无须使用智学网用户名注册
+            </div>
             <span className="text-muted-foreground">已有账号？</span>
             <Link to="/login" className="ml-1 text-primary hover:underline">
               立即登录
