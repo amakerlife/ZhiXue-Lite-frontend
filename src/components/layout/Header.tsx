@@ -443,7 +443,7 @@ const Header: React.FC = () => {
         open={showSuDialog}
         onOpenChange={setShowSuDialog}
         title="切换用户"
-        description="输入要切换到的用户名。切换后您将以该用户的身份浏览系统。"
+        description="输入要切换到的用户名。切换后将以该用户的身份浏览系统。"
         footer={(isDesktop) => (
           <>
             {isDesktop ? (

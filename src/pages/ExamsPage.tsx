@@ -379,10 +379,10 @@ const ExamsPage: React.FC = () => {
               <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  您需要先绑定智学网账号或由管理员分配学校才能使用考试列表功能。
+                  你需要先绑定智学网账号或由管理员分配学校才能使用考试列表功能。
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  绑定智学网账号后，您可以：
+                  绑定智学网账号后，你可以：
                 </p>
                 <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
                   <li>查看考试成绩</li>
@@ -566,7 +566,7 @@ const ExamsPage: React.FC = () => {
             <p className="text-muted-foreground mb-4">
               {searchQuery
                 ? "没有找到匹配的考试"
-                : `您还没有任何${scope === "self" ? "个人" : scope === "school" ? "校内" : ""}考试数据`}
+                : `你还没有任何${scope === "self" ? "个人" : scope === "school" ? "校内" : ""}考试数据`}
             </p>
             {!searchQuery &&
               (canFetchData ? (
@@ -581,7 +581,7 @@ const ExamsPage: React.FC = () => {
                     <span className="font-medium">权限不足</span>
                   </div>
                   <p className="text-sm text-amber-700 mt-2 text-center">
-                    您没有拉取考试数据的权限，请联系管理员
+                    你没有拉取考试数据的权限，请联系管理员
                   </p>
                 </div>
               ) : (

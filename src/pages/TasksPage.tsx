@@ -198,7 +198,7 @@ const TasksPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold">任务列表</h1>
           <p className="text-muted-foreground mt-1">
-            查看和管理您的后台任务状态
+            查看和管理你的后台任务
           </p>
         </div>
         <Button
@@ -251,7 +251,7 @@ const TasksPage: React.FC = () => {
           <CardContent className="text-center py-12">
             <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">暂无任务</h3>
-            <p className="text-muted-foreground">您还没有任何后台任务</p>
+            <p className="text-muted-foreground">你还没有任何后台任务</p>
           </CardContent>
         </Card>
       ) : (

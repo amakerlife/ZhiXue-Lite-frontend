@@ -342,7 +342,7 @@ export const ExamFetchDialog: React.FC<ExamFetchDialogProps> = ({
                 {schoolId}
               </div>
               <p className="text-xs text-muted-foreground">
-                使用您绑定账号的学校数据
+                使用已绑定账号的学校数据
               </p>
             </div>
           )}

@@ -91,7 +91,7 @@ const EmailNotVerifiedDialog: React.FC = () => {
       open={isOpen}
       onOpenChange={setIsOpen}
       title="需要验证邮箱"
-      description="您的邮箱尚未验证，无法访问此功能。请前往个人中心验证邮箱。"
+      description="你的邮箱尚未验证，无法访问此功能。请前往个人中心验证邮箱。"
       mode="alert"
       confirmText="前往个人中心"
       onConfirm={handleGoToProfile}

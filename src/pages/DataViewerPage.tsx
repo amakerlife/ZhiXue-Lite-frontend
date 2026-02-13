@@ -946,7 +946,7 @@ const ScoreLookup: React.FC = () => {
                 <p className="text-xs text-muted-foreground">
                   使用学生姓名查询时必须指定学校 ID
                   {(user?.zhixue_info?.school_id || user?.manual_school_id) &&
-                    "（留空则使用您的默认学校）"}
+                    "（留空则使用你的默认学校）"}
                 </p>
               )}
             </div>

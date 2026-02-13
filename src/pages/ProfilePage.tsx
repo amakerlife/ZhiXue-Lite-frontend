@@ -12,8 +12,6 @@ import {
   CheckCircle,
   XCircle,
   Send,
-  ShieldAlert,
-  LogOut,
   CircleHelp,
 } from "lucide-react";
 import {
@@ -41,7 +39,7 @@ import { trackAnalyticsEvent } from "@/utils/analytics";
 import { StatusAlert } from "@/components/StatusAlert";
 
 const ProfilePage: React.FC = () => {
-  const { user, refreshUser, isSuMode, exitSu } = useAuth();
+  const { user, refreshUser } = useAuth();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,11 +57,11 @@ const ProfilePage: React.FC = () => {
   // 检查是否启用验证码
   const isTurnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED === "true";
 
-  // 新增：智学网绑定信息
+  // 智学网绑定信息
   const [bindingInfo, setBindingInfo] = useState<{ username: string }[]>([]);
   const [loadingBindingInfo, setLoadingBindingInfo] = useState(false);
 
-  // 新增：修改用户信息相关状态
+  // 修改用户信息相关状态
   const [editMode, setEditMode] = useState<"none" | "email" | "password">(
     "none",
   );
@@ -74,13 +72,10 @@ const ProfilePage: React.FC = () => {
     confirmPassword: "",
   });
 
-  // 新增：邮件验证相关状态
+  // 邮件验证相关状态
   const [resendingEmail, setResendingEmail] = useState(false);
 
-  // 新增：su 模式相关状态
-  const [exitingSu, setExitingSu] = useState(false);
-
-  // 新增：教师账号说明弹窗状态
+  // 教师账号说明弹窗状态
   const [teacherAccountDialogOpen, setTeacherAccountDialogOpen] =
     useState(false);
 
@@ -91,7 +86,7 @@ const ProfilePage: React.FC = () => {
     };
   }, []);
 
-  // 新增：进入个人中心时获取最新用户数据
+  // 进入个人中心时获取最新用户数据
   useEffect(() => {
     const loadLatestUserData = async () => {
       await refreshUser();
@@ -100,14 +95,14 @@ const ProfilePage: React.FC = () => {
     loadLatestUserData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 新增：当用户信息加载完成且有智学网账号时，加载绑定信息
+  // 当用户信息加载完成且有智学网账号时，加载绑定信息
   useEffect(() => {
     if (user?.zhixue_info?.username) {
       loadBindingInfo();
     }
   }, [user?.zhixue_info?.username]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 新增：处理锚点导航
+  // 处理锚点导航
   useEffect(() => {
     if (location.hash) {
       // 延迟一点确保 DOM 已渲染
@@ -192,7 +187,7 @@ const ProfilePage: React.FC = () => {
     turnstileRef.current?.reset();
   }, []);
 
-  // 新增：加载智学网账号绑定信息
+  // 加载智学网账号绑定信息
   const loadBindingInfo = async () => {
     if (!user?.zhixue_info?.username) {
       setBindingInfo([]);
@@ -252,7 +247,7 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // 新增：初始化编辑表单
+  // 初始化编辑表单
   const startEdit = (type: "email" | "password") => {
     setError(null);
     setSuccess(null);
@@ -269,7 +264,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // 新增：取消编辑
   const cancelEdit = () => {
     setEditMode("none");
     setEditForm({
@@ -365,7 +359,7 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // 新增：重发验证邮件
+  // 重发验证邮件
   const handleResendVerificationEmail = async () => {
     setResendingEmail(true);
     setError(null);
@@ -374,7 +368,7 @@ const ProfilePage: React.FC = () => {
     try {
       const response = await authAPI.resendVerificationEmail();
       if (response.data.success) {
-        setSuccess("验证邮件已发送，请检查您的邮箱");
+        setSuccess("验证邮件已发送，请检查你的邮箱（包括垃圾邮件）");
 
         trackAnalyticsEvent("email_verification_resend_success", {
           username: user?.username,
@@ -397,24 +391,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // 新增：退出 su 模式
-  const handleExitSu = async () => {
-    setExitingSu(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      await exitSu();
-      setSuccess("已退出 su 模式");
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "退出 su 模式失败";
-      setError(errorMessage);
-    } finally {
-      setExitingSu(false);
-    }
-  };
-
   if (!user) {
     return (
       <div className="text-center py-8">
@@ -428,7 +404,7 @@ const ProfilePage: React.FC = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">个人中心</h1>
-        <p className="text-muted-foreground mt-1">管理您的账号信息和设置</p>
+        <p className="text-muted-foreground mt-1">管理账号信息和设置</p>
       </div>
 
       {/* Success/Error Messages */}
@@ -444,44 +420,6 @@ const ProfilePage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Su 模式信息显示 */}
-          {isSuMode && (
-            <div className="bg-orange-50 border border-orange-200 rounded-md p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <ShieldAlert className="h-5 w-5 text-orange-600 shrink-0" />
-                  <div>
-                    <p className="font-medium text-orange-900">
-                      您正处于 su 模式
-                    </p>
-                    <p className="text-sm text-orange-700 mt-1">
-                      {user.su_info?.original_user_username ? (
-                        <>
-                          原管理员账号:{" "}
-                          <span className="font-medium">
-                            {user.su_info.original_user_username}
-                          </span>
-                        </>
-                      ) : (
-                        "您正在以此用户的身份浏览系统"
-                      )}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExitSu}
-                  disabled={exitingSu}
-                  className="text-orange-900 border-orange-300 hover:bg-orange-100 flex items-center space-x-1"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>{exitingSu ? "退出中..." : "退出 su 模式"}</span>
-                </Button>
-              </div>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
@@ -565,7 +503,7 @@ const ProfilePage: React.FC = () => {
                     <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm text-yellow-800 flex-1">
-                          您的邮箱尚未验证，请检查邮箱（包括垃圾邮件）并点击验证链接。
+                          你的邮箱尚未验证，请检查邮箱（包括垃圾邮件）并点击验证链接。
                         </p>
                         <Button
                           variant="outline"
@@ -708,7 +646,7 @@ const ProfilePage: React.FC = () => {
             <Lock className="h-5 w-5" />
             <span>权限信息</span>
           </CardTitle>
-          <CardDescription>您当前的系统权限设置</CardDescription>
+          <CardDescription>当前系统权限设置</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -885,7 +823,7 @@ const ProfilePage: React.FC = () => {
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                 <p className="text-yellow-800">
-                  您还未绑定智学网账号，绑定后可以查看考试数据和成绩信息。
+                  你还未绑定智学网账号，绑定后可以查看考试数据和成绩信息。
                 </p>
               </div>
 
@@ -1014,9 +952,9 @@ const ProfilePage: React.FC = () => {
         className="sm:max-w-xl"
       >
         <div className="space-y-3 text-sm">
-          {user?.manual_school_id && (
+          {user.is_manual_school && (
             <p className="text-orange-800 font-medium">
-              注意：绑定智学网账号后，管理员为您手动分配的学校将被自动清除，改为使用智学网账号中的学校信息。
+              注意：绑定智学网账号后，管理员为你手动分配的学校将被自动清除，改为使用智学网账号中的学校信息。
             </p>
           )}
           <p>
@@ -1030,7 +968,7 @@ const ProfilePage: React.FC = () => {
             密钥来登录服务器，或利用任意代码执行漏洞来窃取你的数据，但我们基于稳定的、经过世界上千万网站测试的一套通用技术架构打造，发生此类问题的可能性微乎其微。
           </p>
           <p>我们不对你使用本服务而产生的任何后果负任何责任。</p>
-          <p className="font-medium">
+          <p className="font-medium text-foreground">
             点击确认绑定，即表示你理解并同意以上内容。
           </p>
         </div>
@@ -1074,13 +1012,13 @@ const ProfilePage: React.FC = () => {
       >
         <div className="space-y-3 text-sm">
           <p>
-            本网站依赖教师账号获取数据，但由于您的学校没有可用的教师账号，因此功能可能将受到限制。
+            本网站依赖教师账号获取数据，但由于你的学校没有可用的教师账号，因此功能可能将受到限制。
           </p>
           <p>
-            目前，您可能只能获取考试列表，若想查看考试详情，则需要提供至少具有查看相应考试校级报告权限的教师账号。
+            目前，你可能只能获取考试列表，若想查看考试详情，则需要提供至少具有查看相应考试校级报告权限的教师账号。
           </p>
           <p>
-            您可以通过邮箱 zxl@makerlife.top 联系管理员申请支持或获取详细信息。
+            你可以通过邮箱 zxl@makerlife.top 联系管理员申请支持或获取详细信息。
           </p>
         </div>
       </ResponsiveDialog>

@@ -93,7 +93,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               title="浏览器版本过低"
               description={
                 browserInfo.name === "Unknown"
-                  ? "您的浏览器可能无法正确显示部分样式，建议更换为最新版本的主流浏览器以获得最佳体验。"
+                  ? "你的浏览器可能无法正确显示部分样式，建议更换为最新版本的主流浏览器以获得最佳体验。"
                   : `${browserInfo.name} ${browserInfo.version} 已不受支持，建议升级到最新版本以获得最佳体验。旧版浏览器可能无法正确显示部分样式。`
               }
               onClose={() => setShowBrowserBanner(false)}
