@@ -833,15 +833,15 @@ const UserManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>用户名</TableHead>
-                    <TableHead>邮箱</TableHead>
-                    <TableHead>角色</TableHead>
-                    <TableHead>状态</TableHead>
-                    <TableHead>智学网</TableHead>
-                    <TableHead>注册时间</TableHead>
-                    <TableHead>最后登录</TableHead>
-                    <TableHead>登录IP</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead className="w-[150px]">用户名</TableHead>
+                    <TableHead className="max-w-[120px]">邮箱</TableHead>
+                    <TableHead className="min-w-[75px]">角色</TableHead>
+                    <TableHead className="min-w-[65px]">状态</TableHead>
+                    <TableHead className="min-w-[140px]">智学网</TableHead>
+                    <TableHead className="w-[120px]">注册时间</TableHead>
+                    <TableHead className="w-[120px]">最后登录</TableHead>
+                    <TableHead className="max-w-[140px]">登录IP</TableHead>
+                    <TableHead className="w-[50px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1447,7 +1447,7 @@ const SchoolManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>学校 ID</TableHead>
+                    <TableHead className="w-[280px]">学校 ID</TableHead>
                     <TableHead>学校名称</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1770,12 +1770,12 @@ const TeacherManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>教师 ID</TableHead>
-                    <TableHead>用户名</TableHead>
-                    <TableHead>真实姓名</TableHead>
+                    <TableHead className="w-[280px]">教师 ID</TableHead>
+                    <TableHead className="w-[120px]">用户名</TableHead>
+                    <TableHead className="w-[100px]">真实姓名</TableHead>
                     <TableHead>学校</TableHead>
-                    <TableHead>登录方式</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead className="w-[80px]">登录方式</TableHead>
+                    <TableHead className="w-[140px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -2326,12 +2326,12 @@ const StudentManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>学生 ID</TableHead>
-                    <TableHead>用户名</TableHead>
-                    <TableHead>真实姓名</TableHead>
+                    <TableHead className="w-[280px]">学生 ID</TableHead>
+                    <TableHead className="w-[120px]">用户名</TableHead>
+                    <TableHead className="w-[100px]">真实姓名</TableHead>
                     <TableHead>学校</TableHead>
-                    <TableHead>学校 ID</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead className="w-[280px]">学校 ID</TableHead>
+                    <TableHead className="w-[100px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -2746,11 +2746,11 @@ const ExamManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>考试名称</TableHead>
-                    <TableHead>学校</TableHead>
-                    <TableHead>考试时间</TableHead>
-                    <TableHead>数据状态</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead className="min-w-[180px]">考试名称</TableHead>
+                    <TableHead className="min-w-[120px]">学校</TableHead>
+                    <TableHead className="w-[110px]">考试时间</TableHead>
+                    <TableHead className="w-[80px]">数据状态</TableHead>
+                    <TableHead className="w-[150px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
