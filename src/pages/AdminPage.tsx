@@ -899,6 +899,14 @@ const UserManagement: React.FC = () => {
                               <Badge variant="outline" className="text-xs">
                                 {user.zhixue_info.username}
                               </Badge>
+                              {user.zhixue_info.is_parent && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs bg-green-100 text-green-800 hover:bg-green-200 whitespace-nowrap shrink-0"
+                                >
+                                  家长
+                                </Badge>
+                              )}
                             </div>
 
                             {expandedZhixueInfo.has(user.id) && (
@@ -2338,10 +2346,26 @@ const StudentManagement: React.FC = () => {
                   {students.map((student) => (
                     <TableRow key={student.id}>
                       <TableCell className="font-mono text-sm">
-                        <CopyableText text={student.id} />
+                        {student.is_parent ? (
+                          <div className="flex flex-col">
+                            <CopyableText text={student.child_id || "-"} />
+                          </div>
+                        ) : (
+                          <CopyableText text={student.id} />
+                        )}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {student.username}
+                        <div className="flex items-center space-x-2">
+                          <span>{student.username}</span>
+                          {student.is_parent && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-green-100 text-green-800 hover:bg-green-200 whitespace-nowrap shrink-0"
+                            >
+                              家长
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{student.realname}</TableCell>
                       <TableCell>{student.school_name || "未知"}</TableCell>
@@ -2371,8 +2395,16 @@ const StudentManagement: React.FC = () => {
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <CardTitle className="text-base">
+                        <CardTitle className="text-base flex items-center gap-2">
                           {student.username}
+                          {student.is_parent && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-green-100 text-green-800 hover:bg-green-200 whitespace-nowrap shrink-0"
+                            >
+                              家长
+                            </Badge>
+                          )}
                         </CardTitle>
                         <div className="text-sm text-muted-foreground">
                           {student.realname} • {student.school_name || "未知"}
@@ -2389,9 +2421,17 @@ const StudentManagement: React.FC = () => {
                   </CardHeader>
                   <CardContent className="text-sm space-y-2">
                     <div className="grid grid-cols-[70px_1fr] gap-2">
-                      <span className="text-muted-foreground">学生 ID:</span>
+                      <span className="text-muted-foreground">
+                        {student.is_parent ? "关联 ID:" : "学生 ID:"}
+                      </span>
                       <span className="font-mono break-all">
-                        <CopyableText text={student.id} />
+                        <CopyableText
+                          text={
+                            student.is_parent
+                              ? student.child_id || "-"
+                              : student.id
+                          }
+                        />
                       </span>
                     </div>
                     <div className="grid grid-cols-[70px_1fr] gap-2">

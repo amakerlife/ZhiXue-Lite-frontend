@@ -22,6 +22,7 @@ export interface User {
     school_name?: string;
     school_id?: string;
     school_has_teacher?: boolean; // 新增：系统内是否有该用户学校的教师账号
+    is_parent?: boolean; // 新增：是否为家长账号
   };
   su_info?: {
     // 新增：su 模式信息（仅管理员返回）
@@ -56,6 +57,8 @@ export interface ZhiXueStudentAccount {
   username: string;
   realname: string;
   school_id: string;
+  is_parent: boolean;
+  child_id?: string;
 }
 
 export interface School {

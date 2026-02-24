@@ -15,6 +15,7 @@ export interface ConnectZhixueRequest {
   username: string;
   password: string;
   turnstile_token?: string;
+  is_parent?: boolean;
 }
 
 export interface EmailVerificationStatusResponse {

@@ -18,6 +18,8 @@ export interface ZhiXueAccount {
   realname: string;
   school_id: string;
   school_name?: string;
+  is_parent?: boolean;
+  child_id?: string;
 }
 
 export interface Teacher {
@@ -48,6 +50,7 @@ export interface AdminUser {
     school_name?: string;
     school_id?: string;
     school_has_teacher?: boolean;
+    is_parent?: boolean;
   };
   su_info?: {
     is_su_mode: boolean;

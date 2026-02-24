@@ -24,6 +24,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ResponsiveDialog } from "@/components/ResponsiveDialog";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,6 +49,7 @@ const ProfilePage: React.FC = () => {
   const [connectForm, setConnectForm] = useState({
     username: "",
     password: "",
+    is_parent: false,
     showForm: false,
   });
   const [connectConfirmOpen, setConnectConfirmOpen] = useState(false);
@@ -134,11 +137,17 @@ const ProfilePage: React.FC = () => {
         username: connectForm.username,
         password: connectForm.password,
         turnstile_token: isTurnstileEnabled ? turnstileToken : undefined,
+        is_parent: connectForm.is_parent,
       });
 
       if (response.data.success) {
         setSuccess("智学网账号绑定成功！");
-        setConnectForm({ username: "", password: "", showForm: false });
+        setConnectForm({
+          username: "",
+          password: "",
+          is_parent: false,
+          showForm: false,
+        });
         if (isTurnstileEnabled) {
           setTurnstileToken("");
         }
@@ -701,8 +710,16 @@ const ProfilePage: React.FC = () => {
               <div className="bg-green-50 border border-green-200 rounded-md p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <p className="font-medium text-green-900">
+                    <p className="font-medium text-green-900 flex items-center gap-2">
                       已绑定智学网账号
+                      {user.zhixue_info?.is_parent && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
+                        >
+                          家长账号
+                        </Badge>
+                      )}
                     </p>
                     {/* 桌面端：一行显示，用竖线分割 */}
                     <p className="text-sm text-green-700 mt-1 hidden sm:block">
@@ -921,6 +938,7 @@ const ProfilePage: React.FC = () => {
                         setConnectForm({
                           username: "",
                           password: "",
+                          is_parent: false,
                           showForm: false,
                         });
                         if (isTurnstileEnabled) {
@@ -932,7 +950,22 @@ const ProfilePage: React.FC = () => {
                     >
                       取消
                     </Button>
-                  </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="is_parent"
+                          checked={connectForm.is_parent}
+                          onCheckedChange={(checked) =>
+                            setConnectForm((prev) => ({
+                              ...prev,
+                              is_parent: checked === true,
+                            }))
+                          }
+                        />
+                        <Label htmlFor="is_parent" className="cursor-pointer">
+                          家长账号
+                        </Label>
+                      </div>
+                    </div>
                 </form>
               )}
             </div>
