@@ -4,3 +4,4 @@ export { default as AdminSchoolsPage } from "./AdminSchoolsPage";
 export { default as AdminTeachersPage } from "./AdminTeachersPage";
 export { default as AdminStudentsPage } from "./AdminStudentsPage";
 export { default as AdminExamsPage } from "./AdminExamsPage";
+export { default as AdminTasksPage } from "./AdminTasksPage";

@@ -75,6 +75,24 @@ export interface AdminExam {
   school?: string;
 }
 
+export interface AdminTask {
+  id: string;
+  task_type: string;
+  status: string;
+  progress: number;
+  progress_message?: string;
+  error_message?: string;
+  parameters?: string;
+  result?: string;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+  timeout?: number;
+  user_id: number;
+  user_name: string;
+  is_hide: boolean;
+}
+
 export const adminAPI = {
   // 学校管理
   listSchools: (params: AdminListParams = {}) =>
@@ -87,6 +105,13 @@ export const adminAPI = {
   listExams: (params: AdminListParams = {}) =>
     api.get<ApiResponse & { exams: AdminExam[]; pagination: PaginationInfo }>(
       "/admin/list/exams",
+      { params },
+    ),
+
+  // 任务管理
+  listTasks: (params: AdminListParams & { status?: string }) =>
+    api.get<ApiResponse & { tasks: AdminTask[]; pagination: PaginationInfo }>(
+      "/admin/list/tasks",
       { params },
     ),
 

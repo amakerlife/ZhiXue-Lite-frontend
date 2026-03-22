@@ -27,6 +27,7 @@ import {
   AdminTeachersPage,
   AdminStudentsPage,
   AdminExamsPage,
+  AdminTasksPage,
 } from "@/pages/admin";
 import DataViewerPage from "@/pages/DataViewerPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
@@ -134,6 +135,7 @@ const App: React.FC = () => {
                       <Route path="teachers" element={<AdminTeachersPage />} />
                       <Route path="students" element={<AdminStudentsPage />} />
                       <Route path="exams" element={<AdminExamsPage />} />
+                      <Route path="tasks" element={<AdminTasksPage />} />
                     </Route>
 
                     <Route path="/about" element={<AboutPage />} />

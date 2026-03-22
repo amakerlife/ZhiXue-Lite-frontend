@@ -21,6 +21,7 @@ import {
   EllipsisVertical,
   BadgeCheck,
   BadgeX,
+  ListTodo,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -78,6 +79,7 @@ import {
 import { trackAnalyticsEvent } from "@/utils/analytics";
 import { StatusAlert } from "@/components/StatusAlert";
 import { CopyableText } from "@/components/CopyableText";
+import TaskManagement from "@/pages/admin/TaskManagement";
 import type {
   AdminUser,
   School as SchoolType,
@@ -193,7 +195,7 @@ const AdminPage: React.FC = () => {
       )}
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-1 xl:grid-cols-5 h-auto xl:h-9 p-1 gap-1 xl:gap-0">
+        <TabsList className="grid w-full grid-cols-1 xl:grid-cols-6 h-auto xl:h-9 p-1 gap-1 xl:gap-0">
           <TabsTrigger
             value="users"
             className="flex items-center space-x-2 w-full"
@@ -229,6 +231,13 @@ const AdminPage: React.FC = () => {
             <FileText className="h-4 w-4" />
             <span>考试管理</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="tasks"
+            className="flex items-center space-x-2 w-full"
+          >
+            <ListTodo className="h-4 w-4" />
+            <span>任务管理</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* 用户管理 */}
@@ -254,6 +263,11 @@ const AdminPage: React.FC = () => {
         {/* 考试管理 */}
         <TabsContent value="exams">
           <ExamManagement />
+        </TabsContent>
+
+        {/* 任务管理 */}
+        <TabsContent value="tasks">
+          <TaskManagement />
         </TabsContent>
       </Tabs>
 

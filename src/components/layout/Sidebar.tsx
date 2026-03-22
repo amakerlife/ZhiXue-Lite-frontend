@@ -96,6 +96,11 @@ const navItems: NavItem[] = [
         href: "/admin/exams",
         icon: FileText,
       },
+      {
+        name: "任务列表",
+        href: "/admin/tasks",
+        icon: ListTodo,
+      },
     ],
   },
   {
