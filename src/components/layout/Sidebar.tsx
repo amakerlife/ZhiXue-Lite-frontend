@@ -97,7 +97,7 @@ const navItems: NavItem[] = [
         icon: FileText,
       },
       {
-        name: "任务列表",
+        name: "任务管理",
         href: "/admin/tasks",
         icon: ListTodo,
       },

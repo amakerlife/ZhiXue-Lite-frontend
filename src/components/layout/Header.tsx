@@ -43,6 +43,7 @@ const routeNameMap: Record<string, string> = {
   "/admin/teachers": "教师管理",
   "/admin/students": "学生管理",
   "/admin/exams": "考试管理",
+  "/admin/tasks": "任务管理",
   "/tasks": "任务列表",
   "/profile": "个人中心",
   "/login": "登录",
