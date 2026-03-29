@@ -12,6 +12,7 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { useLanguage } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -54,6 +55,7 @@ const ExamDetailPage: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
   const { user } = useAuth();
   const { getExamData } = useExam();
+  const { t, lang } = useLanguage();
   const [examDetail, setExamDetail] = useState<ExamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +131,7 @@ const ExamDetailPage: React.FC = () => {
           subject_count: examData.scores.length,
         });
       } else {
-        setError("获取考试详情失败");
+        setError(t("examDetail.fetchFailed") as string);
 
         trackAnalyticsEvent("exam_detail_load_failed", {
           username: user?.username,
@@ -141,7 +143,7 @@ const ExamDetailPage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message || "获取考试详情失败";
+          ?.message || (t("examDetail.fetchFailed") as string);
       setError(errorMessage);
 
       trackAnalyticsEvent("exam_detail_load_failed", {
@@ -204,7 +206,7 @@ const ExamDetailPage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message || "拉取考试详情失败";
+          ?.message || (t("examDetail.fetchDetailFailed") as string);
       setError(errorMessage);
       setFetchingTask(null);
     }
@@ -224,14 +226,14 @@ const ExamDetailPage: React.FC = () => {
           await loadExamDetail();
         } else if (task.status === "failed") {
           setFetchingTask(null);
-          setError(task.error_message || "任务执行失败");
+          setError(task.error_message || (t("exams.taskFailed") as string));
         } else if (["pending", "processing"].includes(task.status)) {
           setTimeout(() => pollTaskStatus(taskId), 2000);
         }
       }
     } catch {
       setFetchingTask(null);
-      setError("获取任务状态失败");
+      setError(t("exams.taskStatusFailed") as string);
     }
   };
 
@@ -287,7 +289,7 @@ const ExamDetailPage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message || "下载成绩单失败";
+          ?.message || (t("examDetail.downloadFailed") as string);
       setError(errorMessage);
 
       trackAnalyticsEvent("exam_detail_scoresheet_failed", {
@@ -339,7 +341,7 @@ const ExamDetailPage: React.FC = () => {
   // 设置页面标题
   useEffect(() => {
     if (examDetail?.name) {
-      document.title = `${examDetail.name} - 考试详情 - ZhiXue Lite`;
+      document.title = (t("examDetail.pageTitle") as unknown as (name: string) => string)(examDetail.name);
     }
     return () => {
       document.title = "ZhiXue Lite";
@@ -350,7 +352,7 @@ const ExamDetailPage: React.FC = () => {
     return (
       <div className="text-center py-8">
         <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-        <p className="text-muted-foreground">加载中...</p>
+        <p className="text-muted-foreground">{t("common.loading") as string}</p>
       </div>
     );
   }
@@ -362,7 +364,7 @@ const ExamDetailPage: React.FC = () => {
           <Link to="/exams">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              返回考试列表
+              {t("examDetail.backToList") as string}
             </Button>
           </Link>
         </div>
@@ -375,7 +377,7 @@ const ExamDetailPage: React.FC = () => {
   if (!examDetail) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">考试不存在</p>
+        <p className="text-muted-foreground">{t("examDetail.examNotExist") as string}</p>
       </div>
     );
   }
@@ -388,7 +390,7 @@ const ExamDetailPage: React.FC = () => {
           <Link to="/exams">
             <Button variant="outline" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              返回考试列表
+              {t("examDetail.backToList") as string}
             </Button>
           </Link>
 
@@ -397,7 +399,7 @@ const ExamDetailPage: React.FC = () => {
               {examDetail.name}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              考试详情和成绩信息
+              {t("examDetail.subtitle") as string}
             </p>
           </div>
         </div>
@@ -423,10 +425,10 @@ const ExamDetailPage: React.FC = () => {
                   <Download className="h-4 w-4 mr-2" />
                 )}
                 <span className="hidden sm:inline">
-                  {downloadingScoresheet ? "下载中..." : "下载成绩单"}
+                  {downloadingScoresheet ? (t("common.downloading") as string) : (t("examDetail.downloadScoresheet") as string)}
                 </span>
                 <span className="sm:hidden">
-                  {downloadingScoresheet ? "下载中" : "成绩单"}
+                  {downloadingScoresheet ? (t("examDetail.downloadingScoresheetShort") as string) : (t("examDetail.scoresheetShort") as string)}
                 </span>
               </Button>
             )}
@@ -448,10 +450,10 @@ const ExamDetailPage: React.FC = () => {
                 className={`h-4 w-4 mr-2 ${fetchingTask ? "animate-spin" : ""}`}
               />
               <span className="hidden sm:inline">
-                {fetchingTask ? "加载中..." : "加载最新详情"}
+                {fetchingTask ? (t("examDetail.loadingLatest") as string) : (t("examDetail.loadLatest") as string)}
               </span>
               <span className="sm:hidden">
-                {fetchingTask ? "加载中" : "最新详情"}
+                {fetchingTask ? (t("examDetail.loadingShort") as string) : (t("examDetail.latestShort") as string)}
               </span>
             </Button>
           )}
@@ -462,8 +464,8 @@ const ExamDetailPage: React.FC = () => {
       {fetchingTask && (
         <StatusAlert
           variant="info"
-          message={`任务状态: ${fetchingTask.status === "pending" ? "等待中" : "处理中"}`}
-          title="正在获取考试详情..."
+          message={`${fetchingTask.status === "pending" ? (t("exams.taskPending") as string) : (t("exams.taskProcessing") as string)}`}
+          title={t("examDetail.fetchingTitle") as string}
         />
       )}
 
@@ -475,14 +477,14 @@ const ExamDetailPage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <FileText className="h-5 w-5" />
-            <span>考试信息</span>
+            <span>{t("examDetail.examInfo") as string}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                考试 ID
+                {t("examDetail.examId") as string}
               </label>
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
@@ -494,7 +496,7 @@ const ExamDetailPage: React.FC = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                考试时间
+                {t("examDetail.examDate") as string}
               </label>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -506,7 +508,7 @@ const ExamDetailPage: React.FC = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                数据状态
+                {t("examDetail.dataStatus") as string}
               </label>
               <div className="flex items-center space-x-2">
                 <Badge
@@ -517,19 +519,19 @@ const ExamDetailPage: React.FC = () => {
                   ) : (
                     <RefreshCw className="h-3 w-3 mr-1" />
                   )}
-                  {isExamSaved(examDetail) ? "已保存" : "未保存"}
+                  {isExamSaved(examDetail) ? (t("common.saved") as string) : (t("common.unsaved") as string)}
                 </Badge>
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                科目数量
+                {t("examDetail.subjectCount") as string}
               </label>
               <div className="flex items-center space-x-2">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">
-                  {examDetail.scores.length} 科
+                  {examDetail.scores.length}{lang === "zh" ? " 科" : ""}
                 </span>
               </div>
             </div>
@@ -538,14 +540,14 @@ const ExamDetailPage: React.FC = () => {
             {examDetail.is_multi_school && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
-                  考试类型
+                  {t("examDetail.examType") as string}
                 </label>
                 <Badge
                   variant="outline"
                   className="flex items-center space-x-1 w-fit"
                 >
                   <Users className="h-3 w-3" />
-                  <span>联考</span>
+                  <span>{t("examDetail.jointExam") as string}</span>
                 </Badge>
               </div>
             )}
@@ -554,9 +556,9 @@ const ExamDetailPage: React.FC = () => {
             {examDetail.is_multi_school && (
               <div className="col-span-full space-y-3">
                 <label className="text-sm font-medium text-muted-foreground">
-                  选择学校
+                  {t("examDetail.selectSchool") as string}
                   {!user?.zhixue_info?.school_id && !user?.manual_school_id && (
-                    <span className="text-amber-600 ml-2">（管理员）</span>
+                    <span className="text-amber-600 ml-2">{t("examDetail.adminLabel") as string}</span>
                   )}
                 </label>
 
@@ -565,7 +567,7 @@ const ExamDetailPage: React.FC = () => {
                   onValueChange={setSelectedSchoolId}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="请选择要查看的学校" />
+                    <SelectValue placeholder={t("examDetail.selectSchoolPlaceholder") as string} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableSchools.map((school) => (
@@ -582,7 +584,7 @@ const ExamDetailPage: React.FC = () => {
                               }
                               className="text-xs"
                             >
-                              {school.is_saved ? "已保存" : "未保存"}
+                              {school.is_saved ? (t("common.saved") as string) : (t("common.unsaved") as string)}
                             </Badge>
                             {!school.is_saved && (
                               <AlertCircle className="h-3 w-3 text-amber-500" />
@@ -598,7 +600,7 @@ const ExamDetailPage: React.FC = () => {
                 {!selectedSchoolId && (
                   <StatusAlert
                     variant="warning"
-                    message="请先选择学校以查看成绩详情和导出数据"
+                    message={t("examDetail.selectSchoolWarning") as string}
                     className="text-sm"
                   />
                 )}
@@ -610,7 +612,7 @@ const ExamDetailPage: React.FC = () => {
                   )?.is_saved && (
                     <StatusAlert
                       variant="warning"
-                      message="该学校的数据尚未完全保存，成绩信息可能不完整"
+                      message={t("examDetail.dataIncomplete") as string}
                       className="text-sm"
                     />
                   )}
@@ -623,7 +625,7 @@ const ExamDetailPage: React.FC = () => {
             {examDetail.totalScores && examDetail.totalScores.length > 0 && (
               <div className="col-span-full space-y-3">
                 <label className="text-sm font-medium text-muted-foreground">
-                  总分
+                  {t("examDetail.totalScore") as string}
                 </label>
                 <div className="py-2">
                   {examDetail.totalScores.map((totalScore) => {
@@ -664,7 +666,7 @@ const ExamDetailPage: React.FC = () => {
                               {totalScore.class_rank && (
                                 <div className="flex flex-col">
                                   <span className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
-                                    班级排名
+                                    {t("examDetail.classRank") as string}
                                   </span>
                                   <div className="flex items-baseline gap-1">
                                     <span className="font-semibold text-foreground text-lg">
@@ -683,7 +685,7 @@ const ExamDetailPage: React.FC = () => {
                               {totalScore.school_rank && (
                                 <div className="flex flex-col">
                                   <span className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
-                                    年级排名
+                                    {t("examDetail.schoolRank") as string}
                                   </span>
                                   <div className="flex items-baseline gap-1">
                                     <span className="font-semibold text-foreground text-lg">
@@ -710,22 +712,22 @@ const ExamDetailPage: React.FC = () => {
                                 {isStandardScoreMissing &&
                                 totalScore.is_calculated ? (
                                   <span>
-                                    本次考试可能为新高考六选三等模式，智学网未提供满分和总分数据。当前满分和总分仅供参考。
+                                    {t("examDetail.noteCalculated1") as string}
                                   </span>
                                 ) : isStandardScoreMissing ? (
                                   <span>
-                                    本次考试可能为新高考六选三等模式，智学网未提供满分数据。当前满分仅供参考。
+                                    {t("examDetail.noteCalculated2") as string}
                                   </span>
                                 ) : (
                                   <span>
-                                    本次考试可能为新高考六选三等模式，智学网未提供总分数据。当前总分仅供参考。
+                                    {t("examDetail.noteCalculated3") as string}
                                   </span>
                                 )}
                               </div>
                             )}
                             <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                               <span>
-                                总参考人数为所有未剔除的人数，可能与实际略有出入。
+                                {t("examDetail.participantNote") as string}
                               </span>
                             </div>
                           </div>
@@ -746,7 +748,7 @@ const ExamDetailPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Trophy className="h-5 w-5" />
-              <span>成绩详情</span>
+              <span>{t("examDetail.scoreDetail") as string}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -766,13 +768,12 @@ const ExamDetailPage: React.FC = () => {
                     <div className="mb-4 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />
                       <span>
-                        {hiddenScores.map((s) => s.subject_name).join("、")}
-                        成绩已自动隐藏，
+                        {(t("examDetail.hiddenScores") as unknown as (name: string) => string)(hiddenScores.map((s) => s.subject_name).join("、"))}
                         <button
                           onClick={() => setShowHiddenScores(true)}
                           className="text-primary hover:underline font-medium focus:outline-none ml-1 cursor-pointer"
                         >
-                          点击展示
+                          {t("examDetail.showHidden") as string}
                         </button>
                       </span>
                     </div>
@@ -783,10 +784,10 @@ const ExamDetailPage: React.FC = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>科目</TableHead>
-                          <TableHead>得分 / 满分</TableHead>
-                          <TableHead>班级排名</TableHead>
-                          <TableHead>年级排名</TableHead>
+                          <TableHead>{t("examDetail.subject") as string}</TableHead>
+                          <TableHead>{t("examDetail.scoreSlashFull") as string}</TableHead>
+                          <TableHead>{t("examDetail.classRank") as string}</TableHead>
+                          <TableHead>{t("examDetail.schoolRank") as string}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -864,7 +865,7 @@ const ExamDetailPage: React.FC = () => {
                           <div className="grid grid-cols-2 gap-3 text-sm">
                             <div className="bg-background rounded-lg p-3">
                               <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                                班级排名
+                                {t("examDetail.classRank") as string}
                               </div>
                               <div className="font-semibold text-foreground flex items-baseline gap-1">
                                 <span>{score.class_rank || "-"}</span>
@@ -878,7 +879,7 @@ const ExamDetailPage: React.FC = () => {
                             </div>
                             <div className="bg-background rounded-lg p-3">
                               <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                                年级排名
+                                {t("examDetail.schoolRank") as string}
                               </div>
                               <div className="font-semibold text-foreground flex items-baseline gap-1">
                                 <span>{score.school_rank || "-"}</span>
@@ -900,7 +901,7 @@ const ExamDetailPage: React.FC = () => {
             })()}
 
             <div className="mt-4 pt-4 border-t flex items-center gap-2 text-xs text-muted-foreground">
-              <span>总参考人数为所有未剔除的人数，可能与实际略有出入。</span>
+              <span>{t("examDetail.participantNote") as string}</span>
             </div>
           </CardContent>
         </Card>
@@ -920,9 +921,9 @@ const ExamDetailPage: React.FC = () => {
         <Card>
           <CardContent className="text-center py-8 sm:py-12">
             <AlertCircle className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">考试详情未保存</h3>
+            <h3 className="text-lg font-medium mb-2">{t("examDetail.unsavedTitle") as string}</h3>
             <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-md mx-auto">
-              此考试的详细信息尚未保存到服务器，请点击"加载最新详情"获取成绩信息
+              {t("examDetail.unsavedDesc") as string}
             </p>
             {hasPermission(
               user,
@@ -935,7 +936,7 @@ const ExamDetailPage: React.FC = () => {
                 className="w-full sm:w-auto"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                加载最新详情
+                {t("examDetail.loadLatest") as string}
               </Button>
             )}
           </CardContent>
@@ -953,10 +954,10 @@ const ExamDetailPage: React.FC = () => {
             setForceRefresh(false);
           }
         }}
-        title="确认获取考试详情"
+        title={t("examDetail.confirmFetchTitle") as string}
         description={
           <div className="space-y-3">
-            <p>获取考试详情可能需要一些时间，确定要继续吗？</p>
+            <p>{t("examDetail.confirmFetchDesc") as string}</p>
 
             {/* 学校 ID 输入（GLOBAL 权限用户） */}
             {hasPermission(
@@ -969,19 +970,19 @@ const ExamDetailPage: React.FC = () => {
                   htmlFor="fetch-school-id"
                   className="text-sm font-medium"
                 >
-                  学校 ID（可选，19 位数字）
+                  {t("examDetail.schoolIdInput") as string}
                 </Label>
                 <Input
                   id="fetch-school-id"
                   type="text"
-                  placeholder="输入学校 ID 以拉取指定学校的考试数据"
+                  placeholder={t("examDetail.schoolIdPlaceholder") as string}
                   value={fetchSchoolId}
                   onChange={(e) => setFetchSchoolId(e.target.value)}
                   maxLength={19}
                   className="font-mono"
                 />
                 <p className="text-xs text-muted-foreground">
-                  留空则拉取当前用户所属学校的数据
+                  {t("examDetail.schoolIdHint") as string}
                 </p>
               </div>
             )}
@@ -1003,14 +1004,14 @@ const ExamDetailPage: React.FC = () => {
                     htmlFor="force-refresh"
                     className="text-sm text-amber-800 cursor-pointer"
                   >
-                    强制刷新（重新从智学网获取数据）
+                    {t("examDetail.forceRefresh") as string}
                   </label>
                 </div>
               )}
           </div>
         }
-        confirmText="继续"
-        cancelText="取消"
+        confirmText={t("common.continue") as string}
+        cancelText={t("common.cancel") as string}
         variant="default"
         onConfirm={confirmFetchDetails}
       />
@@ -1027,18 +1028,18 @@ const ExamDetailPage: React.FC = () => {
             setDownloadIsMultiSchool(false);
           }
         }}
-        title="下载成绩单"
+        title={t("examDetail.downloadTitle") as string}
         description={
           <div className="space-y-3">
             {/* 非联考场景：简单提示 */}
             {!downloadIsMultiSchool && (
-              <p>即将下载成绩单 Excel 文件，确定要继续吗？</p>
+              <p>{t("examDetail.downloadConfirm") as string}</p>
             )}
 
             {/* 联考场景：选择参数 */}
             {downloadIsMultiSchool && (
               <>
-                <p>此考试为联考，请选择下载参数：</p>
+                <p>{t("examDetail.downloadJointNote") as string}</p>
 
                 {/* 学校选择 */}
                 <div className="space-y-2">
@@ -1046,14 +1047,14 @@ const ExamDetailPage: React.FC = () => {
                     htmlFor="download-school-select"
                     className="text-sm font-medium"
                   >
-                    选择学校
+                    {t("examDetail.downloadSelectSchool") as string}
                   </Label>
                   <Select
                     value={downloadSchoolId}
                     onValueChange={setDownloadSchoolId}
                   >
                     <SelectTrigger id="download-school-select">
-                      <SelectValue placeholder="请选择要下载的学校" />
+                      <SelectValue placeholder={t("examDetail.downloadSelectSchoolPlaceholder") as string} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableSchools.map((school) => (
@@ -1071,7 +1072,7 @@ const ExamDetailPage: React.FC = () => {
                               }
                               className="text-xs"
                             >
-                              {school.is_saved ? "已保存" : "未保存"}
+                              {school.is_saved ? (t("common.saved") as string) : (t("common.unsaved") as string)}
                             </Badge>
                           </div>
                         </SelectItem>
@@ -1091,7 +1092,7 @@ const ExamDetailPage: React.FC = () => {
                       htmlFor="download-scope-select"
                       className="text-sm font-medium"
                     >
-                      导出范围
+                      {t("examDetail.exportScope") as string}
                     </Label>
                     <Select
                       value={downloadScope}
@@ -1103,12 +1104,12 @@ const ExamDetailPage: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="school">仅当前学校</SelectItem>
-                        <SelectItem value="all">所有参与学校</SelectItem>
+                        <SelectItem value="school">{t("examDetail.scopeCurrentSchool") as string}</SelectItem>
+                        <SelectItem value="all">{t("examDetail.scopeAllSchools") as string}</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      导出所有学校时将包含联考中所有参与学校的成绩数据
+                      {t("examDetail.exportScopeNote") as string}
                     </p>
                   </div>
                 )}
@@ -1116,8 +1117,8 @@ const ExamDetailPage: React.FC = () => {
             )}
           </div>
         }
-        confirmText="下载"
-        cancelText="取消"
+        confirmText={t("common.download") as string}
+        cancelText={t("common.cancel") as string}
         variant="default"
         onConfirm={confirmDownloadScoresheet}
       />

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/i18n";
 import Turnstile, { type TurnstileRef } from "@/components/ui/turnstile";
 import { StatusAlert } from "@/components/StatusAlert";
 
@@ -26,13 +27,14 @@ const LoginPage: React.FC = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const turnstileRef = useRef<TurnstileRef>(null);
 
   // 检查是否启用验证码
   const isTurnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED === "true";
 
   useEffect(() => {
-    document.title = "用户登录 - ZhiXue Lite";
+    document.title = t("login.pageTitle") as string;
     return () => {
       document.title = "ZhiXue Lite";
     };
@@ -51,7 +53,7 @@ const LoginPage: React.FC = () => {
 
     // 只在启用验证码时检查 token
     if (isTurnstileEnabled && !turnstileToken) {
-      setError("请完成验证码验证");
+      setError(t("login.captchaRequired") as string);
       setIsLoading(false);
       return;
     }
@@ -65,7 +67,7 @@ const LoginPage: React.FC = () => {
       navigate("/");
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "登录失败，请稍后重试";
+        err instanceof Error ? err.message : t("login.failed") as string;
       setError(errorMessage);
       // 重置验证码
       if (isTurnstileEnabled) {
@@ -84,7 +86,7 @@ const LoginPage: React.FC = () => {
 
   const handleTurnstileError = useCallback(() => {
     setTurnstileToken("");
-    setError("验证码验证失败，请重试");
+    setError(t("login.captchaFailed") as string);
     // 自动重置验证码
     turnstileRef.current?.reset();
   }, []);
@@ -95,9 +97,9 @@ const LoginPage: React.FC = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold flex items-center justify-center space-x-2">
             <LogIn className="h-6 w-6 text-primary" />
-            <span>用户登录</span>
+            <span>{t("login.title") as string}</span>
           </CardTitle>
-          <CardDescription>欢迎回来</CardDescription>
+          <CardDescription>{t("login.welcome") as string}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,7 +107,7 @@ const LoginPage: React.FC = () => {
 
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">
-                用户名或邮箱
+                {t("login.usernameOrEmail") as string}
               </label>
               <Input
                 id="username"
@@ -113,7 +115,7 @@ const LoginPage: React.FC = () => {
                 type="text"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="请输入用户名或邮箱"
+                placeholder={t("login.usernameOrEmailPlaceholder") as string}
                 disabled={isLoading}
                 required
               />
@@ -121,7 +123,7 @@ const LoginPage: React.FC = () => {
 
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                密码
+                {t("login.password") as string}
               </label>
               <div className="relative">
                 <Input
@@ -130,7 +132,7 @@ const LoginPage: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="请输入密码"
+                  placeholder={t("login.passwordPlaceholder") as string}
                   disabled={isLoading}
                   required
                 />
@@ -153,7 +155,7 @@ const LoginPage: React.FC = () => {
 
             {isTurnstileEnabled && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">安全验证</label>
+                <label className="text-sm font-medium">{t("common.captchaLabel") as string}</label>
                 <Turnstile
                   ref={turnstileRef}
                   siteKey={
@@ -170,17 +172,17 @@ const LoginPage: React.FC = () => {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "登录中..." : "登录"}
+              {isLoading ? t("login.submitting") as string : t("login.submit") as string}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm">
             <div className="font-bold text-foreground">
-              请使用本网站账号而非智学网账号
+              {t("login.useLocalAccount") as string}
             </div>
-            <span className="text-muted-foreground">还没有账号？</span>
+            <span className="text-muted-foreground">{t("login.noAccount") as string}</span>
             <Link to="/signup" className="ml-1 text-primary hover:underline">
-              立即注册
+              {t("login.signupNow") as string}
             </Link>
           </div>
         </CardContent>

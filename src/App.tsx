@@ -11,6 +11,7 @@ import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 import { ExamProvider } from "@/contexts/ExamContext";
 import { ConnectionProvider } from "@/contexts/ConnectionContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
+import { LanguageProvider, useLanguage } from "@/i18n";
 import Header from "@/components/layout/Header";
 import Layout from "@/components/layout/Layout";
 import HomePage from "@/pages/HomePage";
@@ -43,6 +44,7 @@ import { AlertCircle, Mail } from "lucide-react";
 const BannedAccountDialog: React.FC = () => {
   const { isBanned, clearBanned } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleGoToLogin = () => {
     clearBanned();
@@ -53,11 +55,11 @@ const BannedAccountDialog: React.FC = () => {
     <ResponsiveDialog
       open={isBanned}
       onOpenChange={() => {}} // 不允许关闭
-      title="登录状态失效"
-      description="登录状态失效，请重新登录。"
+      title={t("app.sessionExpired") as string}
+      description={t("app.sessionExpiredDesc") as string}
       mode="alert"
       variant="destructive"
-      confirmText="前往登录"
+      confirmText={t("app.goToLogin") as string}
       onConfirm={handleGoToLogin}
       closable={false}
       icon={<AlertCircle className="h-12 w-12 text-destructive" />}
@@ -69,6 +71,7 @@ const BannedAccountDialog: React.FC = () => {
 const EmailNotVerifiedDialog: React.FC = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     const handleEmailNotVerified = () => {
@@ -91,10 +94,10 @@ const EmailNotVerifiedDialog: React.FC = () => {
     <ResponsiveDialog
       open={isOpen}
       onOpenChange={setIsOpen}
-      title="需要验证邮箱"
-      description="你的邮箱尚未验证，无法访问此功能。请前往个人中心验证邮箱。"
+      title={t("app.emailNotVerified") as string}
+      description={t("app.emailNotVerifiedDesc") as string}
       mode="alert"
-      confirmText="前往个人中心"
+      confirmText={t("app.goToProfile") as string}
       onConfirm={handleGoToProfile}
       icon={<Mail className="text-yellow-500" />}
     />
@@ -104,58 +107,60 @@ const EmailNotVerifiedDialog: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AnalyticsProvider>
-      <ConnectionProvider>
-        <AuthProvider>
-          <ExamProvider>
-            <SidebarProvider>
-              <Router>
-                <BannedAccountDialog />
-                <EmailNotVerifiedDialog />
-                <Header />
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignupPage />} />
-                    <Route path="/verify-email" element={<VerifyEmailPage />} />
-                    <Route path="/exams" element={<ExamsPage />} />
-                    <Route path="/exams/:examId" element={<ExamDetailPage />} />
-                    <Route path="/data-viewer" element={<DataViewerPage />} />
-                    <Route path="/tasks" element={<TasksPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
+      <LanguageProvider>
+        <ConnectionProvider>
+          <AuthProvider>
+            <ExamProvider>
+              <SidebarProvider>
+                <Router>
+                  <BannedAccountDialog />
+                  <EmailNotVerifiedDialog />
+                  <Header />
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/signup" element={<SignupPage />} />
+                      <Route path="/verify-email" element={<VerifyEmailPage />} />
+                      <Route path="/exams" element={<ExamsPage />} />
+                      <Route path="/exams/:examId" element={<ExamDetailPage />} />
+                      <Route path="/data-viewer" element={<DataViewerPage />} />
+                      <Route path="/tasks" element={<TasksPage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
 
-                    {/* 管理面板嵌套路由 */}
-                    <Route path="/admin" element={<AdminLayout />}>
+                      {/* 管理面板嵌套路由 */}
+                      <Route path="/admin" element={<AdminLayout />}>
+                        <Route
+                          index
+                          element={<Navigate to="/admin/users" replace />}
+                        />
+                        <Route path="users" element={<AdminUsersPage />} />
+                        <Route path="schools" element={<AdminSchoolsPage />} />
+                        <Route path="teachers" element={<AdminTeachersPage />} />
+                        <Route path="students" element={<AdminStudentsPage />} />
+                        <Route path="exams" element={<AdminExamsPage />} />
+                        <Route path="tasks" element={<AdminTasksPage />} />
+                      </Route>
+
+                      <Route path="/about" element={<AboutPage />} />
                       <Route
-                        index
-                        element={<Navigate to="/admin/users" replace />}
+                        path="/privacy-policy"
+                        element={<PrivacyPolicyPage />}
                       />
-                      <Route path="users" element={<AdminUsersPage />} />
-                      <Route path="schools" element={<AdminSchoolsPage />} />
-                      <Route path="teachers" element={<AdminTeachersPage />} />
-                      <Route path="students" element={<AdminStudentsPage />} />
-                      <Route path="exams" element={<AdminExamsPage />} />
-                      <Route path="tasks" element={<AdminTasksPage />} />
-                    </Route>
-
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route
-                      path="/privacy-policy"
-                      element={<PrivacyPolicyPage />}
-                    />
-                    <Route
-                      path="/data-deletion"
-                      element={<DataDeletionPage />}
-                    />
-                    <Route path="/disclaimer" element={<DisclaimerPage />} />
-                    <Route path="*" element={<NotFoundPage />} />
-                  </Routes>
-                </Layout>
-              </Router>
-            </SidebarProvider>
-          </ExamProvider>
-        </AuthProvider>
-      </ConnectionProvider>
+                      <Route
+                        path="/data-deletion"
+                        element={<DataDeletionPage />}
+                      />
+                      <Route path="/disclaimer" element={<DisclaimerPage />} />
+                      <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                  </Layout>
+                </Router>
+              </SidebarProvider>
+            </ExamProvider>
+          </AuthProvider>
+        </ConnectionProvider>
+      </LanguageProvider>
     </AnalyticsProvider>
   );
 };

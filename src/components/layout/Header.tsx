@@ -8,6 +8,7 @@ import {
   Menu,
   AlertCircle,
   RefreshCw,
+  Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useExam } from "@/contexts/ExamContext";
 import { useConnection } from "@/contexts/ConnectionContext";
+import { useLanguage } from "@/i18n";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 
@@ -33,26 +35,28 @@ interface BreadcrumbItem {
   path?: string;
 }
 
-const routeNameMap: Record<string, string> = {
-  "/": "首页",
-  "/exams": "考试列表",
-  "/data-viewer": "数据查看",
-  "/admin": "管理面板",
-  "/admin/users": "用户管理",
-  "/admin/schools": "学校管理",
-  "/admin/teachers": "教师管理",
-  "/admin/students": "学生管理",
-  "/admin/exams": "考试管理",
-  "/admin/tasks": "任务管理",
-  "/tasks": "任务列表",
-  "/profile": "个人中心",
-  "/login": "登录",
-  "/signup": "注册",
-  "/verify-email": "邮箱验证",
-  "/about": "关于",
-  "/privacy-policy": "隐私政策",
-  "/data-deletion": "数据删除请求",
-  "/disclaimer": "免责声明",
+const routeNameMap: Record<string, string> = {};
+
+const routeI18nKeyMap: Record<string, string> = {
+  "/": "nav.home",
+  "/exams": "nav.examList",
+  "/data-viewer": "nav.dataViewer",
+  "/admin": "nav.adminPanel",
+  "/admin/users": "nav.adminUsers",
+  "/admin/schools": "nav.adminSchools",
+  "/admin/teachers": "nav.adminTeachers",
+  "/admin/students": "nav.adminStudents",
+  "/admin/exams": "nav.adminExams",
+  "/admin/tasks": "nav.adminTasks",
+  "/tasks": "nav.taskList",
+  "/profile": "nav.profile",
+  "/login": "nav.login",
+  "/signup": "nav.signup",
+  "/verify-email": "nav.verifyEmail",
+  "/about": "nav.about",
+  "/privacy-policy": "nav.privacyPolicy",
+  "/data-deletion": "nav.dataDeletion",
+  "/disclaimer": "nav.disclaimer",
 };
 
 const Header: React.FC = () => {
@@ -71,8 +75,9 @@ const Header: React.FC = () => {
   const { getExamData } = useExam();
   const { isConnectionError, connectionError, retryConnection } =
     useConnection();
+  const { lang, setLang, t } = useLanguage();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([
-    { name: "首页", path: "/" },
+    { name: t("nav.home") as string, path: "/" },
   ]);
   const [isRetrying, setIsRetrying] = useState(false);
   const [showSuDialog, setShowSuDialog] = useState(false);
@@ -88,12 +93,15 @@ const Header: React.FC = () => {
   const generateBreadcrumbs = useCallback(
     async (pathname: string): Promise<BreadcrumbItem[]> => {
       const paths = pathname.split("/").filter(Boolean);
-      const breadcrumbs: BreadcrumbItem[] = [{ name: "首页", path: "/" }];
+      const breadcrumbs: BreadcrumbItem[] = [{ name: t("nav.home") as string, path: "/" }];
 
       let currentPath = "";
       for (const path of paths) {
         currentPath += `/${path}`;
-        let name = routeNameMap[currentPath] || path;
+        const i18nKey = routeI18nKeyMap[currentPath];
+        let name = i18nKey
+          ? (t(i18nKey as Parameters<typeof t>[0]) as string)
+          : routeNameMap[currentPath] || path;
 
         // 处理考试详情页面的动态路由
         if (
@@ -133,7 +141,7 @@ const Header: React.FC = () => {
 
       return breadcrumbs;
     },
-    [getExamData],
+    [getExamData, t],
   );
 
   useEffect(() => {
@@ -143,7 +151,7 @@ const Header: React.FC = () => {
     };
 
     loadBreadcrumbs();
-  }, [location.pathname, generateBreadcrumbs]);
+  }, [location.pathname, generateBreadcrumbs, lang]);
 
   const handleLogout = async () => {
     try {
@@ -174,7 +182,7 @@ const Header: React.FC = () => {
 
   const handleSwitchUser = async () => {
     if (!suUsername.trim()) {
-      setSuError("请输入用户名");
+      setSuError(t("header.enterUsername") as string);
       return;
     }
 
@@ -186,7 +194,7 @@ const Header: React.FC = () => {
       setShowSuDialog(false);
       navigate("/"); // 切换后跳转到首页
     } catch (error) {
-      setSuError(error instanceof Error ? error.message : "切换用户失败");
+      setSuError(error instanceof Error ? error.message : t("header.switchUserFailed") as string);
     } finally {
       setIsSwitching(false);
     }
@@ -197,7 +205,7 @@ const Header: React.FC = () => {
     try {
       await exitSu();
     } catch (error) {
-      alert(error instanceof Error ? error.message : "退出 su 模式失败");
+      alert(error instanceof Error ? error.message : t("header.exitSuFailed") as string);
     } finally {
       setIsExitingSu(false);
     }
@@ -214,7 +222,7 @@ const Header: React.FC = () => {
               size="sm"
               onClick={toggle}
               className="md:hidden"
-              aria-label="切换菜单"
+              aria-label={t("header.toggleMenu") as string}
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -243,7 +251,7 @@ const Header: React.FC = () => {
                 >
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs font-medium">连接异常</span>
+                    <span className="text-xs font-medium">{t("header.connectionError") as string}</span>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -253,10 +261,10 @@ const Header: React.FC = () => {
                     <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-red-800">
-                        网络连接异常
+                        {t("header.networkError") as string}
                       </p>
                       <p className="text-xs text-red-700 mt-1 wrap-break-word">
-                        {connectionError || "无法连接到后端服务器"}
+                        {connectionError || t("header.cannotConnect") as string}
                       </p>
                     </div>
                   </div>
@@ -266,11 +274,11 @@ const Header: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:opacity-80 transition-opacity"
-                      title="查看服务状态"
+                      title={t("header.serviceStatus") as string}
                     >
                       <img
                         src="https://uptime.betterstack.com/status-badges/v1/monitor/2esml.svg"
-                        alt="服务状态"
+                        alt={t("header.serviceStatus") as string}
                         className="h-5"
                       />
                     </a>
@@ -287,7 +295,7 @@ const Header: React.FC = () => {
                           isRetrying && "animate-spin",
                         )}
                       />
-                      重试连接
+                      {t("common.retry") as string}
                     </Button>
                   </div>
                 </div>
@@ -348,9 +356,20 @@ const Header: React.FC = () => {
 
         {/* Right: User Menu or Login/Signup */}
         <div className="flex items-center space-x-2">
+          {/* Language Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLang(lang === "zh" ? "en" : "zh")}
+            className="h-9 w-9 p-0"
+            title={lang === "zh" ? "Switch to English" : "切换到中文"}
+          >
+            <Languages className="h-4 w-4" />
+          </Button>
+
           {isLoading ? (
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">正在获取...</span>
+              <span className="text-sm text-muted-foreground">{t("header.fetching") as string}</span>
             </div>
           ) : isAuthenticated ? (
             <DropdownMenu>
@@ -377,7 +396,7 @@ const Header: React.FC = () => {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/profile">个人中心</Link>
+                  <Link to="/profile">{t("nav.profile") as string}</Link>
                 </DropdownMenuItem>
                 {user?.role === "admin" && !isSuMode && (
                   <>
@@ -386,7 +405,7 @@ const Header: React.FC = () => {
                       onClick={handleOpenSuDialog}
                       className="text-orange-600"
                     >
-                      切换用户
+                      {t("header.switchUser") as string}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -397,14 +416,14 @@ const Header: React.FC = () => {
                     disabled={isExitingSu}
                     className="text-orange-600"
                   >
-                    {isExitingSu ? "退出中..." : "退出 su 模式"}
+                    {isExitingSu ? t("header.exitingSu") as string : t("header.exitSu") as string}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="text-red-600"
                   >
-                    退出登录
+                    {t("header.logout") as string}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -419,13 +438,13 @@ const Header: React.FC = () => {
               >
                 <Link to="/login" className="flex items-center space-x-1">
                   <LogIn className="h-4 w-4" />
-                  <span>登录</span>
+                  <span>{t("nav.login") as string}</span>
                 </Link>
               </Button>
               <Button size="sm" asChild>
                 <Link to="/signup" className="flex items-center space-x-1">
                   <UserPlus className="h-4 w-4" />
-                  <span className="hidden sm:block">注册</span>
+                  <span className="hidden sm:block">{t("nav.signup") as string}</span>
                 </Link>
               </Button>
               {/* 移动端登录按钮 */}
@@ -443,8 +462,8 @@ const Header: React.FC = () => {
       <ResponsiveDialog
         open={showSuDialog}
         onOpenChange={setShowSuDialog}
-        title="切换用户"
-        description="输入要切换到的用户名。切换后将以该用户的身份浏览系统。"
+        title={t("header.switchUser") as string}
+        description={t("header.switchUserDesc") as string}
         footer={(isDesktop) => (
           <>
             {isDesktop ? (
@@ -457,16 +476,16 @@ const Header: React.FC = () => {
                   取消
                 </Button>
                 <Button onClick={handleSwitchUser} disabled={isSwitching}>
-                  {isSwitching ? "切换中..." : "确认切换"}
+                  {isSwitching ? t("header.switching") as string : t("header.confirmSwitch") as string}
                 </Button>
               </>
             ) : (
               <>
                 <Button onClick={handleSwitchUser} disabled={isSwitching}>
-                  {isSwitching ? "切换中..." : "确认切换"}
+                  {isSwitching ? t("header.switching") as string : t("header.confirmSwitch") as string}
                 </Button>
                 <DrawerClose asChild>
-                  <Button variant="outline">取消</Button>
+                  <Button variant="outline">{t("common.cancel") as string}</Button>
                 </DrawerClose>
               </>
             )}
@@ -476,11 +495,11 @@ const Header: React.FC = () => {
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="su-username" className="text-sm font-medium">
-              用户名
+              {t("header.username") as string}
             </label>
             <Input
               id="su-username"
-              placeholder="请输入用户名"
+              placeholder={t("header.enterUsername") as string}
               value={suUsername}
               onChange={(e) => setSuUsername(e.target.value)}
               onKeyDown={(e) => {

@@ -13,8 +13,10 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import Turnstile, { type TurnstileRef } from "@/components/ui/turnstile";
 import { StatusAlert } from "@/components/StatusAlert";
+import { useLanguage } from "@/i18n";
 
 const SignupPage: React.FC = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -35,7 +37,7 @@ const SignupPage: React.FC = () => {
   const isTurnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED === "true";
 
   useEffect(() => {
-    document.title = "用户注册 - ZhiXue Lite";
+    document.title = t("signup.pageTitle") as string;
     return () => {
       document.title = "ZhiXue Lite";
     };
@@ -54,13 +56,13 @@ const SignupPage: React.FC = () => {
 
     // 只在启用验证码时检查 token
     if (isTurnstileEnabled && !turnstileToken) {
-      setError("请完成验证码验证");
+      setError(t("login.captchaRequired") as string);
       setIsLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("两次输入的密码不一致");
+      setError(t("signup.passwordMismatch") as string);
       setIsLoading(false);
       return;
     }
@@ -75,7 +77,7 @@ const SignupPage: React.FC = () => {
       navigate("/");
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "注册失败，请稍后重试";
+        err instanceof Error ? err.message : t("signup.failed") as string;
       setError(errorMessage);
       // 重置验证码
       if (isTurnstileEnabled) {
@@ -94,7 +96,7 @@ const SignupPage: React.FC = () => {
 
   const handleTurnstileError = useCallback(() => {
     setTurnstileToken("");
-    setError("验证码验证失败，请重试");
+    setError(t("login.captchaFailed") as string);
     // 自动重置验证码
     turnstileRef.current?.reset();
   }, []);
@@ -105,9 +107,9 @@ const SignupPage: React.FC = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold flex items-center justify-center space-x-2">
             <UserPlus className="h-6 w-6 text-primary" />
-            <span>用户注册</span>
+            <span>{t("signup.title") as string}</span>
           </CardTitle>
-          <CardDescription>创建新账号来使用 ZhiXue Lite</CardDescription>
+          <CardDescription>{t("signup.subtitle") as string}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +117,7 @@ const SignupPage: React.FC = () => {
 
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">
-                用户名
+                {t("signup.username") as string}
               </label>
               <Input
                 id="username"
@@ -123,7 +125,7 @@ const SignupPage: React.FC = () => {
                 type="text"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="请输入用户名"
+                placeholder={t("signup.usernamePlaceholder") as string}
                 disabled={isLoading}
                 required
               />
@@ -131,7 +133,7 @@ const SignupPage: React.FC = () => {
 
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
-                邮箱
+                {t("signup.email") as string}
               </label>
               <Input
                 id="email"
@@ -139,7 +141,7 @@ const SignupPage: React.FC = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="请输入邮箱地址"
+                placeholder={t("signup.emailPlaceholder") as string}
                 disabled={isLoading}
                 required
               />
@@ -147,7 +149,7 @@ const SignupPage: React.FC = () => {
 
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                密码
+                {t("signup.password") as string}
               </label>
               <div className="relative">
                 <Input
@@ -156,7 +158,7 @@ const SignupPage: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="请输入密码"
+                  placeholder={t("signup.passwordPlaceholder") as string}
                   disabled={isLoading}
                   required
                 />
@@ -179,7 +181,7 @@ const SignupPage: React.FC = () => {
 
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium">
-                确认密码
+                {t("signup.confirmPassword") as string}
               </label>
               <div className="relative">
                 <Input
@@ -188,7 +190,7 @@ const SignupPage: React.FC = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="请再次输入密码"
+                  placeholder={t("signup.confirmPasswordPlaceholder") as string}
                   disabled={isLoading}
                   required
                 />
@@ -211,7 +213,7 @@ const SignupPage: React.FC = () => {
 
             {isTurnstileEnabled && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">安全验证</label>
+                <label className="text-sm font-medium">{t("common.captchaLabel") as string}</label>
                 <Turnstile
                   ref={turnstileRef}
                   siteKey={
@@ -228,17 +230,17 @@ const SignupPage: React.FC = () => {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "注册中..." : "注册"}
+              {isLoading ? t("signup.submitting") as string : t("signup.submit") as string}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm">
             <div className="font-bold text-foreground">
-              本网站账号独立于智学网，你无须使用智学网用户名注册
+              {t("signup.localAccountNote") as string}
             </div>
-            <span className="text-muted-foreground">已有账号？</span>
+            <span className="text-muted-foreground">{t("signup.hasAccount") as string}</span>
             <Link to="/login" className="ml-1 text-primary hover:underline">
-              立即登录
+              {t("signup.loginNow") as string}
             </Link>
           </div>
         </CardContent>

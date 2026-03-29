@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ResponsiveDialog } from "@/components/ResponsiveDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/i18n";
 import { authAPI } from "@/api/auth";
 import { formatUTCIsoToLocal } from "@/utils/dateUtils";
 import {
@@ -42,6 +43,7 @@ import { StatusAlert } from "@/components/StatusAlert";
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +85,7 @@ const ProfilePage: React.FC = () => {
     useState(false);
 
   useEffect(() => {
-    document.title = "个人中心 - ZhiXue Lite";
+    document.title = t("profile.pageTitle") as string;
     return () => {
       document.title = "ZhiXue Lite";
     };
@@ -121,7 +123,7 @@ const ProfilePage: React.FC = () => {
   const handleConnectZhixue = (e: React.FormEvent) => {
     e.preventDefault();
     if (isTurnstileEnabled && !turnstileToken) {
-      setError("请完成验证码验证");
+      setError(t("login.captchaRequired") as string);
       return;
     }
     setConnectConfirmOpen(true);
@@ -141,7 +143,7 @@ const ProfilePage: React.FC = () => {
       });
 
       if (response.data.success) {
-        setSuccess("智学网账号绑定成功！");
+        setSuccess(t("profile.bindSuccess") as string);
         setConnectForm({
           username: "",
           password: "",
@@ -165,7 +167,7 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message || "绑定失败";
+          ?.message || t("profile.bindFailed") as string;
       setError(errorMessage);
 
       trackAnalyticsEvent("zhixue_bind_failed", {
@@ -191,7 +193,7 @@ const ProfilePage: React.FC = () => {
 
   const handleTurnstileError = useCallback(() => {
     setTurnstileToken("");
-    setError("验证码验证失败，请重试");
+    setError(t("login.captchaFailed") as string);
     // 自动重置验证码
     turnstileRef.current?.reset();
   }, []);
@@ -231,7 +233,7 @@ const ProfilePage: React.FC = () => {
     try {
       const response = await authAPI.unbindZhixue();
       if (response.data.success) {
-        setSuccess("智学网账号已解绑");
+        setSuccess(t("profile.unbindSuccess") as string);
 
         trackAnalyticsEvent("zhixue_unbind_success", {
           username: user?.username,
@@ -243,7 +245,7 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message || "解绑失败";
+          ?.message || t("profile.unbindFailed") as string;
       setError(errorMessage);
 
       trackAnalyticsEvent("zhixue_unbind_failed", {
@@ -288,27 +290,27 @@ const ProfilePage: React.FC = () => {
     e.preventDefault();
 
     if (!user) {
-      setError("用户信息不完整");
+      setError(t("profile.userInfoIncomplete") as string);
       return;
     }
 
     // 验证逻辑
     if (editMode === "email") {
       if (editForm.email === user.email) {
-        setError("新邮箱与当前邮箱相同");
+        setError(t("profile.emailSameError") as string);
         return;
       }
     } else if (editMode === "password") {
       if (editForm.newPassword !== editForm.confirmPassword) {
-        setError("两次输入的新密码不一致");
+        setError(t("profile.passwordMismatch") as string);
         return;
       }
       if (editForm.newPassword.length < 6) {
-        setError("密码长度不能少于6位");
+        setError(t("profile.passwordTooShort") as string);
         return;
       }
       if (!editForm.currentPassword) {
-        setError("请输入当前密码");
+        setError(t("profile.currentPasswordRequired") as string);
         return;
       }
     }
@@ -334,7 +336,7 @@ const ProfilePage: React.FC = () => {
       const response = await authAPI.updateCurrentUser(updateData);
 
       if (response.data.success) {
-        setSuccess(editMode === "email" ? "邮箱修改成功" : "密码修改成功");
+        setSuccess(editMode === "email" ? t("profile.emailUpdated") as string : t("profile.passwordUpdated") as string);
 
         trackAnalyticsEvent("user_profile_update_success", {
           username: user?.username,
@@ -354,7 +356,7 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message || "修改失败";
+          ?.message || t("profile.updateFailed") as string;
       setError(errorMessage);
 
       trackAnalyticsEvent("user_profile_update_failed", {
@@ -377,7 +379,7 @@ const ProfilePage: React.FC = () => {
     try {
       const response = await authAPI.resendVerificationEmail();
       if (response.data.success) {
-        setSuccess("验证邮件已发送，请检查你的邮箱（包括垃圾邮件）");
+        setSuccess(t("profile.emailSent") as string);
 
         trackAnalyticsEvent("email_verification_resend_success", {
           username: user?.username,
@@ -387,7 +389,7 @@ const ProfilePage: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message || "发送失败";
+          ?.message || t("profile.sendFailed") as string;
       setError(errorMessage);
 
       trackAnalyticsEvent("email_verification_resend_failed", {
@@ -403,7 +405,7 @@ const ProfilePage: React.FC = () => {
   if (!user) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">请先登录</p>
+        <p className="text-muted-foreground">{t("profile.pleaseLogin") as string}</p>
       </div>
     );
   }
@@ -412,8 +414,8 @@ const ProfilePage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">个人中心</h1>
-        <p className="text-muted-foreground mt-1">管理账号信息和设置</p>
+        <h1 className="text-3xl font-bold">{t("profile.title") as string}</h1>
+        <p className="text-muted-foreground mt-1">{t("profile.subtitle") as string}</p>
       </div>
 
       {/* Success/Error Messages */}
@@ -425,14 +427,14 @@ const ProfilePage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <User className="h-5 w-5" />
-            <span>账号信息</span>
+            <span>{t("profile.accountInfo") as string}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                用户名
+                {t("profile.username") as string}
               </label>
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-muted-foreground" />
@@ -445,7 +447,7 @@ const ProfilePage: React.FC = () => {
                 htmlFor="user-email"
                 className="text-sm font-medium text-muted-foreground"
               >
-                邮箱
+                {t("profile.email") as string}
               </label>
               {editMode === "email" ? (
                 <form onSubmit={handleUpdateUser} className="space-y-3">
@@ -459,12 +461,12 @@ const ProfilePage: React.FC = () => {
                         email: e.target.value,
                       }))
                     }
-                    placeholder="请输入新邮箱"
+                    placeholder={t("profile.emailPlaceholder") as string}
                     required
                   />
                   <div className="flex items-center space-x-2">
                     <Button type="submit" size="sm" disabled={loading}>
-                      {loading ? "保存中..." : "保存"}
+                      {loading ? t("common.saving") as string : t("common.save") as string}
                     </Button>
                     <Button
                       type="button"
@@ -472,7 +474,7 @@ const ProfilePage: React.FC = () => {
                       size="sm"
                       onClick={cancelEdit}
                     >
-                      取消
+                      {t("common.cancel") as string}
                     </Button>
                   </div>
                 </form>
@@ -488,7 +490,7 @@ const ProfilePage: React.FC = () => {
                           className="flex items-center space-x-1 text-green-700 bg-green-50 border-green-200"
                         >
                           <CheckCircle className="h-3 w-3" />
-                          <span>已验证</span>
+                          <span>{t("common.verified") as string}</span>
                         </Badge>
                       ) : (
                         <Badge
@@ -496,7 +498,7 @@ const ProfilePage: React.FC = () => {
                           className="flex items-center space-x-1 text-red-700 bg-red-50 border-red-200"
                         >
                           <XCircle className="h-3 w-3" />
-                          <span>未验证</span>
+                          <span>{t("common.unverified") as string}</span>
                         </Badge>
                       )}
                     </div>
@@ -505,14 +507,14 @@ const ProfilePage: React.FC = () => {
                       size="sm"
                       onClick={() => startEdit("email")}
                     >
-                      修改
+                      {t("common.edit") as string}
                     </Button>
                   </div>
                   {!user.email_verified && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm text-yellow-800 flex-1">
-                          你的邮箱尚未验证，请检查邮箱（包括垃圾邮件）并点击验证链接。
+                          {t("profile.emailNotVerifiedMsg") as string}
                         </p>
                         <Button
                           variant="outline"
@@ -524,12 +526,12 @@ const ProfilePage: React.FC = () => {
                           {resendingEmail ? (
                             <>
                               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                              发送中...
+                              {t("profile.resending") as string}
                             </>
                           ) : (
                             <>
                               <Send className="h-4 w-4 mr-2" />
-                              重新发送验证邮件
+                              {t("profile.resendEmail") as string}
                             </>
                           )}
                         </Button>
@@ -545,7 +547,7 @@ const ProfilePage: React.FC = () => {
                 htmlFor="user-password"
                 className="text-sm font-medium text-muted-foreground"
               >
-                密码
+                {t("profile.password") as string}
               </label>
               {editMode === "password" ? (
                 <form onSubmit={handleUpdateUser} className="space-y-3">
@@ -559,7 +561,7 @@ const ProfilePage: React.FC = () => {
                         currentPassword: e.target.value,
                       }))
                     }
-                    placeholder="请输入当前密码"
+                    placeholder={t("profile.currentPasswordPlaceholder") as string}
                     required
                   />
                   <Input
@@ -572,7 +574,7 @@ const ProfilePage: React.FC = () => {
                         newPassword: e.target.value,
                       }))
                     }
-                    placeholder="请输入新密码"
+                    placeholder={t("profile.newPasswordPlaceholder") as string}
                     required
                   />
                   <Input
@@ -585,12 +587,12 @@ const ProfilePage: React.FC = () => {
                         confirmPassword: e.target.value,
                       }))
                     }
-                    placeholder="请确认新密码"
+                    placeholder={t("profile.confirmPasswordPlaceholder") as string}
                     required
                   />
                   <div className="flex items-center space-x-2">
                     <Button type="submit" size="sm" disabled={loading}>
-                      {loading ? "保存中..." : "保存"}
+                      {loading ? t("common.saving") as string : t("common.save") as string}
                     </Button>
                     <Button
                       type="button"
@@ -598,7 +600,7 @@ const ProfilePage: React.FC = () => {
                       size="sm"
                       onClick={cancelEdit}
                     >
-                      取消
+                      {t("common.cancel") as string}
                     </Button>
                   </div>
                 </form>
@@ -613,7 +615,7 @@ const ProfilePage: React.FC = () => {
                     size="sm"
                     onClick={() => startEdit("password")}
                   >
-                    修改
+                    {t("common.edit") as string}
                   </Button>
                 </div>
               )}
@@ -621,7 +623,7 @@ const ProfilePage: React.FC = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                角色
+                {t("profile.role") as string}
               </label>
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-muted-foreground" />
@@ -633,14 +635,14 @@ const ProfilePage: React.FC = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                最后登录
+                {t("profile.lastLogin") as string}
               </label>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">
                   {user.last_login
                     ? formatUTCIsoToLocal(user.last_login)
-                    : "从未登录"}
+                    : t("profile.neverLogin") as string}
                 </span>
               </div>
             </div>
@@ -653,9 +655,9 @@ const ProfilePage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Lock className="h-5 w-5" />
-            <span>权限信息</span>
+            <span>{t("profile.permissions") as string}</span>
           </CardTitle>
-          <CardDescription>当前系统权限设置</CardDescription>
+          <CardDescription>{t("profile.permissionsDesc") as string}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -668,7 +670,7 @@ const ProfilePage: React.FC = () => {
                       : "text-red-700 font-medium"
                   }
                 >
-                  {permission.allowed ? "允许" : "禁止"}
+                  {permission.allowed ? t("common.allowed") as string : t("common.denied") as string}
                 </span>
                 <span className="text-gray-700 mx-1">{permission.action}</span>
                 {permission.allowed && (
@@ -684,9 +686,8 @@ const ProfilePage: React.FC = () => {
           {user?.role !== "admin" && (
             <div className="mt-4 p-3 bg-muted/50 rounded-md">
               <p className="text-sm text-muted-foreground">
-                <strong>权限说明：</strong>
-                个人 - 只能访问自己的数据； 校内 - 可访问同校数据； 全局 -
-                可访问所有数据。 如需调整权限，请联系管理员。
+                <strong>{t("profile.permissionNoteLabel") as string}</strong>
+                {t("profile.permissionNote") as string}
               </p>
             </div>
           )}
@@ -698,10 +699,10 @@ const ProfilePage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Link2 className="h-5 w-5" />
-            <span>智学网账号</span>
+            <span>{t("profile.zhixueAccount") as string}</span>
           </CardTitle>
           <CardDescription>
-            绑定智学网账号以查看考试数据和成绩信息
+            {t("profile.zhixueDesc") as string}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -711,27 +712,27 @@ const ProfilePage: React.FC = () => {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <p className="font-medium text-green-900 flex items-center gap-2">
-                      已绑定智学网账号
+                      {t("profile.zhixueBound") as string}
                       {user.zhixue_info?.is_parent && (
                         <Badge
                           variant="secondary"
                           className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
                         >
-                          家长账号
+                          {t("profile.parentAccount") as string}
                         </Badge>
                       )}
                     </p>
                     {/* 桌面端：一行显示，用竖线分割 */}
                     <p className="text-sm text-green-700 mt-1 hidden sm:block">
-                      用户名: {user.zhixue_info.username} | 姓名:{" "}
-                      {user.zhixue_info.realname} | 学校:{" "}
+                      {t("profile.zhixueUsername") as string} {user.zhixue_info.username} | {t("profile.zhixueName") as string}{" "}
+                      {user.zhixue_info.realname} | {t("profile.zhixueSchool") as string}{" "}
                       {user.zhixue_info.school_name}
                     </p>
                     {/* 移动端：多行显示，无竖线 */}
                     <div className="text-sm text-green-700 mt-1 space-y-0.5 sm:hidden">
-                      <p>用户名: {user.zhixue_info.username}</p>
-                      <p>姓名: {user.zhixue_info.realname}</p>
-                      <p>学校: {user.zhixue_info.school_name}</p>
+                      <p>{t("profile.zhixueUsername") as string} {user.zhixue_info.username}</p>
+                      <p>{t("profile.zhixueName") as string} {user.zhixue_info.realname}</p>
+                      <p>{t("profile.zhixueSchool") as string} {user.zhixue_info.school_name}</p>
                     </div>
                   </div>
                   <Button
@@ -742,7 +743,7 @@ const ProfilePage: React.FC = () => {
                     className="text-red-600 hover:text-red-700 shrink-0"
                   >
                     <Unlink className="h-4 w-4 mr-2" />
-                    解绑
+                    {t("profile.unbind") as string}
                   </Button>
                 </div>
 
@@ -755,7 +756,7 @@ const ProfilePage: React.FC = () => {
                       className="text-green-700 hover:text-green-900 p-0 h-auto text-xs gap-0.5"
                     >
                       <CircleHelp className="h-3 w-3" />
-                      关于教师账号的说明
+                      {t("profile.teacherAccountNote") as string}
                     </Button>
                   </div>
                 )}
@@ -777,7 +778,7 @@ const ProfilePage: React.FC = () => {
                         : "text-yellow-900"
                     }`}
                   >
-                    账号绑定情况
+                    {t("profile.bindingStatus") as string}
                   </h4>
                   {loadingBindingInfo && (
                     <RefreshCw
@@ -794,14 +795,14 @@ const ProfilePage: React.FC = () => {
                   // 只有当前用户绑定，显示安全信息
                   <div className="space-y-2">
                     <p className="text-sm text-green-700">
-                      仅该账号绑定了此智学网账号，数据安全
+                      {t("profile.bindingSafe") as string}
                     </p>
                   </div>
                 ) : (
                   // 多个用户绑定，显示警告信息和用户列表
                   <div className="space-y-2">
                     <p className="text-sm text-yellow-800 font-medium">
-                      此智学网账号已被 {bindingInfo.length} 个用户绑定：
+                      {(t("profile.bindingMultiple") as unknown as (n: number) => string)(bindingInfo.length)}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {bindingInfo.map((info) => (
@@ -815,7 +816,7 @@ const ProfilePage: React.FC = () => {
                       ))}
                     </div>
                     <p className="text-xs text-yellow-700 mt-2">
-                      请确保知悉以上信息，如有疑问请联系管理员。
+                      {t("profile.bindingMultipleNote") as string}
                     </p>
                   </div>
                 )}
@@ -827,20 +828,20 @@ const ProfilePage: React.FC = () => {
               {user.is_manual_school && (
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                   <p className="font-medium text-blue-900">
-                    已由管理员分配学校
+                    {t("profile.manualSchool") as string}
                   </p>
                   <p className="text-sm text-blue-700 mt-1">
-                    学校: {user.zhixue_info?.school_name || "未知学校"}
+                    {(t("profile.manualSchoolName") as unknown as (s: string) => string)(user.zhixue_info?.school_name || "...")}
                   </p>
                   <p className="text-xs text-blue-600 mt-2">
-                    注意：绑定智学网账号后，此手动分配的学校将被自动清除。
+                    {t("profile.manualSchoolNote") as string}
                   </p>
                 </div>
               )}
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                 <p className="text-yellow-800">
-                  你还未绑定智学网账号，绑定后可以查看考试数据和成绩信息。
+                  {t("profile.zhixueNotBound") as string}
                 </p>
               </div>
 
@@ -859,7 +860,7 @@ const ProfilePage: React.FC = () => {
                   className="w-full md:w-auto"
                 >
                   <Link2 className="h-4 w-4 mr-2" />
-                  绑定智学网账号
+                  {t("profile.bindZhixue") as string}
                 </Button>
               ) : (
                 <form onSubmit={handleConnectZhixue} className="space-y-4">
@@ -868,7 +869,7 @@ const ProfilePage: React.FC = () => {
                       htmlFor="zhixue-username"
                       className="text-sm font-medium"
                     >
-                      智学网用户名
+                      {t("profile.zhixueUsernameLabel") as string}
                     </label>
                     <Input
                       id="zhixue-username"
@@ -880,7 +881,7 @@ const ProfilePage: React.FC = () => {
                           username: e.target.value,
                         }))
                       }
-                      placeholder="请输入智学网用户名"
+                      placeholder={t("profile.zhixueUsernamePlaceholder") as string}
                       disabled={loading}
                       required
                     />
@@ -891,7 +892,7 @@ const ProfilePage: React.FC = () => {
                       htmlFor="zhixue-password"
                       className="text-sm font-medium"
                     >
-                      智学网密码
+                      {t("profile.zhixuePasswordLabel") as string}
                     </label>
                     <Input
                       id="zhixue-password"
@@ -903,7 +904,7 @@ const ProfilePage: React.FC = () => {
                           password: e.target.value,
                         }))
                       }
-                      placeholder="请输入智学网密码"
+                      placeholder={t("profile.zhixuePasswordPlaceholder") as string}
                       disabled={loading}
                       required
                     />
@@ -911,7 +912,7 @@ const ProfilePage: React.FC = () => {
 
                   {isTurnstileEnabled && (
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">安全验证</label>
+                      <label className="text-sm font-medium">{t("common.captchaLabel") as string}</label>
                       <Turnstile
                         ref={turnstileRef}
                         siteKey={
@@ -929,7 +930,7 @@ const ProfilePage: React.FC = () => {
 
                   <div className="flex items-center space-x-2">
                     <Button type="submit" disabled={loading}>
-                      {loading ? "绑定中..." : "确认绑定"}
+                      {loading ? t("profile.binding") as string : t("profile.confirmBind") as string}
                     </Button>
                     <Button
                       type="button"
@@ -948,7 +949,7 @@ const ProfilePage: React.FC = () => {
                       }}
                       disabled={loading}
                     >
-                      取消
+                      {t("common.cancel") as string}
                     </Button>
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -962,7 +963,7 @@ const ProfilePage: React.FC = () => {
                           }
                         />
                         <Label htmlFor="is_parent" className="cursor-pointer">
-                          家长账号
+                          {t("profile.isParent") as string}
                         </Label>
                       </div>
                     </div>
@@ -976,33 +977,29 @@ const ProfilePage: React.FC = () => {
       <ResponsiveDialog
         open={connectConfirmOpen}
         onOpenChange={setConnectConfirmOpen}
-        title="我们重视你的隐私和数据安全"
+        title={t("profile.bindConfirmTitle") as string}
         mode="confirm"
         variant="warning"
-        confirmText="确认绑定"
-        cancelText="取消"
+        confirmText={t("profile.confirmBind") as string}
+        cancelText={t("common.cancel") as string}
         onConfirm={confirmConnectZhixue}
         className="sm:max-w-xl"
       >
         <div className="space-y-3 text-sm">
           {user.is_manual_school && (
             <p className="text-orange-800 font-medium">
-              注意：绑定智学网账号后，管理员为你手动分配的学校将被自动清除，改为使用智学网账号中的学校信息。
+              {t("profile.bindConfirmManualSchoolNote") as string}
             </p>
           )}
           <p>
-            为了验证该智学网账号属于你，并获取必要信息，我们需要使用 AES 对称加密在数据库中加密存储你的智学网密码。我们承诺管理员不会以任何方式在任何情况下获取你的智学网明文密码。
+            {t("profile.bindConfirmBody") as string}
           </p>
           <p>
-            我们使用世界顶尖云服务商提供的服务器，禁用 root
-            登录，仅允许使用密钥登录，数据库服务仅在容器中暴露且本地数据仅 root
-            身份具有读写权限。理论上，攻击者只能通过获取一个随机生成的 256 位
-            Ed25519
-            密钥来登录服务器，或利用任意代码执行漏洞来窃取你的数据，但我们基于稳定的、经过世界上千万网站测试的一套通用技术架构打造，发生此类问题的可能性微乎其微。
+            {t("profile.bindConfirmSecurity") as string}
           </p>
-          <p>我们不对你使用本服务而产生的任何后果负任何责任。</p>
+          <p>{t("profile.bindConfirmDisclaimer") as string}</p>
           <p className="font-medium text-foreground">
-            点击确认绑定，即表示你理解并同意以上内容。
+            {t("profile.bindConfirmAgree") as string}
           </p>
         </div>
       </ResponsiveDialog>
@@ -1010,26 +1007,25 @@ const ProfilePage: React.FC = () => {
       <ConfirmDialog
         open={disconnectConfirmOpen}
         onOpenChange={setDisconnectConfirmOpen}
-        title="确认解绑智学网账号"
+        title={t("profile.unbindConfirmTitle") as string}
         description={
           <>
-            确定要解绑智学网账号吗？解绑后将无法查看考试数据。
+            {t("profile.unbindConfirmDesc") as string}
             <br />
             <br />
-            你可以通过填写
+            {t("profile.unbindConfirmLink") as string}{" "}
             <a
               href="https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAZ__gdDJJxUN0dVWVFMTDYySkpCVDFRWUU0WlUzVVpPTy4u"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
-              支持表单
+              {t("profile.supportForm") as string}
             </a>
-            ，要求我们从数据库中删除你的智学网密码。
           </>
         }
-        confirmText="确认解绑"
-        cancelText="取消"
+        confirmText={t("profile.confirmUnbind") as string}
+        cancelText={t("common.cancel") as string}
         variant="destructive"
         onConfirm={confirmDisconnectZhixue}
       />
@@ -1038,20 +1034,20 @@ const ProfilePage: React.FC = () => {
       <ResponsiveDialog
         open={teacherAccountDialogOpen}
         onOpenChange={setTeacherAccountDialogOpen}
-        title="关于教师账号的说明"
+        title={t("profile.teacherDialogTitle") as string}
         mode="alert"
-        confirmText="我知道了"
+        confirmText={t("profile.teacherDialogConfirm") as string}
         onConfirm={() => setTeacherAccountDialogOpen(false)}
       >
         <div className="space-y-3 text-sm">
           <p>
-            本网站依赖教师账号获取数据，但由于你的学校没有可用的教师账号，因此功能可能将受到限制。
+            {t("profile.teacherDialogBody1") as string}
           </p>
           <p>
-            目前，你可能只能获取考试列表，若想查看考试详情，则需要提供至少具有查看相应考试校级报告权限的教师账号。
+            {t("profile.teacherDialogBody2") as string}
           </p>
           <p>
-            你可以通过邮箱 zxl@makerlife.top 联系管理员申请支持或获取详细信息。
+            {t("profile.teacherDialogBody3") as string}
           </p>
         </div>
       </ResponsiveDialog>

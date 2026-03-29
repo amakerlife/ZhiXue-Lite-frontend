@@ -10,8 +10,10 @@ import { BookOpen, Users, School, Database, TrendingUp } from "lucide-react";
 import { statisticsAPI } from "@/api/statistics";
 import type { Statistics } from "@/types/api";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useLanguage } from "@/i18n";
 
 const HomePage: React.FC = () => {
+  const { t } = useLanguage();
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +24,7 @@ const HomePage: React.FC = () => {
   const animatedSaved = useCountUp(statistics?.saved_exams ?? 0);
 
   useEffect(() => {
-    document.title = "首页 - ZhiXue Lite";
+    document.title = t("home.pageTitle") as string;
     return () => {
       document.title = "ZhiXue Lite";
     };
@@ -49,7 +51,7 @@ const HomePage: React.FC = () => {
       {/* Welcome Section */}
       <section className="text-center">
         <h1 className="text-4xl font-bold text-primary mb-4">
-          欢迎 - ZhiXue Lite
+          {t("home.welcome") as string}
         </h1>
         {/* <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           ZhiXue Lite 是一个简化的智学网成绩查询和管理系统，为学生和教师提供便捷的成绩查看和分析功能。
@@ -58,11 +60,11 @@ const HomePage: React.FC = () => {
 
       {/* Statistics Cards */}
       <section>
-        <h2 className="text-2xl font-semibold mb-6">系统统计</h2>
+        <h2 className="text-2xl font-semibold mb-6">{t("home.stats") as string}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">考试总数</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("home.totalExams") as string}</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -71,17 +73,17 @@ const HomePage: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 {loading
-                  ? "加载中..."
+                  ? (t("common.loading") as string)
                   : statistics
-                    ? "系统中的考试总数"
-                    : "统计数据加载失败"}
+                    ? (t("home.totalExamsDesc") as string)
+                    : (t("home.statsFailed") as string)}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">用户总数</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("home.totalUsers") as string}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -90,17 +92,17 @@ const HomePage: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 {loading
-                  ? "加载中..."
+                  ? (t("common.loading") as string)
                   : statistics
-                    ? "系统中的用户总数"
-                    : "统计数据加载失败"}
+                    ? (t("home.totalUsersDesc") as string)
+                    : (t("home.statsFailed") as string)}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">学校总数</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("home.totalSchools") as string}</CardTitle>
               <School className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -109,17 +111,17 @@ const HomePage: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 {loading
-                  ? "加载中..."
+                  ? (t("common.loading") as string)
                   : statistics
-                    ? "系统中的学校总数"
-                    : "统计数据加载失败"}
+                    ? (t("home.totalSchoolsDesc") as string)
+                    : (t("home.statsFailed") as string)}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">已保存考试</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("home.savedExams") as string}</CardTitle>
               <Database className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -128,10 +130,10 @@ const HomePage: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 {loading
-                  ? "加载中..."
+                  ? (t("common.loading") as string)
                   : statistics
-                    ? "已拉取详情的考试数"
-                    : "统计数据加载失败"}
+                    ? (t("home.savedExamsDesc") as string)
+                    : (t("home.statsFailed") as string)}
               </p>
             </CardContent>
           </Card>
@@ -140,18 +142,18 @@ const HomePage: React.FC = () => {
 
       {/* Features Section */}
       <section>
-        <h2 className="text-2xl font-semibold mb-6">主要功能</h2>
+        <h2 className="text-2xl font-semibold mb-6">{t("home.features") as string}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <BookOpen className="h-5 w-5 text-primary" />
-                <span>考试管理</span>
+                <span>{t("home.examMgmt") as string}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                查看和管理考试成绩，与智学网密切集成。
+                {t("home.examMgmtDesc") as string}
               </CardDescription>
             </CardContent>
           </Card>
@@ -160,12 +162,12 @@ const HomePage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <span>成绩分析</span>
+                <span>{t("home.scoreAnalysis") as string}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                详细的成绩分析功能，包括各科成绩、排名信息等。
+                {t("home.scoreAnalysisDesc") as string}
               </CardDescription>
             </CardContent>
           </Card>
@@ -174,12 +176,12 @@ const HomePage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5 text-primary" />
-                <span>账号管理</span>
+                <span>{t("home.accountMgmt") as string}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                支持智学网账号绑定，确保数据安全和访问控制。
+                {t("home.accountMgmtDesc") as string}
               </CardDescription>
             </CardContent>
           </Card>

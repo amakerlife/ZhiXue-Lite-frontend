@@ -17,6 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useLanguage } from "@/i18n";
+import type { TranslationKey } from "@/i18n";
 import {
   canViewAllData,
   canManageSystem,
@@ -31,7 +33,7 @@ import {
 } from "@/components/ui/collapsible";
 
 interface NavItem {
-  name: string;
+  nameKey: TranslationKey;
   href?: string;
   icon: React.ComponentType<{ className?: string }>;
   requireAuth?: boolean;
@@ -42,69 +44,69 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    name: "首页",
+    nameKey: "nav.home",
     href: "/",
     icon: Home,
   },
   {
-    name: "考试列表",
+    nameKey: "nav.examList",
     href: "/exams",
     icon: BookOpen,
     requireAuth: true,
   },
   {
-    name: "数据查看",
+    nameKey: "nav.dataViewer",
     href: "/data-viewer",
     icon: Eye,
     requireAuth: true,
     dataViewerAccessible: true,
   },
   {
-    name: "任务列表",
+    nameKey: "nav.taskList",
     href: "/tasks",
     icon: ListTodo,
     requireAuth: true,
   },
   {
-    name: "管理面板",
+    nameKey: "nav.adminPanel",
     icon: Settings,
     requireAuth: true,
     adminOnly: true,
     children: [
       {
-        name: "用户管理",
+        nameKey: "nav.adminUsers",
         href: "/admin/users",
         icon: Users,
       },
       {
-        name: "学校管理",
+        nameKey: "nav.adminSchools",
         href: "/admin/schools",
         icon: School,
       },
       {
-        name: "教师管理",
+        nameKey: "nav.adminTeachers",
         href: "/admin/teachers",
         icon: GraduationCap,
       },
       {
-        name: "学生管理",
+        nameKey: "nav.adminStudents",
         href: "/admin/students",
         icon: UserCheck,
       },
       {
-        name: "考试管理",
+        nameKey: "nav.adminExams",
         href: "/admin/exams",
         icon: FileText,
       },
       {
-        name: "任务管理",
+        nameKey: "nav.adminTasks",
         href: "/admin/tasks",
         icon: ListTodo,
       },
     ],
   },
   {
-    name: "关于",
+    nameKey: "nav.about",
     href: "/about",
     icon: Info,
   },
@@ -114,18 +116,19 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
   const { isOpen, isMobile, close } = useSidebar();
+  const { t } = useLanguage();
 
   // 展开状态（仅内存状态，不持久化）
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // 切换展开状态
-  const toggleExpanded = (itemName: string) => {
+  const toggleExpanded = (itemKey: string) => {
     setExpandedItems((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(itemName)) {
-        newSet.delete(itemName);
+      if (newSet.has(itemKey)) {
+        newSet.delete(itemKey);
       } else {
-        newSet.add(itemName);
+        newSet.add(itemKey);
       }
       return newSet;
     });
@@ -179,8 +182,8 @@ const Sidebar: React.FC = () => {
         );
         if (hasActiveChild) {
           setExpandedItems((prev) => {
-            if (!prev.has(item.name)) {
-              return new Set(prev).add(item.name);
+            if (!prev.has(item.nameKey)) {
+              return new Set(prev).add(item.nameKey);
             }
             return prev;
           });
@@ -208,16 +211,16 @@ const Sidebar: React.FC = () => {
 
           // 有子菜单的项
           if (item.children && item.children.length > 0) {
-            const isExpanded = expandedItems.has(item.name);
+            const isExpanded = expandedItems.has(item.nameKey);
             const hasActiveChild = item.children.some(
               (child) => child.href && location.pathname.startsWith(child.href),
             );
 
             return (
               <Collapsible
-                key={item.name}
+                key={item.nameKey}
                 open={isExpanded}
-                onOpenChange={() => toggleExpanded(item.name)}
+                onOpenChange={() => toggleExpanded(item.nameKey)}
               >
                 {/* 父菜单按钮 */}
                 <CollapsibleTrigger asChild>
@@ -231,7 +234,7 @@ const Sidebar: React.FC = () => {
                   >
                     <div className="flex items-center gap-3">
                       <Icon className="h-4 w-4" />
-                      {item.name}
+                      {t(item.nameKey) as string}
                     </div>
                     <ChevronDown
                       className={cn(
@@ -261,7 +264,7 @@ const Sidebar: React.FC = () => {
                         )}
                       >
                         <ChildIcon className="h-4 w-4" />
-                        {child.name}
+                        {t(child.nameKey) as string}
                       </Link>
                     );
                   })}
@@ -290,7 +293,7 @@ const Sidebar: React.FC = () => {
               )}
             >
               <Icon className="h-4 w-4" />
-              {item.name}
+              {t(item.nameKey) as string}
             </Link>
           );
         })}
