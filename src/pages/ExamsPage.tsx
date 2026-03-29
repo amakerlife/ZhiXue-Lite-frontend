@@ -62,20 +62,20 @@ const ExamsPage: React.FC = () => {
   const [fetchDialogOpen, setFetchDialogOpen] = useState(false);
 
   // 检查权限
-  const canViewSchool = user && examAPI.hasPermission(user, 2, 2); // VIEW_EXAM_LIST权限，SCHOOL级别
-  const canViewAll = user && examAPI.hasPermission(user, 2, 3); // VIEW_EXAM_LIST权限，GLOBAL级别
+  const canViewSchool = user && examAPI.hasEffectivePermission(user, 2, 2); // VIEW_EXAM_LIST权限，SCHOOL级别
+  const canViewAll = user && examAPI.hasEffectivePermission(user, 2, 3); // VIEW_EXAM_LIST权限，GLOBAL级别
   const canFetchData =
     user &&
-    (examAPI.hasPermission(user, 0, 1) || // FETCH_DATA权限，SELF级别
-      examAPI.hasPermission(user, 0, 2) || // FETCH_DATA权限，SCHOOL级别
-      examAPI.hasPermission(user, 0, 3)); // FETCH_DATA权限，GLOBAL级别
+    (examAPI.hasEffectivePermission(user, 0, 1) || // FETCH_DATA权限，SELF级别
+      examAPI.hasEffectivePermission(user, 0, 2) || // FETCH_DATA权限，SCHOOL级别
+      examAPI.hasEffectivePermission(user, 0, 3)); // FETCH_DATA权限，GLOBAL级别
 
   // 检查是否有查看考试列表的权限（基于权限系统，而非账号绑定状态）
   const hasSchoolAccess =
     user &&
-    (examAPI.hasPermission(user, 2, 1) || // VIEW_EXAM_LIST权限，SELF级别
-      examAPI.hasPermission(user, 2, 2) || // VIEW_EXAM_LIST权限，SCHOOL级别
-      examAPI.hasPermission(user, 2, 3)); // VIEW_EXAM_LIST权限，GLOBAL级别
+    (examAPI.hasEffectivePermission(user, 2, 1) || // VIEW_EXAM_LIST权限，SELF级别
+      examAPI.hasEffectivePermission(user, 2, 2) || // VIEW_EXAM_LIST权限，SCHOOL级别
+      examAPI.hasEffectivePermission(user, 2, 3)); // VIEW_EXAM_LIST权限，GLOBAL级别
 
   const loadExams = async (
     pageNum = 1,
@@ -137,7 +137,8 @@ const ExamsPage: React.FC = () => {
   const handleFetchExams = () => {
     if (
       canFetchData &&
-      (examAPI.hasPermission(user!, 0, 2) || examAPI.hasPermission(user!, 0, 3))
+      (examAPI.hasEffectivePermission(user!, 0, 2) ||
+        examAPI.hasEffectivePermission(user!, 0, 3))
     ) {
       // 有高级权限，打开高级拉取对话框
       setFetchDialogOpen(true);
