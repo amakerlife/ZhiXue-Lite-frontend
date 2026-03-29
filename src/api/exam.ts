@@ -1,6 +1,19 @@
 import api from "./client";
 import type { ApiResponse, Exam, PaginationInfo } from "@/types/api";
 
+type PermissionUser =
+  | {
+      role?: string;
+      permissions?: string;
+      is_manual_school?: boolean;
+      zhixue_info?: {
+        username?: string;
+        school_id?: string;
+      };
+    }
+  | null
+  | undefined;
+
 export interface ExamListParams {
   page?: number;
   per_page?: number;
@@ -167,7 +180,7 @@ export const examAPI = {
 
   // 权限检查辅助方法
   hasPermission: (
-    user: { role?: string; permissions?: string } | null | undefined,
+    user: PermissionUser,
     permissionType: number,
     requiredLevel: number,
   ): boolean => {
@@ -179,5 +192,26 @@ export const examAPI = {
 
     const userLevel = parseInt(user.permissions[permissionType]);
     return userLevel >= requiredLevel;
+  },
+
+  // 与后端 User.has_permission 的上下文校验保持一致
+  hasEffectivePermission: (
+    user: PermissionUser,
+    permissionType: number,
+    requiredLevel: number,
+  ): boolean => {
+    if (!examAPI.hasPermission(user, permissionType, requiredLevel)) {
+      return false;
+    }
+
+    if (requiredLevel === 1) {
+      return Boolean(user?.zhixue_info?.username || user?.is_manual_school);
+    }
+
+    if (requiredLevel === 2) {
+      return Boolean(user?.zhixue_info?.school_id);
+    }
+
+    return true;
   },
 };

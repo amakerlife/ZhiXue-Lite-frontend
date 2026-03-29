@@ -25,8 +25,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const { isOpen, isMobile, close } = useSidebar();
   const { user, isSuMode, exitSu } = useAuth();
-  const [showBanner, setShowBanner] = React.useState(true);
-  const [showEmailBanner, setShowEmailBanner] = React.useState(true);
   const [showBrowserBanner, setShowBrowserBanner] = React.useState(true);
   const [browserInfo] = React.useState(() => detectBrowser());
   const [exitingSu, setExitingSu] = React.useState(false);
@@ -43,13 +41,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     showSidebar &&
     user &&
     !user.zhixue_info?.username &&
-    !user.is_manual_school &&
-    showBanner &&
-    !isSuMode;
+    !user.is_manual_school;
 
   // 检查是否需要显示邮箱未验证提醒
-  const shouldShowEmailBanner =
-    showSidebar && user && !user.email_verified && showEmailBanner && !isSuMode;
+  const shouldShowEmailBanner = showSidebar && user && !user.email_verified;
 
   // 处理退出 su 模式
   const handleExitSu = async () => {
@@ -136,7 +131,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   onClick: () => navigate("/profile"),
                 },
               ]}
-              onClose={() => setShowEmailBanner(false)}
             />
           )}
 
@@ -153,7 +147,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   onClick: () => navigate("/profile#zhixue-binding"),
                 },
               ]}
-              onClose={() => setShowBanner(false)}
             />
           )}
 
