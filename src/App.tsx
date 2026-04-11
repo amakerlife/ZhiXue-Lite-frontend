@@ -33,7 +33,6 @@ import DataViewerPage from "@/pages/DataViewerPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import AboutPage from "@/pages/AboutPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
-import DataDeletionPage from "@/pages/DataDeletionPage";
 import DisclaimerPage from "@/pages/DisclaimerPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import { ResponsiveDialog } from "@/components/ResponsiveDialog";
@@ -142,10 +141,6 @@ const App: React.FC = () => {
                     <Route
                       path="/privacy-policy"
                       element={<PrivacyPolicyPage />}
-                    />
-                    <Route
-                      path="/data-deletion"
-                      element={<DataDeletionPage />}
                     />
                     <Route path="/disclaimer" element={<DisclaimerPage />} />
                     <Route path="*" element={<NotFoundPage />} />

@@ -84,6 +84,7 @@ const ExamDetailPage: React.FC = () => {
   // 拉取详情对话框状态
   const [fetchSchoolId, setFetchSchoolId] = useState("");
   const [forceRefresh, setForceRefresh] = useState(false);
+  const [forceCalculate, setForceCalculate] = useState(false);
   const [showHiddenScores, setShowHiddenScores] = useState(false);
 
   // 检查考试是否已保存（从成绩数据或 schools 数组判断）
@@ -187,6 +188,7 @@ const ExamDetailPage: React.FC = () => {
         examId,
         forceRefresh,
         finalSchoolId,
+        forceCalculate,
       );
       if (response.data.success) {
         const taskId = response.data.task_id;
@@ -196,6 +198,7 @@ const ExamDetailPage: React.FC = () => {
           exam_id: examId,
           task_id: taskId,
           force_refresh: forceRefresh,
+          force_calculate: forceCalculate,
           school_id: finalSchoolId,
         });
 
@@ -998,6 +1001,7 @@ const ExamDetailPage: React.FC = () => {
             // 关闭对话框时重置状态
             setFetchSchoolId("");
             setForceRefresh(false);
+            setForceCalculate(false);
           }
         }}
         title="确认获取考试详情"
@@ -1040,18 +1044,35 @@ const ExamDetailPage: React.FC = () => {
               PermissionLevel.SELF,
             ) &&
               isExamSaved(examDetail) && (
-                <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                  <Checkbox
-                    id="force-refresh"
-                    checked={forceRefresh}
-                    onCheckedChange={(checked) => setForceRefresh(!!checked)}
-                  />
-                  <label
-                    htmlFor="force-refresh"
-                    className="text-sm text-amber-800 cursor-pointer"
-                  >
-                    强制刷新（重新从智学网获取数据）
-                  </label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <Checkbox
+                      id="force-refresh"
+                      checked={forceRefresh}
+                      onCheckedChange={(checked) => setForceRefresh(!!checked)}
+                    />
+                    <label
+                      htmlFor="force-refresh"
+                      className="text-sm text-amber-800 cursor-pointer"
+                    >
+                      强制刷新（重新从智学网获取数据）
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 bg-sky-50 rounded-lg border border-sky-200">
+                    <Checkbox
+                      id="force-calculate"
+                      checked={forceCalculate}
+                      onCheckedChange={(checked) =>
+                        setForceCalculate(!!checked)
+                      }
+                    />
+                    <label
+                      htmlFor="force-calculate"
+                      className="text-sm text-sky-800 cursor-pointer"
+                    >
+                      强制计算总分（用于原始总分异常时重新计算）
+                    </label>
+                  </div>
                 </div>
               )}
           </div>

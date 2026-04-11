@@ -72,6 +72,7 @@ const DataViewerPage: React.FC = () => {
   const [fetchSuccess, setFetchSuccess] = useState<string | null>(null);
   const [fetchingTask, setFetchingTask] = useState<BackgroundTask | null>(null);
   const [forceRefresh, setForceRefresh] = useState(false);
+  const [forceCalculate, setForceCalculate] = useState(false);
 
   useEffect(() => {
     document.title = "数据查看 - ZhiXue Lite";
@@ -136,6 +137,7 @@ const DataViewerPage: React.FC = () => {
         fetchExamId.trim(),
         forceRefresh,
         finalSchoolId, // 传递学校 ID 参数
+        forceCalculate,
       );
       if (response.data.success) {
         const taskId = response.data.task_id;
@@ -143,6 +145,7 @@ const DataViewerPage: React.FC = () => {
         setFetchExamId("");
         setFetchSchoolId(""); // 清空学校 ID
         setForceRefresh(false);
+        setForceCalculate(false);
         setFetchSuccess(`考试 ${fetchExamId.trim()} 拉取任务已创建`);
 
         trackAnalyticsEvent("data_viewer_exam_fetch_started", {
@@ -151,6 +154,7 @@ const DataViewerPage: React.FC = () => {
           school_id: finalSchoolId || null, // 记录学校 ID
           task_id: taskId,
           force_refresh: forceRefresh,
+          force_calculate: forceCalculate,
         });
 
         pollTaskStatus(taskId);
@@ -207,6 +211,8 @@ const DataViewerPage: React.FC = () => {
             setFetchSuccess(null);
             setFetchExamId("");
             setFetchSchoolId(""); // 清空学校ID
+            setForceRefresh(false);
+            setForceCalculate(false);
           }}
           disabled={!!fetchingTask}
         >
@@ -273,6 +279,7 @@ const DataViewerPage: React.FC = () => {
                   onClick={() => {
                     setFetchDialog(false);
                     setForceRefresh(false);
+                    setForceCalculate(false);
                     setFetchSchoolId("");
                   }}
                   disabled={fetchLoading}
@@ -360,18 +367,33 @@ const DataViewerPage: React.FC = () => {
             PermissionType.REFETCH_EXAM_DATA,
             PermissionLevel.SELF,
           ) && (
-            <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <Checkbox
-                id="force-refresh"
-                checked={forceRefresh}
-                onCheckedChange={(checked) => setForceRefresh(!!checked)}
-              />
-              <label
-                htmlFor="force-refresh"
-                className="text-sm text-amber-800 cursor-pointer"
-              >
-                强制重新拉取（重新从智学网获取数据）
-              </label>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <Checkbox
+                  id="force-refresh"
+                  checked={forceRefresh}
+                  onCheckedChange={(checked) => setForceRefresh(!!checked)}
+                />
+                <label
+                  htmlFor="force-refresh"
+                  className="text-sm text-amber-800 cursor-pointer"
+                >
+                  强制重新拉取（重新从智学网获取数据）
+                </label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 bg-sky-50 rounded-lg border border-sky-200">
+                <Checkbox
+                  id="force-calculate"
+                  checked={forceCalculate}
+                  onCheckedChange={(checked) => setForceCalculate(!!checked)}
+                />
+                <label
+                  htmlFor="force-calculate"
+                  className="text-sm text-sky-800 cursor-pointer"
+                >
+                  强制计算总分（用于原始总分异常时重新计算）
+                </label>
+              </div>
             </div>
           )}
 

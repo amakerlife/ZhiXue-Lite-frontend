@@ -97,13 +97,19 @@ export const examAPI = {
   getExamInfo: (examId: string) =>
     api.get<ApiResponse & { exam: Exam }>(`/exam/${examId}`),
 
-  fetchExamDetails: (examId: string, forceRefresh = false, schoolId?: string) =>
+  fetchExamDetails: (
+    examId: string,
+    forceRefresh = false,
+    schoolId?: string,
+    forceCalculate = false,
+  ) =>
     api.post<ApiResponse & { task_id: string }>(
       `/exam/${examId}/fetch`,
       {},
       {
         params: {
           force_refresh: forceRefresh,
+          force_calculate: forceCalculate,
           ...(schoolId && { school_id: schoolId }),
         },
       },
