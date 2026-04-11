@@ -273,8 +273,23 @@ const AnswerSheetViewer: React.FC<AnswerSheetViewerProps> = ({
                 <SelectItem key={subject.subject_id} value={subject.subject_id}>
                   <div className="flex items-center justify-between w-full">
                     <span>{subject.subject_name}</span>
-                    <Badge variant="secondary" className="ml-2">
-                      {subject.score || "-"}/{subject.standard_score || "-"}
+                    <Badge
+                      variant="secondary"
+                      className="ml-2 flex items-center gap-1"
+                    >
+                      {subject.is_assign !== false &&
+                      subject.origin_score != null &&
+                      subject.origin_score !== "" ? (
+                        <>
+                          {subject.origin_score}
+                          <span className="text-[8px] opacity-70">原始</span>/
+                          {subject.score || "-"}
+                          <span className="text-[8px] opacity-70">赋分</span>
+                        </>
+                      ) : (
+                        subject.score || "-"
+                      )}
+                      /{subject.standard_score || "-"}
                     </Badge>
                   </div>
                 </SelectItem>

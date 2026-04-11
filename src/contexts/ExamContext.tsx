@@ -25,6 +25,8 @@ export interface ExamData {
     is_calculated?: boolean;
     school_participant_count?: number;
     class_participant_count?: number;
+    is_assign?: boolean;
+    origin_score?: string | null;
   }>;
   totalScores: Array<{
     subject_id: string;
@@ -37,6 +39,8 @@ export interface ExamData {
     is_calculated?: boolean;
     school_participant_count?: number;
     class_participant_count?: number;
+    is_assign?: boolean;
+    origin_score?: string | null;
   }>;
 }
 

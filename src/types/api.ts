@@ -93,6 +93,8 @@ export interface Score {
   is_calculated?: boolean; // 总分是否为计算得到
   school_participant_count?: number; // 新增：校排名总人数
   class_participant_count?: number; // 新增：班排名总人数
+  is_assign?: boolean;
+  origin_score?: string | null;
 }
 
 export interface ExamDetail extends Exam {

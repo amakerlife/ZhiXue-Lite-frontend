@@ -326,7 +326,9 @@ const TaskManagement: React.FC = () => {
                     <React.Fragment key={task.id}>
                       <TableRow
                         className={
-                          expandedTasks.has(task.id) ? "border-b-0 bg-muted/50" : ""
+                          expandedTasks.has(task.id)
+                            ? "border-b-0 bg-muted/50"
+                            : ""
                         }
                       >
                         <TableCell>
@@ -430,16 +432,26 @@ const TaskManagement: React.FC = () => {
                     {expandedTasks.has(task.id) && (
                       <div className="space-y-2 pt-2 border-t">
                         <div className="grid grid-cols-[70px_1fr] gap-2">
-                          <span className="text-muted-foreground">用户 ID:</span>
+                          <span className="text-muted-foreground">
+                            用户 ID:
+                          </span>
                           <span>{task.user_id}</span>
                         </div>
                         <div className="grid grid-cols-[70px_1fr] gap-2">
                           <span className="text-muted-foreground">开始:</span>
-                          <span>{task.started_at ? formatUTCIsoToLocal(task.started_at) : "-"}</span>
+                          <span>
+                            {task.started_at
+                              ? formatUTCIsoToLocal(task.started_at)
+                              : "-"}
+                          </span>
                         </div>
                         <div className="grid grid-cols-[70px_1fr] gap-2">
                           <span className="text-muted-foreground">完成:</span>
-                          <span>{task.completed_at ? formatUTCIsoToLocal(task.completed_at) : "-"}</span>
+                          <span>
+                            {task.completed_at
+                              ? formatUTCIsoToLocal(task.completed_at)
+                              : "-"}
+                          </span>
                         </div>
                         {task.timeout != null && (
                           <div className="grid grid-cols-[70px_1fr] gap-2">
@@ -456,7 +468,9 @@ const TaskManagement: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setParamDialog({ open: true, task })}
+                              onClick={() =>
+                                setParamDialog({ open: true, task })
+                              }
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               查看参数
@@ -466,7 +480,9 @@ const TaskManagement: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setResultDialog({ open: true, task })}
+                              onClick={() =>
+                                setResultDialog({ open: true, task })
+                              }
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               查看结果
@@ -494,9 +510,7 @@ const TaskManagement: React.FC = () => {
       {/* 参数查看对话框 */}
       <ResponsiveDialog
         open={paramDialog.open}
-        onOpenChange={(open) =>
-          setParamDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setParamDialog((prev) => ({ ...prev, open }))}
         title="任务参数"
         description={`任务类型: ${paramDialog.task?.task_type}`}
         showDefaultFooter={true}
@@ -520,9 +534,7 @@ const TaskManagement: React.FC = () => {
       {/* 结果查看对话框 */}
       <ResponsiveDialog
         open={resultDialog.open}
-        onOpenChange={(open) =>
-          setResultDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setResultDialog((prev) => ({ ...prev, open }))}
         title="任务结果"
         description={`任务类型: ${resultDialog.task?.task_type}`}
         showDefaultFooter={true}

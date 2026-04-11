@@ -950,22 +950,22 @@ const ProfilePage: React.FC = () => {
                     >
                       取消
                     </Button>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="is_parent"
-                          checked={connectForm.is_parent}
-                          onCheckedChange={(checked) =>
-                            setConnectForm((prev) => ({
-                              ...prev,
-                              is_parent: checked === true,
-                            }))
-                          }
-                        />
-                        <Label htmlFor="is_parent" className="cursor-pointer">
-                          家长账号
-                        </Label>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is_parent"
+                        checked={connectForm.is_parent}
+                        onCheckedChange={(checked) =>
+                          setConnectForm((prev) => ({
+                            ...prev,
+                            is_parent: checked === true,
+                          }))
+                        }
+                      />
+                      <Label htmlFor="is_parent" className="cursor-pointer">
+                        家长账号
+                      </Label>
                     </div>
+                  </div>
                 </form>
               )}
             </div>
@@ -991,7 +991,8 @@ const ProfilePage: React.FC = () => {
             </p>
           )}
           <p>
-            为了验证该智学网账号属于你，并获取必要信息，我们需要使用 AES 对称加密在数据库中加密存储你的智学网密码。我们承诺管理员不会以任何方式在任何情况下获取你的智学网明文密码。
+            为了验证该智学网账号属于你，并获取必要信息，我们需要使用 AES
+            对称加密在数据库中加密存储你的智学网密码。我们承诺管理员不会以任何方式在任何情况下获取你的智学网明文密码。
           </p>
           <p>
             我们使用世界顶尖云服务商提供的服务器，禁用 root

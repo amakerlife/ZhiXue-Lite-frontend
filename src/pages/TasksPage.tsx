@@ -197,9 +197,7 @@ const TasksPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">任务列表</h1>
-          <p className="text-muted-foreground mt-1">
-            查看和管理你的后台任务
-          </p>
+          <p className="text-muted-foreground mt-1">查看和管理你的后台任务</p>
         </div>
         <Button
           onClick={() => loadTasks(page, statusFilter)}

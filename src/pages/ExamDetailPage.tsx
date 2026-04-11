@@ -396,9 +396,6 @@ const ExamDetailPage: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-bold wrap-break-word">
               {examDetail.name}
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              考试详情和成绩信息
-            </p>
           </div>
         </div>
 
@@ -796,10 +793,35 @@ const ExamDetailPage: React.FC = () => {
                               {score.subject_name}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-baseline gap-1">
-                                <span className="font-bold text-lg text-primary">
-                                  {score.score || "-"}
-                                </span>
+                              <div className="flex items-baseline gap-1 flex-wrap">
+                                {score.is_assign !== false &&
+                                score.origin_score != null &&
+                                score.origin_score !== "" ? (
+                                  <>
+                                    <span className="font-bold text-lg text-primary flex items-center gap-1">
+                                      {score.origin_score}
+                                      <Badge
+                                        variant="outline"
+                                        className="px-1 py-0 h-4 text-[10px] font-normal"
+                                      >
+                                        原始
+                                      </Badge>
+                                    </span>
+                                    <span className="font-bold text-lg text-primary flex items-center gap-1">
+                                      / {score.score || "-"}
+                                      <Badge
+                                        variant="outline"
+                                        className="px-1 py-0 h-4 text-[10px] font-normal"
+                                      >
+                                        赋分
+                                      </Badge>
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="font-bold text-lg text-primary">
+                                    {score.score || "-"}
+                                  </span>
+                                )}
                                 <span className="text-muted-foreground text-sm">
                                   / {score.standard_score || "-"}
                                 </span>
@@ -850,10 +872,35 @@ const ExamDetailPage: React.FC = () => {
                               {score.subject_name}
                             </h3>
                             <div className="text-right">
-                              <div className="flex items-baseline justify-end space-x-1">
-                                <span className="text-2xl font-bold text-primary">
-                                  {score.score || "-"}
-                                </span>
+                              <div className="flex items-baseline justify-end space-x-1 flex-wrap">
+                                {score.is_assign !== false &&
+                                score.origin_score != null &&
+                                score.origin_score !== "" ? (
+                                  <>
+                                    <span className="text-2xl font-bold text-primary flex items-center gap-1">
+                                      {score.origin_score}
+                                      <Badge
+                                        variant="outline"
+                                        className="px-1 py-0 h-4 text-[10px] font-normal"
+                                      >
+                                        原始
+                                      </Badge>
+                                    </span>
+                                    <span className="text-2xl font-bold text-primary flex items-center gap-1">
+                                      / {score.score || "-"}
+                                      <Badge
+                                        variant="outline"
+                                        className="px-1 py-0 h-4 text-[10px] font-normal"
+                                      >
+                                        赋分
+                                      </Badge>
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-2xl font-bold text-primary">
+                                    {score.score || "-"}
+                                  </span>
+                                )}
                                 <span className="text-sm text-muted-foreground">
                                   / {score.standard_score || "-"}
                                 </span>
