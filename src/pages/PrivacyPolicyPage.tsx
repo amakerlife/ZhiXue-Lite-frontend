@@ -263,7 +263,7 @@ const PrivacyPolicyPage: React.FC = () => {
           如果您对本隐私政策有任何疑问、意见或建议，请通过以下方式与我们联系：
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          zxl@makerlife.top
+          zxl-support@makerlife.top
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
           我们将尽快审核所涉问题，并将在验证您的用户身份后的十五个工作日内予以回复。

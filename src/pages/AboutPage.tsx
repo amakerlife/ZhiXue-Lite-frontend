@@ -28,7 +28,7 @@ const AboutPage: React.FC = () => {
           如有任何问题或建议，请通过以下任一方式与我们联系：
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-          发送邮件至 zxl@makerlife.top
+          发送邮件至 zxl-support@makerlife.top
         </p>
         <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
           或

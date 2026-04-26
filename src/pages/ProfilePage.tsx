@@ -1052,7 +1052,7 @@ const ProfilePage: React.FC = () => {
             目前，你可能只能获取考试列表，若想查看考试详情，则需要提供至少具有查看相应考试校级报告权限的教师账号。
           </p>
           <p>
-            你可以通过邮箱 zxl@makerlife.top 联系管理员申请支持或获取详细信息。
+            你可以通过邮箱 zxl-support@makerlife.top 联系管理员申请支持或获取详细信息。
           </p>
         </div>
       </ResponsiveDialog>
